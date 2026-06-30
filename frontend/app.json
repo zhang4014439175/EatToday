@@ -1,0 +1,40 @@
+{
+  "pages": [
+    "pages/home/home",
+    "pages/food/food",
+    "pages/date/date",
+    "pages/profile/profile"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#FFE4E1",
+    "navigationBarTitleText": "EatToday ❤ 我们的日常",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#FFF0F5"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#FF69B4",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/home/home",
+        "text": "今日概览"
+      },
+      {
+        "pagePath": "pages/food/food",
+        "text": "吃什么"
+      },
+      {
+        "pagePath": "pages/date/date",
+        "text": "约会行程"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "关于我们"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json"
+}

@@ -1,0 +1,7 @@
+{
+  "desc": "关于页面索引规则，详情可参考官方文档 https://developers.weixin.qq.com/miniprogram/dev/framework/sitemap.html",
+  "rules": [{
+    "action": "allow",
+    "page": "*"
+  }]
+}

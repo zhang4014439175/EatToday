@@ -1,0 +1,134 @@
+.love-header {
+  background: linear-gradient(135deg, #FFF0F5, #FFE4E1);
+  text-align: center;
+  padding: 50rpx 30rpx;
+  border: 1rpx solid rgba(255, 105, 180, 0.2);
+  margin-top: 10rpx;
+}
+
+.heart-icon {
+  font-size: 60rpx;
+  color: #FF69B4;
+  animation: heartbeat 1.8s infinite ease-in-out;
+  display: inline-block;
+}
+
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  14% { transform: scale(1.18); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.18); }
+  70% { transform: scale(1); }
+}
+
+.love-days-title {
+  font-size: 26rpx;
+  color: #7A7A7A;
+  margin-top: 15rpx;
+  letter-spacing: 2rpx;
+}
+
+.love-days-num {
+  font-size: 88rpx;
+  font-weight: 800;
+  color: #FF1493;
+  margin: 15rpx 0;
+  text-shadow: 0 4rpx 10rpx rgba(255, 20, 147, 0.1);
+}
+
+.days-unit {
+  font-size: 32rpx;
+  font-weight: normal;
+  color: #888888;
+}
+
+.love-partner-info {
+  font-size: 26rpx;
+  color: #555555;
+  background-color: rgba(255, 255, 255, 0.5);
+  display: inline-block;
+  padding: 8rpx 30rpx;
+  border-radius: 30rpx;
+  margin-top: 10rpx;
+}
+
+.partner-name {
+  font-weight: bold;
+  color: #EE6AA7;
+}
+
+.heart-connector {
+  color: #FF69B4;
+  margin: 0 15rpx;
+  display: inline-block;
+  animation: pulse 1s infinite alternate;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+/* 今日看板卡片 */
+.today-card {
+  padding: 35rpx 30rpx;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.today-card:active {
+  transform: translateY(2rpx);
+  box-shadow: 0 4rpx 10rpx rgba(255, 105, 180, 0.04);
+}
+
+.today-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.today-label {
+  font-size: 24rpx;
+  color: #999999;
+  margin-bottom: 10rpx;
+}
+
+.today-value {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #444444;
+}
+
+.today-arrow {
+  color: #FF69B4;
+  font-size: 34rpx;
+  opacity: 0.6;
+}
+
+/* 纪念日快捷卡片 */
+.anniversary-shortcut {
+  background-color: #FFF9FA;
+  border-left: 8rpx solid #FF69B4;
+  padding: 24rpx 30rpx;
+}
+
+.anniversary-label {
+  font-size: 24rpx;
+  color: #FF69B4;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.anniversary-content {
+  font-size: 28rpx;
+  color: #555555;
+}
+
+.anniversary-name {
+  color: #666666;
+}
+
+.anniversary-countdown {
+  font-size: 38rpx;
+  font-weight: bold;
+  color: #FF1493;
+  margin: 0 6rpx;
+}

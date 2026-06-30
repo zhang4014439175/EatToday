@@ -1,0 +1,35 @@
+{
+  "description": "EatToday 情侣专属规划小程序客户端",
+  "packOptions": {
+    "ignore": []
+  },
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "newFeature": true,
+    "coverView": true,
+    "nodeModules": true,
+    "showShadowRootInWxmlPanel": true,
+    "scopeDataAudit": false,
+    "checkInvalidKey": true,
+    "checkSiteMap": true,
+    "uploadWithSourceMap": true,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    },
+    "useCompilerPlugins": [],
+    "minifyWXML": true,
+    "minifyWXSS": true,
+    "useStaticResourceService": true
+  },
+  "compileType": "miniprogram",
+  "libVersion": "latest",
+  "appid": "touristappid",
+  "projectname": "EatToday",
+  "condition": {}
+}

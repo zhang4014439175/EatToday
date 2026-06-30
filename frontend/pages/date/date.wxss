@@ -1,0 +1,239 @@
+.proposal-form-card {
+  border-top: 8rpx solid #FF69B4;
+}
+
+.toggle-arrow {
+  font-size: 24rpx;
+  color: #FF69B4;
+  font-weight: normal;
+}
+
+.proposal-form {
+  padding-top: 20rpx;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-20rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.form-group {
+  margin-bottom: 24rpx;
+}
+
+.half-group {
+  width: 48%;
+}
+
+.form-label {
+  font-size: 26rpx;
+  font-weight: bold;
+  color: #666666;
+  margin-bottom: 12rpx;
+  display: block;
+}
+
+.picker-box {
+  background-color: #FFF9FA;
+  border: 2rpx solid #FFE4E1;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+  color: #333333;
+  text-align: center;
+}
+
+/* 约会列表 */
+.date-item-card {
+  padding: 30rpx;
+}
+
+.date-header {
+  border-bottom: 2rpx dashed #FFE4E1;
+  padding-bottom: 15rpx;
+  margin-bottom: 20rpx;
+}
+
+.date-badge {
+  font-size: 22rpx;
+  font-weight: bold;
+  padding: 6rpx 18rpx;
+  border-radius: 20rpx;
+}
+
+/* 状态色（莫兰迪色调） */
+.badge-pending {
+  background-color: #FFF3CD;
+  color: #856404;
+}
+
+.badge-accepted {
+  background-color: #D4EDDA;
+  color: #155724;
+}
+
+.badge-rejected {
+  background-color: #E2E3E5;
+  color: #383D41;
+}
+
+.badge-revision_requested {
+  background-color: #CCE5FF;
+  color: #004085;
+}
+
+.date-time-tag {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.date-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 15rpx;
+}
+
+.date-detail {
+  font-size: 26rpx;
+  color: #666666;
+  margin-bottom: 10rpx;
+}
+
+/* 修改建议框 */
+.revision-note-box {
+  background-color: #F8F9FA;
+  border-left: 6rpx solid #004085;
+  padding: 16rpx 20rpx;
+  border-radius: 8rpx;
+  margin-top: 15rpx;
+  font-size: 26rpx;
+}
+
+.revision-label {
+  font-weight: bold;
+  color: #004085;
+}
+
+.revision-content {
+  color: #555555;
+}
+
+/* 审批操作按钮栏 */
+.action-bar {
+  margin-top: 24rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid #FFF5F7;
+}
+
+.action-btn {
+  font-size: 24rpx;
+  font-weight: bold;
+  padding: 14rpx 0;
+  border-radius: 30rpx;
+  text-align: center;
+  flex: 1;
+  margin: 0 10rpx;
+  line-height: normal;
+}
+
+.accept-btn {
+  background-color: #D4EDDA;
+  color: #155724;
+  border: 1rpx solid #C3E6CB;
+}
+
+.revise-btn {
+  background-color: #CCE5FF;
+  color: #004085;
+  border: 1rpx solid #B8DAFF;
+}
+
+.reject-btn {
+  background-color: #F8D7DA;
+  color: #721C24;
+  border: 1rpx solid #F5C6CB;
+}
+
+.cancel-btn {
+  background-color: #F8F9FA;
+  color: #666666;
+  border: 1rpx solid #E2E3E5;
+  max-width: 150rpx;
+}
+
+/* 模态弹窗 */
+.dialog-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40rpx;
+}
+
+.dialog-box {
+  width: 100%;
+  box-sizing: border-box;
+  animation: popIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+@keyframes popIn {
+  from { transform: scale(0.85); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.dialog-textarea {
+  height: 200rpx;
+  margin-top: 10rpx;
+  margin-bottom: 30rpx;
+}
+
+/* 约会愿望清单 */
+.wishlist-card {
+  border-top: 8rpx solid #E066FF;
+}
+
+.add-wish-box {
+  margin-bottom: 24rpx;
+}
+
+.wish-list {
+  max-height: 400rpx;
+  overflow-y: auto;
+}
+
+.wish-item {
+  padding: 22rpx 10rpx;
+  border-bottom: 1rpx solid #FFF0F5;
+  font-size: 28rpx;
+}
+
+.wish-item-name {
+  color: #555555;
+  font-weight: 500;
+}
+
+.wish-to-proposal {
+  color: #FF69B4;
+  font-size: 24rpx;
+  font-weight: bold;
+  border: 1rpx solid #FF69B4;
+  border-radius: 20rpx;
+  padding: 4rpx 16rpx;
+}
+
+.wish-to-proposal:active {
+  background-color: #FFE4E1;
+}
+
+.flex-1 {
+  flex: 1;
+}

@@ -1,0 +1,46 @@
+<view class="container">
+  <!-- 顶部情侣恋爱天数计时器 -->
+  <view class="love-header card">
+    <view class="heart-icon">❤</view>
+    <view class="love-days-title">{{isPaired ? '我们在一起' : '开启恋爱记录'}}</view>
+    <view class="love-days-num">{{loveDays}} <text class="days-unit">天</text></view>
+    <view class="love-partner-info" wx:if="{{isPaired}}">
+      <text class="partner-name">{{userInfo.nickname}}</text>
+      <text class="heart-connector">⚡</text>
+      <text class="partner-name">{{partnerInfo.nickname || '我的另一半'}}</text>
+    </view>
+    <view class="love-partner-info text-muted" wx:else>
+      绑定另一半，即可同步解锁恋爱计时与双人功能
+    </view>
+  </view>
+
+  <!-- 今日提醒看板 -->
+  <view class="card-title">今日看板</view>
+
+  <!-- 看板 1: 今天吃什么 -->
+  <view class="card flex-row flex-between today-card" bindtap="goToFood">
+    <view class="today-left">
+      <view class="today-label">🍕 今天吃什么</view>
+      <view class="today-value">{{todayFood || '还在纠结？点击抽个签吧！'}}</view>
+    </view>
+    <view class="today-arrow">➔</view>
+  </view>
+
+  <!-- 看板 2: 去哪里见面 -->
+  <view class="card flex-row flex-between today-card" bindtap="goToDate">
+    <view class="today-left">
+      <view class="today-label">📍 去哪里见面</view>
+      <view class="today-value">{{todayDate || '今天暂无确认的约会计划'}}</view>
+    </view>
+    <view class="today-arrow">➔</view>
+  </view>
+
+  <!-- 纪念日倒计时快捷入口 -->
+  <view class="card anniversary-shortcut" wx:if="{{nearestAnniversary}}">
+    <view class="anniversary-label">📅 最近纪念日</view>
+    <view class="anniversary-content">
+      <text class="anniversary-name">距离「{{nearestAnniversary.title}}」还有</text>
+      <text class="anniversary-countdown">{{nearestAnniversary.daysLeft}}</text> 天
+    </view>
+  </view>
+</view>

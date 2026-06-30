@@ -1,0 +1,257 @@
+.tab-container {
+  padding: 10rpx;
+  background-color: rgba(255, 105, 180, 0.04);
+  border: 1rpx solid rgba(255, 105, 180, 0.1);
+  border-radius: 40rpx;
+  margin-bottom: 30rpx;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  font-size: 28rpx;
+  padding: 18rpx 0;
+  border-radius: 35rpx;
+  color: #666666;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.tab-active {
+  background: linear-gradient(135deg, #FF69B4, #FFA07A);
+  color: #ffffff;
+  font-weight: bold;
+  box-shadow: 0 4rpx 10rpx rgba(255, 105, 180, 0.2);
+}
+
+.block-hint {
+  display: block;
+  margin-top: 15rpx;
+  font-size: 24rpx;
+  line-height: 1.5;
+  padding: 0 20rpx;
+}
+
+/* 轮盘展示区域 */
+.wheel-card {
+  padding: 50rpx 30rpx;
+}
+
+.wheel-outer {
+  position: relative;
+  width: 460rpx;
+  height: 460rpx;
+  margin: 40rpx auto 50rpx auto;
+  border-radius: 50%;
+  border: 12rpx solid #FFE4E1;
+  box-shadow: 0 10rpx 24rpx rgba(255, 105, 180, 0.15);
+  background-color: #ffffff;
+  box-sizing: border-box;
+}
+
+.wheel-pointer {
+  position: absolute;
+  top: -24rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  font-size: 44rpx;
+  color: #FF1493;
+  text-shadow: 0 4rpx 6rpx rgba(0, 0, 0, 0.1);
+}
+
+.wheel-plate {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  position: relative;
+  overflow: hidden;
+  background-color: #FFF0F5;
+  transition: transform 3.5s cubic-bezier(0.1, 0.8, 0.1, 1);
+  box-sizing: border-box;
+}
+
+.spinning {
+  /* 旋转物理动画将在 js 中以旋转角度改变完成，这儿只保留基准过渡 */
+}
+
+.wheel-sector {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 50%;
+  height: 100%;
+  transform-origin: left center;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 40rpx;
+  box-sizing: border-box;
+}
+
+.sector-text {
+  font-size: 26rpx;
+  color: #E066FF;
+  font-weight: bold;
+  writing-mode: vertical-rl;
+  text-align: center;
+  max-height: 150rpx;
+  overflow: hidden;
+}
+
+.empty-pool-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #999999;
+  font-size: 28rpx;
+}
+
+/* 结果卡片 */
+.result-card {
+  background: linear-gradient(135deg, #FFF9FA, #FFF0F5);
+  border: 2rpx dashed #FF69B4;
+  animation: bounceIn 0.5s ease-out;
+}
+
+@keyframes bounceIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.result-title {
+  font-size: 28rpx;
+  color: #FF69B4;
+  font-weight: bold;
+}
+
+.result-name {
+  font-size: 56rpx;
+  font-weight: bold;
+  color: #FF1493;
+  margin: 24rpx 0;
+  text-shadow: 0 2rpx 8rpx rgba(255, 20, 147, 0.08);
+}
+
+/* 投票模块样式 */
+.session-status {
+  margin-bottom: 30rpx;
+}
+
+.status-badge {
+  display: inline-block;
+  background-color: #E066FF;
+  color: #ffffff;
+  font-size: 24rpx;
+  font-weight: bold;
+  padding: 8rpx 28rpx;
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 10rpx rgba(224, 102, 255, 0.2);
+}
+
+.vote-instruction {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 20rpx;
+  line-height: 1.5;
+}
+
+.food-checkbox-list {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 30rpx;
+}
+
+.food-checkbox-item {
+  padding: 24rpx 20rpx;
+  border: 2rpx solid #FFE4E1;
+  border-radius: 16rpx;
+  margin-bottom: 16rpx;
+  font-size: 28rpx;
+  transition: all 0.2s ease;
+  background-color: #FFF9FA;
+}
+
+.food-checkbox-item checkbox {
+  transform: scale(0.9);
+  margin-right: 15rpx;
+}
+
+.checkbox-checked {
+  border-color: #FF69B4;
+  background-color: rgba(255, 105, 180, 0.05);
+  font-weight: bold;
+  color: #FF69B4;
+}
+
+.food-checkbox-name {
+  flex: 1;
+}
+
+.food-tag {
+  background-color: #FFE4E1;
+  color: #FF69B4;
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  font-weight: normal;
+}
+
+/* 美食库管理区 */
+.add-food-box {
+  margin-bottom: 30rpx;
+}
+
+.add-input {
+  flex: 1;
+  margin-bottom: 0;
+  margin-right: 20rpx;
+  height: 80rpx;
+}
+
+.btn-add {
+  background: linear-gradient(135deg, #E066FF, #FF69B4);
+  color: #ffffff;
+  font-size: 28rpx;
+  font-weight: bold;
+  height: 80rpx;
+  line-height: 80rpx;
+  padding: 0 40rpx;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 10rpx rgba(255, 105, 180, 0.2);
+}
+
+.food-list {
+  max-height: 400rpx;
+  overflow-y: auto;
+}
+
+.food-item {
+  padding: 20rpx 10rpx;
+  border-bottom: 1rpx solid #FFE4E1;
+  font-size: 28rpx;
+  color: #555555;
+}
+
+.food-item-name {
+  flex: 1;
+}
+
+.food-delete-btn {
+  color: #cccccc;
+  font-size: 28rpx;
+  padding: 10rpx;
+  cursor: pointer;
+}
+
+.food-delete-btn:active {
+  color: #FF69B4;
+}
+
+.empty-list {
+  padding: 40rpx 0;
+  color: #999999;
+  font-size: 26rpx;
+  text-align: center;
+}

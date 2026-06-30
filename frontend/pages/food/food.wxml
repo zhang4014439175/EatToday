@@ -1,0 +1,116 @@
+<view class="container">
+  <!-- 模式切换 Tabs -->
+  <view class="tab-container card flex-row">
+    <view class="tab-item {{activeTab === 'wheel' ? 'tab-active' : ''}}" bindtap="switchTab" data-tab="wheel">🎡 随机轮盘</view>
+    <view class="tab-item {{activeTab === 'vote' ? 'tab-active' : ''}}" bindtap="switchTab" data-tab="vote">🎁 双人盲盒</view>
+  </view>
+
+  <!-- 1. 随机轮盘模块 -->
+  <view wx:if="{{activeTab === 'wheel'}}" class="tab-content">
+    <view class="card wheel-card text-center">
+      <view class="card-title">治愈选择困难症</view>
+      
+      <!-- 大转盘展示区域 -->
+      <view class="wheel-outer">
+        <view class="wheel-pointer">▼</view>
+        <view class="wheel-plate {{isSpinning ? 'spinning' : ''}}" style="transform: rotate({{rotationAngle}}deg)">
+          <!-- 扇区文字，动态生成 -->
+          <view class="wheel-sector" wx:for="{{foodList}}" wx:key="id" style="transform: rotate({{index * (360 / foodList.length)}}deg)">
+            <text class="sector-text">{{item.name}}</text>
+          </view>
+          <!-- 空池子提示 -->
+          <view class="empty-pool-text" wx:if="{{foodList.length === 0}}">请先添加美食</view>
+        </view>
+      </view>
+
+      <button class="btn btn-primary" hover-class="btn-primary-hover" bindtap="spinWheel" disabled="{{foodList.length < 2 || isSpinning}}">
+        {{isSpinning ? '正在为您挑选...' : '开始抽取'}}
+      </button>
+      <text class="text-muted block-hint" wx:if="{{foodList.length < 2}}">需要在下方自定义食物池中添加至少 2 种食物哦</text>
+    </view>
+
+    <!-- 抽取结果弹窗/卡片 -->
+    <view class="card result-card text-center" wx:if="{{wheelResult}}">
+      <view class="result-title">🎉 抽取成功！今天就吃：</view>
+      <view class="result-name">{{wheelResult.name}}</view>
+      <button class="btn btn-secondary" hover-class="btn-secondary-hover" bindtap="lockWheelResult">锁定为今日午/晚餐</button>
+    </view>
+  </view>
+
+  <!-- 2. 双人盲盒投票模块 -->
+  <view wx:if="{{activeTab === 'vote'}}" class="tab-content">
+    <!-- 未登录/未配对状态 -->
+    <view class="card text-center" wx:if="{{!isPaired}}">
+      <view class="card-title">双人盲盒模式</view>
+      <text class="text-muted block-hint">必须先进行情侣配对，才能使用双人投票功能</text>
+      <button class="btn btn-secondary" hover-class="btn-secondary-hover" bindtap="goToProfile">去配对</button>
+    </view>
+
+    <!-- 已配对状态 -->
+    <view wx:else>
+      <!-- 无活跃的投票会话 -->
+      <view class="card text-center" wx:if="{{!activeSession}}">
+        <view class="card-title">开始双人选菜</view>
+        <text class="text-muted block-hint">发起投票后，两人各自在自己的手机上悄悄勾选 3 个想吃的美食。若有重合直接锁定，无重合则由系统在你们挑选的菜品里随机选择！</text>
+        <button class="btn btn-primary" hover-class="btn-primary-hover" bindtap="createVoteSession">发起今日选菜投票</button>
+      </view>
+
+      <!-- 活跃投票会话进行中 -->
+      <view class="card" wx:else>
+        <view class="card-title">心有灵犀投票中</view>
+        <view class="session-status text-center">
+          <view class="status-badge">{{sessionStatusText}}</view>
+        </view>
+
+        <!-- 选菜列表（勾选框，最多选3个） -->
+        <view class="vote-instruction">请勾选 3 个您今天想吃的菜品 (已选: {{selectedVoteIds.length}}/3)：</view>
+        <checkbox-group bindchange="onVoteCheckboxChange" class="food-checkbox-list">
+          <label class="food-checkbox-item flex-row {{item.checked ? 'checkbox-checked' : ''}}" wx:for="{{voteOptions}}" wx:key="id">
+            <checkbox value="{{item.id}}" checked="{{item.checked}}" disabled="{{!canVote || (selectedVoteIds.length >= 3 && !item.checked)}}" />
+            <text class="food-checkbox-name">{{item.name}}</text>
+            <view class="food-tag" wx:if="{{item.tags}}">{{item.tags}}</view>
+          </label>
+        </checkbox-group>
+
+        <!-- 提交投票 -->
+        <button class="btn btn-primary" hover-class="btn-primary-hover" bindtap="submitVotes" wx:if="{{canVote}}" disabled="{{selectedVoteIds.length === 0}}">
+          确认并悄悄提交
+        </button>
+
+        <view class="text-muted text-center" wx:else>
+          您已提交选择，请静待伴侣做出决定...
+        </view>
+      </view>
+
+      <!-- 历史锁定的结果 -->
+      <view class="card result-card text-center" wx:if="{{activeSession.status === 'locked'}}">
+        <view class="result-title">🎯 最终锁定！我们今天吃：</view>
+        <view class="result-name">{{activeSession.selected_food_name}}</view>
+        <view class="text-muted">匹配原因: {{activeSession.result_reason === 'intersection' ? '💞 心有灵犀，选项重合！' : '🎲 选项无重合，系统随机抽取'}}</view>
+        <button class="btn btn-secondary" hover-class="btn-secondary-hover" bindtap="createVoteSession" style="margin-top:20rpx;">重新发起投票</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 3. 自定义食物池模块 (常驻下方，管理两口子的菜谱) -->
+  <view class="card food-pool-card">
+    <view class="card-title">我们的美食库 ({{foodList.length}})</view>
+    
+    <!-- 添加输入栏 -->
+    <view class="flex-row add-food-box">
+      <input class="form-input add-input" placeholder="输入你想吃的美食或菜名" value="{{newFoodName}}" bindinput="onInputFoodName" />
+      <button class="btn-add" bindtap="addFood">添加</button>
+    </view>
+
+    <!-- 美食列表展示 -->
+    <view class="food-list">
+      <view class="food-item flex-row flex-between" wx:for="{{foodList}}" wx:key="id">
+        <text class="food-item-name">{{item.name}}</text>
+        <view class="food-delete-btn" bindtap="deleteFood" data-id="{{item.id}}">✕</view>
+      </view>
+      <view class="empty-list" wx:if="{{foodList.length === 0}}">
+        目前库里没有美食，快在上方添加第一个吧！
+      </view>
+    </view>
+  </view>
+</view>

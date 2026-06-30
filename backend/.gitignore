@@ -1,0 +1,19 @@
+# 依赖项
+node_modules/
+
+# 本地数据库目录 (包含 SQLite 数据文件)
+data/
+
+# 环境变量及敏感信息
+.env
+.env.production
+.env.local
+
+# 日志文件
+*.log
+logs/
+
+# 系统及编辑器垃圾文件
+.DS_Store
+.vscode/
+.idea/

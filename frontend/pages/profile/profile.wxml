@@ -1,0 +1,110 @@
+<view class="container">
+  <!-- 1. 用户头像与基础登录块 -->
+  <view class="card profile-header flex-row">
+    <image class="avatar" src="{{userInfo.avatar_url || '/images/default_avatar.png'}}" mode="aspectFill" />
+    <view class="user-meta" wx:if="{{isLogin}}">
+      <view class="nickname">{{userInfo.nickname}}</view>
+      <view class="user-id">配对码：{{userInfo.pair_code}} <text class="copy-link" bindtap="copyPairCode">复制</text></view>
+    </view>
+    <view class="user-meta" wx:else>
+      <view class="nickname">欢迎加入 EatToday</view>
+      <button class="login-mini-btn" bindtap="handleLogin">一键登录</button>
+    </view>
+  </view>
+
+  <!-- 2. 情侣绑定关系卡片 -->
+  <view class="card pairing-card text-center" wx:if="{{isLogin}}">
+    <view class="card-title">情侣牵线</view>
+    
+    <!-- 场景 A: 已配对 -->
+    <view class="paired-view flex-row" wx:if="{{isPaired}}">
+      <view class="couple-avatar-box">
+        <image class="avatar-lg" src="{{userInfo.avatar_url || '/images/default_avatar.png'}}" mode="aspectFill" />
+        <text class="avatar-name">我</text>
+      </view>
+      <view class="couple-heart">💗</view>
+      <view class="couple-avatar-box">
+        <image class="avatar-lg" src="{{partnerInfo.avatar_url || '/images/default_avatar.png'}}" mode="aspectFill" />
+        <text class="avatar-name">{{partnerInfo.nickname || '另一半'}}</text>
+      </view>
+    </view>
+    
+    <!-- 已配对的解绑选项 -->
+    <view class="unpair-box" wx:if="{{isPaired}}">
+      <view class="text-muted" style="margin-bottom: 20rpx;">已和「{{partnerInfo.nickname}}」成功配对！</view>
+      <text class="unpair-link" bindtap="handleUnpair">解除绑定</text>
+    </view>
+
+    <!-- 场景 B: 未配对 -->
+    <view class="unpaired-view" wx:else>
+      <view class="text-muted hint-text">将您的配对码发送给伴侣，或者在下方输入伴侣的配对码来完成牵线绑定：</view>
+      <view class="flex-row pair-input-box">
+        <input class="form-input pair-input" placeholder="输入另一半的6位配对码" value="{{inputPairCode}}" bindinput="onInputPairCode" />
+        <button class="btn-pair-submit" bindtap="handlePair">牵线</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 3. 纪念日管理卡片 -->
+  <view class="card anniversary-card" wx:if="{{isLogin}}">
+    <view class="card-title flex-row flex-between">
+      <text>📅 重要日子管理</text>
+      <text class="add-anniversary-btn" bindtap="showAddAnniversaryForm">{{showAddAnniversary ? '取消' : '+ 新增'}}</text>
+    </view>
+
+    <!-- 添加纪念日表单 -->
+    <view class="anniversary-form" wx:if="{{showAddAnniversary}}">
+      <input class="form-input" placeholder="纪念日名称 (例如：恋爱纪念日/宝贝生日)" value="{{newAnniversary.title}}" bindinput="onInputAnnTitle" />
+      
+      <picker mode="date" value="{{newAnniversary.date}}" bindchange="onAnnDateChange">
+        <view class="picker-box" style="margin-bottom: 20rpx;">{{newAnniversary.date || '选择日期'}}</view>
+      </picker>
+
+      <view class="flex-row flex-between form-switch-group">
+        <text class="switch-label">是否每年重复</text>
+        <switch checked="{{newAnniversary.is_yearly}}" color="#FF69B4" bindchange="onAnnYearlyChange" />
+      </view>
+
+      <button class="btn btn-primary" hover-class="btn-primary-hover" bindtap="submitAnniversary">保存纪念日</button>
+    </view>
+
+    <!-- 纪念日列表 -->
+    <view class="anniversary-list">
+      <view class="anniversary-item flex-row flex-between" wx:for="{{anniversaries}}" wx:key="id">
+        <view class="ann-info">
+          <view class="ann-title">🎉 {{item.title}}</view>
+          <view class="ann-date text-muted">{{item.date}} {{item.is_yearly ? '(每年重复)' : '(单次)'}}</view>
+        </view>
+        <view class="food-delete-btn" bindtap="deleteAnniversary" data-id="{{item.id}}">✕</view>
+      </view>
+      <view class="empty-list" wx:if="{{anniversaries.length === 0}}">
+        还没有添加纪念日，点击右上角加一个吧！
+      </view>
+    </view>
+  </view>
+
+  <!-- 4. 其它应用设置 -->
+  <view class="card settings-card" wx:if="{{isLogin}}">
+    <view class="card-title">⚙ 系统设置</view>
+    
+    <view class="setting-item flex-row flex-between">
+      <view class="setting-info">
+        <view class="setting-name">约会变动提醒推送</view>
+        <view class="text-muted">当伴侣修改或接受约会时发送通知</view>
+      </view>
+      <switch checked="{{settings.dateNotify}}" color="#FF69B4" bindchange="toggleDateNotify" />
+    </view>
+
+    <view class="setting-item flex-row flex-between" style="border-top: 1rpx solid #FFF0F5; margin-top:20rpx; padding-top:20rpx;">
+      <view class="setting-info">
+        <view class="setting-name">今天吃什么提醒</view>
+        <view class="text-muted">每天饭点前提醒共同投票决定吃什么</view>
+      </view>
+      <switch checked="{{settings.foodNotify}}" color="#FF69B4" bindchange="toggleFoodNotify" />
+    </view>
+
+    <button class="btn btn-secondary logout-btn" hover-class="btn-secondary-hover" bindtap="handleLogout">退出登录</button>
+  </view>
+
+  <!-- 5. 占位默认头像图生成说明（无需展示给用户） -->
+</view>
