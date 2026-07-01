@@ -20,18 +20,22 @@
     </view>
     
     <!-- 空间基础详情 -->
-    <view class="current-space-info">
-      <view class="space-name-row flex-row">
-        <text class="space-emoji">🏠</text>
-        <text class="space-name">{{currentSpace.name || '默认空间'}}</text>
+    <view class="current-space-info" bindtap="onTapSpaceSwitcher" style="cursor: pointer;">
+      <view class="space-name-row flex-row" style="display: flex; align-items: center; justify-content: space-between;">
+        <view class="flex-row" style="display: flex; align-items: center;">
+          <text class="space-emoji">🏠</text>
+          <text class="space-name">{{currentSpace.name || '默认空间'}}</text>
+          <text class="quick-arrow" style="margin-left: 10rpx; font-size: 20rpx; color: #868095;">▼</text>
+        </view>
+        <text class="switch-tip-text" style="font-size: 22rpx; color: #7C69C9; font-weight: bold; background: #F3F0FA; padding: 4rpx 14rpx; border-radius: 6rpx;">切换</text>
       </view>
-      <view class="space-code-row flex-row" wx:if="{{currentSpace.type !== 'solo'}}">
+      <view class="space-code-row flex-row" wx:if="{{currentSpace.type !== 'solo'}}" catchtap="dummy">
         <text class="space-code-label">邀请码：</text>
         <text class="space-code">{{currentSpace.code}}</text>
         <text class="copy-link" bindtap="copySpaceCode">复制</text>
       </view>
     </view>
-
+ 
     <!-- 空间成员列表 -->
     <view class="member-section" wx:if="{{spaceMembers.length > 0}}">
       <view class="section-title">空间成员 ({{spaceMembers.length}}人)</view>
@@ -40,23 +44,6 @@
           <image class="member-avatar" src="{{item.avatar_url || '/images/default_avatar.png'}}" mode="aspectFill" />
           <view class="member-role {{item.role === 'admin' ? 'admin' : ''}}">{{item.role === 'admin' ? '管理员' : '成员'}}</view>
           <view class="member-name">{{item.nickname || '用户'}}</view>
-        </view>
-      </view>
-    </view>
-
-    <!-- 切换其它空间列表 -->
-    <view class="switch-section" wx:if="{{spaces.length > 1}}">
-      <view class="section-title">切换其它空间</view>
-      <view class="spaces-list">
-        <view class="space-item flex-row flex-between {{item.id === currentSpace.id ? 'active' : ''}}" wx:for="{{spaces}}" wx:key="id" bindtap="handleSwitchSpace" data-id="{{item.id}}">
-          <view class="space-item-left flex-row">
-            <text class="space-icon">{{item.type === 'solo' ? '👤' : '👥'}}</text>
-            <text class="space-item-name">{{item.name}}</text>
-          </view>
-          <view class="space-item-right flex-row">
-            <text class="member-count-badge">{{item.member_count}}人</text>
-            <text class="active-dot" wx:if="{{item.id === currentSpace.id}}"></text>
-          </view>
         </view>
       </view>
     </view>

@@ -1,6 +1,6 @@
 import { request } from '../../utils/request.js';
 import { login, logout } from '../../utils/auth.js';
-import { createSpace, joinSpace, switchSpace, getMySpaces, getCurrentSpace, leaveSpace } from '../../utils/space.js';
+import { createSpace, joinSpace, switchSpace, getMySpaces, getCurrentSpace, leaveSpace, initSpaceSwitcher } from '../../utils/space.js';
 
 Page({
   data: {
@@ -31,6 +31,9 @@ Page({
 
   onShow() {
     this.checkLoginState();
+    initSpaceSwitcher(this, () => {
+      this.checkLoginState();
+    });
   },
 
   /**
@@ -129,6 +132,11 @@ Page({
       });
     }
   },
+
+  /**
+   * 阻止冒泡的辅助函数
+   */
+  dummy() {},
 
   /**
    * 复制当前活跃空间的邀请码

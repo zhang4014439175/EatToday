@@ -823,7 +823,6 @@
             <h2>${escapeText(state.user.nickname)}</h2>
             <p class="muted">我的配对码：${escapeText(state.user.pairCode)}</p>
           </div>
-          <span class="pill">${isPaired() ? '已配对' : '未配对'}</span>
         </div>
       </section>
 
@@ -839,9 +838,15 @@
           <span class="pill status-accepted" style="background-color: #F3F0FA; color: #7C69C9; padding: 4px 10px; font-size: 10px; font-weight: 800; border-radius: 99rpx;">${currentSpace.type === 'solo' ? '个人空间' : '群组空间'}</span>
         </div>
         
-        <div class="current-space-info" style="background: #F8F7FC; padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid rgba(124, 105, 201, 0.05);">
-          <div style="font-weight: 800; font-size: 15px; color: #2D2938; margin-bottom: 4px;">🏠 ${escapeText(currentSpace.name)}</div>
-          ${currentSpace.type !== 'solo' ? `<p class="muted" style="margin: 0; font-size: 12px;">邀请码：<strong style="color: #2D2938; font-weight: 900; letter-spacing: 1px;">${escapeText(currentSpace.code)}</strong></p>` : ''}
+        <div class="current-space-info" data-action="quick-space-click" style="background: #F8F7FC; padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid rgba(124, 105, 201, 0.05); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-weight: 800; font-size: 15px; color: #2D2938; margin-bottom: 4px;">
+              <span>🏠 ${escapeText(currentSpace.name)}</span>
+              <span style="font-size: 10px; color: #868095; margin-left: 6px;">▼</span>
+            </div>
+            ${currentSpace.type !== 'solo' ? `<p class="muted" style="margin: 0; font-size: 12px;">邀请码：<strong style="color: #2D2938; font-weight: 900; letter-spacing: 1px;">${escapeText(currentSpace.code)}</strong></p>` : ''}
+          </div>
+          <span style="font-size: 11px; color: #7C69C9; font-weight: 800; background: #FFF; padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(124, 105, 201, 0.15);">切换</span>
         </div>
 
         <!-- 空间成员 -->
@@ -857,21 +862,6 @@
             `).join('')}
           </div>
         </div>
-
-        <!-- 切换其它空间 -->
-        ${state.spaces.length > 1 ? html`
-          <div class="switch-section" style="margin-bottom: 16px; border-top: 1px solid rgba(45, 41, 56, 0.05); padding-top: 12px;">
-            <div class="muted" style="font-size: 11px; font-weight: 800; margin-bottom: 8px; color: #868095;">切换其它空间</div>
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-              ${state.spaces.map(s => `
-                <div class="list-item row" style="padding: 10px 14px; border-radius: 10px; background: ${s.id === state.currentSpaceId ? '#F3F0FA' : '#F9F9FB'}; border: 1px solid ${s.id === state.currentSpaceId ? 'rgba(124, 105, 201, 0.15)' : 'rgba(45, 41, 56, 0.02)'}; cursor: pointer; justify-content: space-between; align-items: center; display: flex;" data-action="switch-space" data-id="${s.id}">
-                  <span style="font-size: 12px; font-weight: 800; color: #2D2938;">${s.type === 'solo' ? '👤' : '👥'} ${escapeText(s.name)}</span>
-                  <span class="muted" style="font-size: 11px; font-weight: 700;">${s.member_count}人</span>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        ` : ''}
 
         <!-- 空间操作 (新建/加入) -->
         <div class="space-actions" style="border-top: 1px solid rgba(45, 41, 56, 0.05); padding-top: 12px;">
