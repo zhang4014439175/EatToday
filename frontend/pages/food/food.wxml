@@ -1,11 +1,4 @@
 <view class="container">
-  <!-- 顶部美食库入口 -->
-  <view class="food-header flex-row" style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 24rpx; width: 100%;">
-    <view class="recipe-book-btn flex-row" bindtap="goToRecipeBook" style="display: flex; align-items: center; gap: 8rpx; padding: 10rpx 24rpx; background: #ffffff; border-radius: 999rpx; border: 1rpx solid rgba(45, 41, 56, 0.08); box-shadow: 0 4rpx 10rpx rgba(45, 41, 56, 0.02); cursor: pointer;">
-      <text style="font-size: 26rpx;">📖</text>
-      <text style="font-size: 24rpx; font-weight: 700; color: #7C69C9;">美食库</text>
-    </view>
-  </view>
 
   <!-- 就餐模式选择 (在家吃 vs 出去吃) -->
   <view class="eat-mode-switcher card flex-row" style="margin-bottom: 24rpx;">
@@ -32,7 +25,12 @@
 
       <!-- 活跃投票会话进行中 -->
       <view class="card" wx:else>
-        <view class="card-title">心有灵犀投票中</view>
+        <view class="flex-row flex-between" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1rpx solid rgba(45, 41, 56, 0.05); padding-bottom: 16rpx; margin-bottom: 20rpx; width: 100%;">
+          <view class="card-title" style="margin-bottom: 0; padding: 0;">🍕 今天一起吃什么</view>
+          <view class="recipe-book-btn flex-row" bindtap="goToRecipeBook" style="display: flex; align-items: center; gap: 8rpx; padding: 8rpx 20rpx; background: #FAF9FC; border-radius: 999rpx; border: 1rpx solid rgba(124, 105, 201, 0.15); cursor: pointer;">
+            <text style="font-size: 22rpx; font-weight: 700; color: #7C69C9;">美食库 📖</text>
+          </view>
+        </view>
         <view class="session-status text-center">
           <view class="status-badge">{{sessionStatusText}}</view>
         </view>
@@ -85,7 +83,12 @@
       <!-- 空闲状态：美团点单式下单界面 -->
       <view class="card meituan-menu-card" wx:if="{{!kitchenSession}}" style="padding: 0; overflow: visible;">
         <view class="menu-header">
-          <view class="card-title" style="padding: 24rpx 24rpx 12rpx; margin-bottom: 0;">📖 宝贝的深夜食堂</view>
+          <view class="flex-row flex-between" style="display: flex; justify-content: space-between; align-items: center; padding: 24rpx 24rpx 12rpx;">
+            <view class="card-title" style="margin-bottom: 0; padding: 0;">🍳 爱心厨房</view>
+            <view class="recipe-book-btn flex-row" bindtap="goToRecipeBook" style="display: flex; align-items: center; gap: 8rpx; padding: 8rpx 20rpx; background: #FAF9FC; border-radius: 999rpx; border: 1rpx solid rgba(124, 105, 201, 0.15); cursor: pointer;">
+              <text style="font-size: 22rpx; font-weight: 700; color: #7C69C9;">美食库 📖</text>
+            </view>
+          </view>
           <text class="text-muted block-hint" style="padding: 0 24rpx 16rpx; margin-top: 4rpx; display: block; font-size: 22rpx;">大厨已就位，请食客尽情点餐！❤️</text>
         </view>
         

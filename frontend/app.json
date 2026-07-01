@@ -21,19 +21,27 @@
     "list": [
       {
         "pagePath": "pages/home/home",
-        "text": "今日概览"
+        "text": "今日概览",
+        "iconPath": "images/home.png",
+        "selectedIconPath": "images/home_active.png"
       },
       {
         "pagePath": "pages/food/food",
-        "text": "吃什么"
+        "text": "吃什么",
+        "iconPath": "images/food.png",
+        "selectedIconPath": "images/food_active.png"
       },
       {
         "pagePath": "pages/date/date",
-        "text": "去哪玩"
+        "text": "去哪玩",
+        "iconPath": "images/date.png",
+        "selectedIconPath": "images/date_active.png"
       },
       {
         "pagePath": "pages/profile/profile",
-        "text": "我的"
+        "text": "我的",
+        "iconPath": "images/profile.png",
+        "selectedIconPath": "images/profile_active.png"
       }
     ]
   },

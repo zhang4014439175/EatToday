@@ -2,7 +2,7 @@ import { request } from '../../utils/request.js';
 
 Page({
   data: {
-    showForm: false,
+    showForm: true,
     newProposal: {
       title: '',
       date: '',

@@ -1,43 +1,31 @@
 <view class="container">
-  <!-- 1. 新增提案表单（折叠展示） -->
-  <view class="card proposal-form-card">
-    <view class="card-title flex-row flex-between" bindtap="toggleForm">
-      <text>💌 发起去哪玩提案</text>
-      <text class="toggle-arrow">{{showForm ? '▲ 收起' : '▼ 展开'}}</text>
-    </view>
+  <!-- 1. 新增提案表单（常驻展开且高度优化） -->
+  <view class="card proposal-form-card" style="padding: 24rpx; margin-bottom: 24rpx;">
+    <view class="card-title" style="margin-bottom: 20rpx; padding: 0;">发起去哪玩提案</view>
 
-    <view class="proposal-form" wx:if="{{showForm}}">
-      <view class="form-group">
-        <text class="form-label">去哪玩主题</text>
-        <input class="form-input" placeholder="例如：周末去看电影/吃火锅" value="{{newProposal.title}}" bindinput="onInputTitle" />
+    <view class="proposal-form">
+      <view class="form-group" style="margin-bottom: 16rpx;">
+        <input class="form-input" placeholder="主题：想去干嘛 (如看电影/吃火锅)" value="{{newProposal.title}}" bindinput="onInputTitle" style="height: 72rpx;" />
       </view>
 
-      <view class="form-group flex-row flex-between">
-        <view class="half-group">
-          <text class="form-label">游玩日期</text>
-          <picker mode="date" value="{{newProposal.date}}" bindchange="onDateChange">
-            <view class="picker-box">{{newProposal.date || '选择日期'}}</view>
-          </picker>
-        </view>
-        <view class="half-group">
-          <text class="form-label">具体时间</text>
-          <picker mode="time" value="{{newProposal.time}}" bindchange="onTimeChange">
-            <view class="picker-box">{{newProposal.time || '选择时间'}}</view>
-          </picker>
-        </view>
+      <view class="form-group flex-row flex-between" style="display: flex; gap: 20rpx; margin-bottom: 16rpx; width: 100%; box-sizing: border-box;">
+        <picker mode="date" value="{{newProposal.date}}" bindchange="onDateChange" style="flex: 1;">
+          <view class="picker-box" style="height: 72rpx; line-height: 72rpx; font-size: 26rpx; border: 1rpx solid rgba(45, 41, 56, 0.12); border-radius: 12rpx; padding: 0 20rpx; background: #FAF9FC; color: #2D2938; box-sizing: border-box;">📅 {{newProposal.date || '选择日期'}}</view>
+        </picker>
+        <picker mode="time" value="{{newProposal.time}}" bindchange="onTimeChange" style="flex: 1;">
+          <view class="picker-box" style="height: 72rpx; line-height: 72rpx; font-size: 26rpx; border: 1rpx solid rgba(45, 41, 56, 0.12); border-radius: 12rpx; padding: 0 20rpx; background: #FAF9FC; color: #2D2938; box-sizing: border-box;">⏰ {{newProposal.time || '选择时间'}}</view>
+        </picker>
       </view>
 
-      <view class="form-group">
-        <text class="form-label">见面地点</text>
-        <input class="form-input" placeholder="写个地标，比如：万达广场中庭" value="{{newProposal.meeting_location}}" bindinput="onInputLocation" />
+      <view class="form-group" style="margin-bottom: 16rpx;">
+        <input class="form-input" placeholder="📍 地点：在哪个地标见面 (选填)" value="{{newProposal.meeting_location}}" bindinput="onInputLocation" style="height: 72rpx;" />
       </view>
 
-      <view class="form-group">
-        <text class="form-label">游玩备注</text>
-        <input class="form-input" placeholder="有什么想跟对方提前说的呢？" value="{{newProposal.notes}}" bindinput="onInputNotes" />
+      <view class="form-group" style="margin-bottom: 24rpx;">
+        <input class="form-input" placeholder="📝 备注：补充说明 (选填)" value="{{newProposal.notes}}" bindinput="onInputNotes" style="height: 72rpx;" />
       </view>
 
-      <button class="btn btn-primary" hover-class="btn-primary-hover" bindtap="submitProposal">发送去哪玩提案</button>
+      <button class="btn btn-primary" hover-class="btn-primary-hover" bindtap="submitProposal" style="height: 76rpx; line-height: 76rpx; font-size: 26rpx;">发送去哪玩提案</button>
     </view>
   </view>
 

@@ -484,9 +484,9 @@
     if (eatMode === 'home') {
       foodBody = html`
         <section class="card">
-          <div class="row">
-            <h2>爱心厨房</h2>
-            <span class="pill">${state.kitchenSession ? getKitchenStatusText(state.kitchenSession.status) : '空闲'}</span>
+          <div class="row" style="justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(45, 41, 56, 0.05); padding-bottom: 8px; margin-bottom: 12px; width: 100%;">
+            <h2 style="margin: 0; font-size: 15px; font-weight: 900;">🏡 爱心厨房</h2>
+            <button class="btn secondary" data-action="go-to-recipe-book" style="min-height: 24px; height: 24px; padding: 0 10px; font-size: 10px; margin: 0; box-shadow: none;">美食库 📖</button>
           </div>
           ${isPaired() ? renderKitchenSection() : '<div class="empty">先去“我的”里完成配对</div>'}
         </section>
@@ -499,9 +499,9 @@
       const session = state.voteSession;
       foodBody = html`
         <section class="card">
-          <div class="row">
-            <h2>今天一起吃什么</h2>
-            <span class="pill">${session ? session.statusText : '未开启'}</span>
+          <div class="row" style="justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(45, 41, 56, 0.05); padding-bottom: 8px; margin-bottom: 12px; width: 100%;">
+            <h2 style="margin: 0; font-size: 15px; font-weight: 900;">🍕 今天一起吃什么</h2>
+            <button class="btn secondary" data-action="go-to-recipe-book" style="min-height: 24px; height: 24px; padding: 0 10px; font-size: 10px; margin: 0; box-shadow: none;">美食库 📖</button>
           </div>
           ${isPaired() ? renderVoteSession(session) : '<div class="empty">先去“我的”里完成配对</div>'}
         </section>
@@ -691,15 +691,15 @@
 
   function renderDate() {
     return html`
-      <section class="card stack">
-        <h2>发起去哪玩提案</h2>
-        <input id="dateTitle" class="input" placeholder="去哪玩主题" />
+      <section class="card stack" style="gap: 10px;">
+        <h2 style="font-size: 15px; margin: 0 0 4px;">发起去哪玩提案</h2>
+        <input id="dateTitle" class="input" placeholder="主题：想去干嘛 (如看电影/吃火锅)" />
         <div class="form-grid">
           <input id="dateDay" class="input" type="date" value="${today()}" />
           <input id="dateTime" class="input" type="time" value="18:00" />
         </div>
-        <input id="dateLocation" class="input" placeholder="见面地点" />
-        <textarea id="dateNotes" class="textarea" placeholder="备注"></textarea>
+        <input id="dateLocation" class="input" placeholder="📍 地点：在哪个地标见面 (选填)" />
+        <input id="dateNotes" class="input" placeholder="📝 备注：补充说明 (选填)" />
         <button class="btn" data-action="add-date">发送去哪玩提案</button>
       </section>
 
@@ -807,7 +807,7 @@
       } else {
         appHeader.style.display = 'flex';
         if (headerRecipeBtn) {
-          headerRecipeBtn.style.display = activeView === 'food' ? 'inline-flex' : 'none';
+          headerRecipeBtn.style.display = 'none';
         }
         if (activeView === 'home') {
           headerTitle.textContent = '我们的日常';
