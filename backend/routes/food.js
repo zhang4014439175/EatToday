@@ -50,7 +50,7 @@ router.get('/', authMiddleware, async (req, res, next) => {
  * POST /api/food
  */
 router.post('/', authMiddleware, async (req, res, next) => {
-  const { name, tags } = req.body;
+  const { name, tags, category, image_url } = req.body;
   const user = req.user;
 
   if (!name || !name.trim()) {
@@ -62,12 +62,51 @@ router.post('/', authMiddleware, async (req, res, next) => {
     const now = new Date().toISOString();
 
     const result = await db.run(
-      'INSERT INTO food_pool (name, tags, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
-      [name.trim(), tags || '', user.id, now, now]
+      'INSERT INTO food_pool (name, tags, category, image_url, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [name.trim(), tags || '', category || 'home', image_url || '', user.id, now, now]
     );
 
     const newFood = await db.get('SELECT * FROM food_pool WHERE id = ?', [result.lastID]);
     return res.status(201).json({ success: true, food: newFood });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * 修改美食属性 (包括菜名、标签、分类、图片等)
+ * PUT /api/food/:id
+ */
+router.put('/:id', authMiddleware, async (req, res, next) => {
+  const id = req.params.id;
+  const { name, tags, category, image_url } = req.body;
+  const user = req.user;
+
+  if (!name || !name.trim()) {
+    return res.status(400).json({ error: 'ValidationError', message: '美食名称不能为空' });
+  }
+
+  try {
+    const db = getDB();
+    // 检查是否存在
+    const food = await db.get('SELECT id, created_by FROM food_pool WHERE id = ?', [id]);
+    if (!food) {
+      return res.status(404).json({ error: 'NotFoundError', message: '未找到该美食项目' });
+    }
+
+    // 只能修改自己或伴侣创建的
+    if (food.created_by !== user.id && food.created_by !== user.partner_id) {
+      return res.status(403).json({ error: 'ForbiddenError', message: '您无权修改此美食项目' });
+    }
+
+    const now = new Date().toISOString();
+    await db.run(
+      'UPDATE food_pool SET name = ?, tags = ?, category = ?, image_url = ?, updated_at = ? WHERE id = ?',
+      [name.trim(), tags || '', category || 'home', image_url || '', now, id]
+    );
+
+    const updatedFood = await db.get('SELECT * FROM food_pool WHERE id = ?', [id]);
+    return res.status(200).json({ success: true, food: updatedFood });
   } catch (error) {
     next(error);
   }

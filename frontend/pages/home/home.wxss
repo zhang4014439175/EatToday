@@ -1,134 +1,511 @@
 .love-header {
-  background: linear-gradient(135deg, #FFF0F5, #FFE4E1);
+  background-color: #F3F0FA;
+  border: 1rpx solid rgba(124, 105, 201, 0.08);
   text-align: center;
-  padding: 50rpx 30rpx;
-  border: 1rpx solid rgba(255, 105, 180, 0.2);
+  padding: 60rpx 40rpx;
   margin-top: 10rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
 }
 
 .heart-icon {
-  font-size: 60rpx;
-  color: #FF69B4;
-  animation: heartbeat 1.8s infinite ease-in-out;
+  font-size: 64rpx;
+  color: #7C69C9;
   display: inline-block;
+  z-index: 2;
+  margin-bottom: 12rpx;
+  animation: heartbeat 2s infinite ease-in-out;
 }
 
 @keyframes heartbeat {
   0% { transform: scale(1); }
-  14% { transform: scale(1.18); }
-  28% { transform: scale(1); }
-  42% { transform: scale(1.18); }
-  70% { transform: scale(1); }
+  12% { transform: scale(1.15); }
+  24% { transform: scale(1); }
+  36% { transform: scale(1.15); }
+  60% { transform: scale(1); }
 }
 
 .love-days-title {
   font-size: 26rpx;
-  color: #7A7A7A;
-  margin-top: 15rpx;
-  letter-spacing: 2rpx;
+  color: #868095;
+  letter-spacing: 4rpx;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 8rpx;
+  z-index: 2;
 }
 
 .love-days-num {
-  font-size: 88rpx;
-  font-weight: 800;
-  color: #FF1493;
-  margin: 15rpx 0;
-  text-shadow: 0 4rpx 10rpx rgba(255, 20, 147, 0.1);
+  font-size: 96rpx;
+  font-weight: 900;
+  color: #2D2938;
+  margin: 8rpx 0 20rpx;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  z-index: 2;
 }
 
 .days-unit {
   font-size: 32rpx;
-  font-weight: normal;
-  color: #888888;
+  font-weight: 700;
+  color: #868095;
+  margin-left: 12rpx;
 }
 
 .love-partner-info {
   font-size: 26rpx;
-  color: #555555;
-  background-color: rgba(255, 255, 255, 0.5);
-  display: inline-block;
-  padding: 8rpx 30rpx;
-  border-radius: 30rpx;
-  margin-top: 10rpx;
+  color: #2D2938;
+  background-color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  padding: 10rpx 36rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid rgba(124, 105, 201, 0.08);
+  box-shadow: 0 4rpx 16rpx rgba(124, 105, 201, 0.03);
+  z-index: 2;
 }
 
 .partner-name {
-  font-weight: bold;
-  color: #EE6AA7;
+  font-weight: 800;
+  color: #7C69C9;
 }
 
 .heart-connector {
-  color: #FF69B4;
-  margin: 0 15rpx;
-  display: inline-block;
-  animation: pulse 1s infinite alternate;
+  color: #7C69C9;
+  margin: 0 16rpx;
+  font-size: 28rpx;
+  animation: pulse 1.5s infinite alternate ease-in-out;
 }
 
 @keyframes pulse {
-  0% { opacity: 0.6; }
-  100% { opacity: 1; }
+  0% { opacity: 0.5; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1.1); }
 }
 
 /* 今日看板卡片 */
 .today-card {
-  padding: 35rpx 30rpx;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  padding: 38rpx 36rpx;
+  align-items: center;
+  margin-bottom: 24rpx;
+  background: #ffffff;
+  border: 1rpx solid rgba(45, 41, 56, 0.04);
+}
+
+.today-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 36rpx;
+  bottom: 36rpx;
+  width: 6rpx;
+  border-radius: 0 999rpx 999rpx 0;
+  background: #7C69C9;
 }
 
 .today-card:active {
-  transform: translateY(2rpx);
-  box-shadow: 0 4rpx 10rpx rgba(255, 105, 180, 0.04);
+  transform: scale(0.985);
+  box-shadow: 0 8rpx 24rpx rgba(45, 41, 56, 0.02);
 }
 
 .today-left {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  padding-right: 20rpx;
 }
 
 .today-label {
   font-size: 24rpx;
-  color: #999999;
-  margin-bottom: 10rpx;
+  color: #868095;
+  margin-bottom: 12rpx;
+  font-weight: 700;
+  letter-spacing: 0.5rpx;
 }
 
 .today-value {
-  font-size: 30rpx;
-  font-weight: bold;
-  color: #444444;
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #2D2938;
+  line-height: 1.4;
 }
 
 .today-arrow {
-  color: #FF69B4;
-  font-size: 34rpx;
-  opacity: 0.6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background-color: #F3F0FA;
+  color: #7C69C9;
+  font-size: 28rpx;
+  transition: all 0.2s ease;
+}
+
+.today-card:active .today-arrow {
+  background-color: #EAE5F6;
 }
 
 /* 纪念日快捷卡片 */
 .anniversary-shortcut {
-  background-color: #FFF9FA;
-  border-left: 8rpx solid #FF69B4;
-  padding: 24rpx 30rpx;
+  background-color: #FFFDF7;
+  border-left: 0;
+  border: 1rpx solid rgba(233, 196, 106, 0.15);
+  padding: 30rpx 36rpx;
+  position: relative;
+}
+
+.anniversary-shortcut::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 30rpx;
+  bottom: 30rpx;
+  width: 6rpx;
+  border-radius: 0 999rpx 999rpx 0;
+  background: #E9C46A;
 }
 
 .anniversary-label {
   font-size: 24rpx;
-  color: #FF69B4;
-  font-weight: bold;
-  margin-bottom: 10rpx;
+  color: #8F7E68;
+  font-weight: 800;
+  margin-bottom: 12rpx;
 }
 
 .anniversary-content {
   font-size: 28rpx;
-  color: #555555;
+  color: #2D2938;
+  font-weight: 500;
+  line-height: 1.6;
 }
 
 .anniversary-name {
-  color: #666666;
+  color: #868095;
 }
 
 .anniversary-countdown {
-  font-size: 38rpx;
-  font-weight: bold;
-  color: #FF1493;
-  margin: 0 6rpx;
+  font-size: 42rpx;
+  font-weight: 900;
+  color: #7C69C9;
+  margin: 0 8rpx;
+}
+
+/* 日历主卡片 */
+.calendar-card {
+  padding: 30rpx 20rpx;
+  margin-bottom: 24rpx;
+}
+
+.calendar-header {
+  margin-bottom: 20rpx;
+  padding: 0 10rpx;
+}
+
+.current-month-text {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #2D2938;
+  margin: 0 30rpx;
+}
+
+.arrow-btn {
+  font-size: 26rpx;
+  color: #7C69C9;
+  padding: 10rpx 20rpx;
+  cursor: pointer;
+  background-color: #F3F0FA;
+  border-radius: 999rpx;
+}
+
+.back-today-btn {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #7C69C9;
+  padding: 8rpx 20rpx;
+  background-color: #F3F0FA;
+  border-radius: 999rpx;
+}
+
+/* 星期表头 */
+.week-header {
+  margin-bottom: 10rpx;
+}
+
+.week-day {
+  flex: 1;
+  text-align: center;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #868095;
+  padding: 10rpx 0;
+}
+
+.weekend {
+  color: #FF6B6B;
+}
+
+/* 日历格子 */
+.calendar-grid {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.grid-day {
+  width: 14.28%;
+  height: 96rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-radius: 16rpx;
+  margin: 4rpx 0;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.day-number {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #2D2938;
+}
+
+.other-month .day-number {
+  color: #C2BFCA;
+}
+
+/* 选中与今日状态 */
+.selected-day {
+  background-color: #F3F0FA;
+  border: 1rpx solid rgba(124, 105, 201, 0.2);
+}
+
+.selected-day .day-number {
+  color: #7C69C9;
+}
+
+.today-day {
+  background-color: #7C69C9;
+}
+
+.today-day .day-number {
+  color: #ffffff;
+  font-weight: 900;
+}
+
+/* 彩色标记点 */
+.day-dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4rpx;
+  margin-top: 4rpx;
+  height: 8rpx;
+}
+
+.dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-anniversary { background-color: #FF6B6B; } /* 红色 */
+.dot-date { background-color: #7C69C9; }        /* 紫色 */
+.dot-kitchen { background-color: #2A9D8F; }     /* 绿色 */
+.dot-food { background-color: #E9C46A; }        /* 黄色 */
+.dot-custom { background-color: #4A90E2; }      /* 蓝色 */
+
+.today-day .dot {
+  background-color: #ffffff !important; /* 今日格子的标记点均设为白色 */
+}
+
+/* 日程小抽屉 */
+.agenda-drawer {
+  padding: 30rpx 36rpx;
+  margin-bottom: 24rpx;
+  animation: slideDownAgenda 0.3s ease-out;
+}
+
+@keyframes slideDownAgenda {
+  from { transform: translateY(-10rpx); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.agenda-header {
+  border-bottom: 1rpx solid rgba(45, 41, 56, 0.06);
+  padding-bottom: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.agenda-title {
+  font-size: 28rpx;
+  font-weight: 800;
+  color: #2D2938;
+}
+
+.btn-add-custom {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #7C69C9;
+  background-color: #F3F0FA;
+  padding: 8rpx 20rpx;
+  border-radius: 999rpx;
+}
+
+/* 事项列表 */
+.agenda-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.agenda-item {
+  margin-bottom: 20rpx;
+  align-items: flex-start;
+}
+
+.agenda-dot-line {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 24rpx;
+  margin-right: 16rpx;
+  margin-top: 10rpx;
+}
+
+.agenda-dot {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background-color: #868095;
+}
+
+.agenda-dot.dot-anniversary { background-color: #FF6B6B; }
+.agenda-dot.dot-date { background-color: #7C69C9; }
+.agenda-dot.dot-kitchen { background-color: #2A9D8F; }
+.agenda-dot.dot-food { background-color: #E9C46A; }
+.agenda-dot.dot-custom { background-color: #4A90E2; }
+
+.agenda-line {
+  width: 2rpx;
+  height: 48rpx;
+  background-color: rgba(45, 41, 56, 0.08);
+  margin-top: 4rpx;
+}
+
+.agenda-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.agenda-time {
+  font-size: 22rpx;
+  color: #868095;
+  font-weight: 700;
+  margin-bottom: 4rpx;
+}
+
+.agenda-content {
+  font-size: 26rpx;
+  color: #2D2938;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.agenda-type-tag {
+  font-size: 22rpx;
+  font-weight: 700;
+  margin-right: 8rpx;
+}
+
+.tag-anniversary { color: #FF6B6B; }
+.tag-date { color: #7C69C9; }
+.tag-kitchen { color: #2A9D8F; }
+.tag-food { color: #E9C46A; }
+.tag-custom { color: #4A90E2; }
+
+.agenda-text {
+  font-weight: 700;
+}
+
+.agenda-subtext {
+  color: #868095;
+  margin-left: 6rpx;
+}
+
+.agenda-action {
+  padding-left: 20rpx;
+}
+
+.agenda-delete-btn {
+  font-size: 28rpx;
+  color: #C2BFCA;
+  font-weight: 300;
+  padding: 4rpx 10rpx;
+  cursor: pointer;
+}
+
+.agenda-delete-btn:active {
+  color: #FF6B6B;
+}
+
+.empty-agenda {
+  padding: 40rpx 0;
+  text-align: center;
+  font-size: 24rpx;
+  color: #868095;
+  line-height: 1.6;
+}
+
+/* 弹窗遮罩 */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialog-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(45, 41, 56, 0.4);
+  backdrop-filter: blur(4rpx);
+}
+
+.dialog-box {
+  position: relative;
+  z-index: 2;
+  width: 80%;
+  padding: 40rpx;
+  background-color: #ffffff;
+  border-radius: 28rpx;
+}
+
+.calendar-toggle-btn {
+  justify-content: center;
+  align-items: center;
+  padding: 16rpx 0 0;
+  margin-top: 16rpx;
+  border-top: 1rpx solid rgba(45, 41, 56, 0.05);
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #7C69C9;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
 }

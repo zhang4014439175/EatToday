@@ -58,7 +58,7 @@ Page({
   },
 
   /**
-   * 获取约会行程记录
+   * 获取去哪玩行程记录
    */
   async fetchDatePlans() {
     try {
@@ -137,13 +137,13 @@ Page({
   onInputNotes(e) { this.setData({ 'newProposal.notes': e.detail.value }); },
 
   /**
-   * 发送约会提案
+   * 发送去哪玩提案
    */
   async submitProposal() {
     const { title, date, time, meeting_location, notes } = this.data.newProposal;
 
     if (!title.trim()) {
-      wx.showToast({ title: '请输入约会主题', icon: 'none' });
+      wx.showToast({ title: '请输入去哪玩主题', icon: 'none' });
       return;
     }
     if (!date || !time) {
@@ -382,7 +382,7 @@ Page({
   },
 
   /**
-   * 一键将愿望“提为正式约会行程”
+   * 一键将愿望“提为正式去哪玩行程”
    */
   wishToProposal(e) {
     const name = e.currentTarget.dataset.name;

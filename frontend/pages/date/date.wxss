@@ -1,25 +1,26 @@
 .proposal-form-card {
-  border-top: 8rpx solid #FF69B4;
+  background: #FFFFFF;
+  border: 1rpx solid rgba(124, 105, 201, 0.08);
 }
 
 .toggle-arrow {
   font-size: 24rpx;
-  color: #FF69B4;
-  font-weight: normal;
+  color: #7C69C9;
+  font-weight: 700;
 }
 
 .proposal-form {
-  padding-top: 20rpx;
-  animation: slideDown 0.3s ease-out;
+  padding-top: 24rpx;
+  animation: slideDown 0.3s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-20rpx); }
+  from { opacity: 0; transform: translateY(-16rpx); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .form-group {
-  margin-bottom: 24rpx;
+  margin-bottom: 28rpx;
 }
 
 .half-group {
@@ -28,139 +29,202 @@
 
 .form-label {
   font-size: 26rpx;
-  font-weight: bold;
-  color: #666666;
+  font-weight: 800;
+  color: #2D2938;
   margin-bottom: 12rpx;
   display: block;
 }
 
 .picker-box {
-  background-color: #FFF9FA;
-  border: 2rpx solid #FFE4E1;
-  border-radius: 16rpx;
-  padding: 20rpx;
+  background-color: #FFFFFF;
+  border: 1rpx solid rgba(45, 41, 56, 0.12);
+  border-radius: 20rpx;
+  padding: 20rpx 24rpx;
   font-size: 28rpx;
-  color: #333333;
+  color: #2D2938;
   text-align: center;
+  height: 84rpx;
+  line-height: 44rpx;
+  transition: all 0.2s ease;
+}
+
+.picker-box:active {
+  border-color: #7C69C9;
+  background-color: #FAF9FC;
 }
 
 /* 约会列表 */
 .date-item-card {
-  padding: 30rpx;
+  padding: 36rpx;
+  border-left: 8rpx solid #808590;
+  transition: all 0.25s ease;
+}
+
+.date-card-pending {
+  border-left: 8rpx solid #E9C46A;
+}
+
+.date-card-accepted {
+  border-left: 8rpx solid #7C69C9;
+}
+
+.date-card-rejected {
+  border-left: 8rpx solid #808590;
+}
+
+.date-card-revision_requested {
+  border-left: 8rpx solid #4A90E2;
 }
 
 .date-header {
-  border-bottom: 2rpx dashed #FFE4E1;
-  padding-bottom: 15rpx;
-  margin-bottom: 20rpx;
+  border-bottom: 1rpx solid rgba(45, 41, 56, 0.05);
+  padding-bottom: 20rpx;
+  margin-bottom: 24rpx;
+  align-items: center;
 }
 
 .date-badge {
   font-size: 22rpx;
-  font-weight: bold;
-  padding: 6rpx 18rpx;
-  border-radius: 20rpx;
+  font-weight: 800;
+  padding: 6rpx 20rpx;
+  border-radius: 999rpx;
+  display: inline-flex;
+  align-items: center;
 }
 
-/* 状态色（莫兰迪色调） */
 .badge-pending {
-  background-color: #FFF3CD;
-  color: #856404;
+  background-color: #FFFDF0;
+  color: #8F7E68;
+  border: 1rpx solid rgba(143, 126, 104, 0.18);
 }
 
 .badge-accepted {
-  background-color: #D4EDDA;
-  color: #155724;
+  background-color: #F0F7F5;
+  color: #3E8E75;
+  border: 1rpx solid rgba(62, 142, 117, 0.15);
 }
 
 .badge-rejected {
-  background-color: #E2E3E5;
-  color: #383D41;
+  background-color: #F5F6F7;
+  color: #808590;
+  border: 1rpx solid rgba(128, 133, 144, 0.12);
 }
 
 .badge-revision_requested {
-  background-color: #CCE5FF;
-  color: #004085;
+  background-color: #F2F7FC;
+  color: #4A7BB0;
+  border: 1rpx solid rgba(74, 123, 176, 0.15);
 }
 
 .date-time-tag {
   font-size: 24rpx;
-  color: #999999;
+  color: #808590;
+  font-weight: 700;
 }
 
 .date-title {
   font-size: 32rpx;
-  font-weight: bold;
-  color: #333333;
-  margin-bottom: 15rpx;
+  font-weight: 800;
+  color: #2D2938;
+  margin-bottom: 18rpx;
 }
 
 .date-detail {
   font-size: 26rpx;
-  color: #666666;
-  margin-bottom: 10rpx;
+  color: #808590;
+  margin-bottom: 12rpx;
+  display: flex;
+  align-items: center;
 }
 
 /* 修改建议框 */
 .revision-note-box {
-  background-color: #F8F9FA;
-  border-left: 6rpx solid #004085;
-  padding: 16rpx 20rpx;
-  border-radius: 8rpx;
-  margin-top: 15rpx;
+  background-color: #F2F7FC;
+  border-left: 6rpx solid #4A7BB0;
+  padding: 20rpx 24rpx;
+  border-radius: 12rpx;
+  margin-top: 24rpx;
   font-size: 26rpx;
+  line-height: 1.5;
 }
 
 .revision-label {
-  font-weight: bold;
-  color: #004085;
+  font-weight: 800;
+  color: #4A7BB0;
 }
 
 .revision-content {
-  color: #555555;
+  color: #2D2938;
+  font-weight: 500;
 }
 
 /* 审批操作按钮栏 */
 .action-bar {
-  margin-top: 24rpx;
-  padding-top: 20rpx;
-  border-top: 1rpx solid #FFF5F7;
+  margin-top: 32rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid rgba(45, 41, 56, 0.05);
+  gap: 16rpx;
 }
 
 .action-btn {
   font-size: 24rpx;
-  font-weight: bold;
-  padding: 14rpx 0;
-  border-radius: 30rpx;
+  font-weight: 800;
+  height: 72rpx;
+  line-height: 72rpx;
+  border-radius: 999rpx;
   text-align: center;
   flex: 1;
-  margin: 0 10rpx;
-  line-height: normal;
+  margin: 0 !important;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: auto !important;
 }
 
 .accept-btn {
-  background-color: #D4EDDA;
-  color: #155724;
-  border: 1rpx solid #C3E6CB;
+  background-color: #7C69C9;
+  color: #ffffff;
+  box-shadow: 0 6rpx 16rpx rgba(124, 105, 201, 0.15);
+}
+
+.accept-btn:active {
+  background-color: #6B57B8;
+  transform: translateY(2rpx);
+  opacity: 0.9;
 }
 
 .revise-btn {
-  background-color: #CCE5FF;
-  color: #004085;
-  border: 1rpx solid #B8DAFF;
+  background-color: #4A90E2;
+  color: #ffffff;
+  box-shadow: 0 6rpx 16rpx rgba(74, 144, 226, 0.15);
+}
+
+.revise-btn:active {
+  background-color: #357ABD;
+  transform: translateY(2rpx);
+  opacity: 0.9;
 }
 
 .reject-btn {
-  background-color: #F8D7DA;
-  color: #721C24;
-  border: 1rpx solid #F5C6CB;
+  background-color: #F5F6F7;
+  color: #808590;
+  border: 1rpx solid rgba(128, 133, 144, 0.15);
+}
+
+.reject-btn:active {
+  background-color: #ECEFF1;
 }
 
 .cancel-btn {
-  background-color: #F8F9FA;
-  color: #666666;
-  border: 1rpx solid #E2E3E5;
-  max-width: 150rpx;
+  background-color: #FFFFFF;
+  color: #808590;
+  border: 1rpx solid rgba(128, 133, 144, 0.2);
+  max-width: 160rpx;
+}
+
+.cancel-btn:active {
+  background-color: #F5F6F7;
 }
 
 /* 模态弹窗 */
@@ -170,7 +234,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: rgba(45, 41, 56, 0.4);
   backdrop-filter: blur(8px);
   z-index: 100;
   display: flex;
@@ -182,56 +246,127 @@
 .dialog-box {
   width: 100%;
   box-sizing: border-box;
-  animation: popIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  box-shadow: 0 24rpx 64rpx rgba(45, 41, 56, 0.15);
+  animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  margin-bottom: 0;
 }
 
 @keyframes popIn {
-  from { transform: scale(0.85); opacity: 0; }
+  from { transform: scale(0.9); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
 
 .dialog-textarea {
   height: 200rpx;
-  margin-top: 10rpx;
-  margin-bottom: 30rpx;
+  margin-top: 16rpx;
+  margin-bottom: 32rpx;
+  padding: 24rpx;
+}
+
+.dialog-btns {
+  width: 100%;
+  gap: 20rpx;
 }
 
 /* 约会愿望清单 */
 .wishlist-card {
-  border-top: 8rpx solid #E066FF;
+  background: #FFFFFF;
+  border: 1rpx solid rgba(124, 105, 201, 0.12);
+}
+
+.wishlist-card .card-title::before {
+  background: #7C69C9;
 }
 
 .add-wish-box {
-  margin-bottom: 24rpx;
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 28rpx;
+  gap: 16rpx;
+  align-items: center;
+}
+
+.add-wish-box .add-input {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.btn-add {
+  flex-shrink: 0;
+  width: 148rpx;
+  height: 84rpx;
+  line-height: 84rpx;
+  padding: 0;
+  border-radius: 20rpx;
+  background: #7C69C9;
+  color: #ffffff;
+  min-width: 0 !important;
+  font-size: 28rpx;
+  font-weight: 800;
+  white-space: nowrap;
+  text-align: center;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 20rpx rgba(124, 105, 201, 0.15);
+}
+
+.btn-add-text {
+  display: block;
+  width: auto;
+  white-space: nowrap;
+  word-break: keep-all;
+  writing-mode: horizontal-tb;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.btn-add:active {
+  background: #6B57B8;
+  transform: translateY(2rpx);
+  box-shadow: 0 4rpx 10rpx rgba(124, 105, 201, 0.1);
 }
 
 .wish-list {
-  max-height: 400rpx;
-  overflow-y: auto;
+  max-height: 440rpx;
 }
 
 .wish-item {
-  padding: 22rpx 10rpx;
-  border-bottom: 1rpx solid #FFF0F5;
+  padding: 24rpx 8rpx;
+  border-bottom: 1rpx solid rgba(45, 41, 56, 0.05);
   font-size: 28rpx;
+  align-items: center;
+}
+
+.wish-item:last-child {
+  border-bottom: none;
 }
 
 .wish-item-name {
-  color: #555555;
-  font-weight: 500;
+  color: #2D2938;
+  font-weight: 700;
+  flex: 1;
+}
+
+.wish-actions {
+  align-items: center;
 }
 
 .wish-to-proposal {
-  color: #FF69B4;
+  color: #7C69C9;
   font-size: 24rpx;
-  font-weight: bold;
-  border: 1rpx solid #FF69B4;
-  border-radius: 20rpx;
-  padding: 4rpx 16rpx;
+  font-weight: 800;
+  border: 1rpx solid rgba(124, 105, 201, 0.28);
+  background-color: #F3F0FA;
+  border-radius: 999rpx;
+  padding: 6rpx 20rpx;
+  transition: all 0.2s ease;
 }
 
 .wish-to-proposal:active {
-  background-color: #FFE4E1;
+  background-color: #EAE5F6;
 }
 
 .flex-1 {

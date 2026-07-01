@@ -1,64 +1,85 @@
 .profile-header {
-  padding: 40rpx 30rpx;
-  background: linear-gradient(135deg, #FFF0F5, #FFE4E1);
-  border: 1rpx solid rgba(255, 105, 180, 0.15);
+  padding: 44rpx 36rpx;
+  align-items: center;
+  background-color: #F3F0FA;
+  border: 1rpx solid rgba(124, 105, 201, 0.08);
 }
 
 .avatar {
   width: 120rpx;
   height: 120rpx;
-  border-radius: 50%;
+  border-radius: 36rpx;
   border: 6rpx solid #ffffff;
-  box-shadow: 0 4rpx 10rpx rgba(255, 105, 180, 0.1);
-  background-color: #ffe4e1;
+  box-shadow: 0 12rpx 32rpx rgba(45, 41, 56, 0.08);
+  background-color: #F3F0FA;
+  flex-shrink: 0;
 }
 
 .user-meta {
-  margin-left: 30rpx;
+  margin-left: 32rpx;
   flex: 1;
+  min-width: 0;
 }
 
 .nickname {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #333333;
-  margin-bottom: 12rpx;
+  font-size: 38rpx;
+  font-weight: 900;
+  color: #2D2938;
+  margin-bottom: 10rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .user-id {
   font-size: 24rpx;
-  color: #777777;
+  color: #868095;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
 }
 
 .copy-link {
-  color: #FF69B4;
-  font-weight: bold;
-  margin-left: 15rpx;
-  text-decoration: underline;
-  padding: 5rpx 10rpx;
+  color: #7C69C9;
+  font-weight: 800;
+  margin-left: 16rpx;
+  background-color: #F3F0FA;
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  transition: all 0.2s ease;
+}
+
+.copy-link:active {
+  background-color: #EAE5F6;
 }
 
 .login-mini-btn {
-  background: linear-gradient(135deg, #FF69B4, #FFA07A);
+  background: #7C69C9;
   color: #ffffff;
   font-size: 26rpx;
-  font-weight: bold;
-  border-radius: 30rpx;
-  padding: 10rpx 30rpx;
-  display: inline-block;
-  line-height: normal;
+  font-weight: 800;
+  border-radius: 999rpx;
+  padding: 0 36rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin: 0 !important;
   width: auto !important;
+  box-shadow: 0 8rpx 20rpx rgba(124, 105, 201, 0.2);
 }
 
 /* 牵线绑定卡片 */
 .pairing-card {
-  padding: 40rpx 30rpx;
+  padding: 40rpx 36rpx;
 }
 
 .paired-view {
   justify-content: center;
-  margin: 30rpx 0;
+  align-items: center;
+  margin: 40rpx 0 20rpx;
 }
 
 .couple-avatar-box {
@@ -71,140 +92,192 @@
 .avatar-lg {
   width: 140rpx;
   height: 140rpx;
-  border-radius: 50%;
-  border: 6rpx solid #FFF0F5;
-  box-shadow: 0 6rpx 16rpx rgba(255, 105, 180, 0.15);
-  background-color: #ffe4e1;
+  border-radius: 40rpx;
+  border: 6rpx solid #ffffff;
+  box-shadow: 0 16rpx 40rpx rgba(45, 41, 56, 0.1);
+  background-color: #F3F0FA;
 }
 
 .avatar-name {
-  font-size: 24rpx;
-  color: #666666;
-  font-weight: bold;
-  margin-top: 12rpx;
-  background-color: #FFE4E1;
-  padding: 4rpx 16rpx;
-  border-radius: 20rpx;
+  font-size: 22rpx;
+  color: #7C69C9;
+  font-weight: 800;
+  margin-top: 16rpx;
+  background-color: #F3F0FA;
+  padding: 4rpx 20rpx;
+  border-radius: 999rpx;
 }
 
 .couple-heart {
   font-size: 64rpx;
-  margin: 0 60rpx;
-  animation: pulseBeat 1.2s infinite alternate ease-in-out;
+  margin: 0 48rpx;
+  display: inline-block;
+  animation: heartBeatPulse 1.4s infinite alternate ease-in-out;
 }
 
-@keyframes pulseBeat {
-  from { transform: scale(0.9); }
-  to { transform: scale(1.15); }
+@keyframes heartBeatPulse {
+  0% { transform: scale(0.9); opacity: 0.85; filter: drop-shadow(0 0 0 rgba(124, 105, 201, 0)); }
+  100% { transform: scale(1.15); opacity: 1; filter: drop-shadow(0 0 12rpx rgba(124, 105, 201, 0.4)); }
 }
 
 .unpair-box {
-  margin-top: 24rpx;
+  margin-top: 32rpx;
 }
 
 .unpair-link {
   font-size: 24rpx;
-  color: #999999;
+  color: #868095;
   text-decoration: underline;
-  cursor: pointer;
+  transition: color 0.2s ease;
 }
 
 .unpair-link:active {
-  color: #ff3333;
+  color: #7C69C9;
 }
 
 .hint-text {
   font-size: 26rpx;
   line-height: 1.6;
-  margin-bottom: 30rpx;
-  text-align: left;
+  margin-bottom: 32rpx;
+  color: #868095;
 }
 
 .pair-input-box {
-  margin-bottom: 10rpx;
+  gap: 16rpx;
 }
 
 .pair-input {
   flex: 1;
   margin-bottom: 0;
-  margin-right: 20rpx;
-  height: 80rpx;
+  height: 84rpx;
   text-align: center;
-  font-weight: bold;
+  font-weight: 800;
   font-size: 32rpx;
   letter-spacing: 4rpx;
 }
 
 .btn-pair-submit {
-  background: linear-gradient(135deg, #FF69B4, #FFA07A);
+  background: #7C69C9;
   color: #ffffff;
   font-size: 28rpx;
-  font-weight: bold;
-  height: 80rpx;
-  line-height: 80rpx;
-  padding: 0 45rpx;
-  border-radius: 16rpx;
-  box-shadow: 0 4rpx 10rpx rgba(255, 105, 180, 0.2);
+  font-weight: 800;
+  height: 84rpx;
+  line-height: 84rpx;
+  padding: 0 44rpx;
+  border-radius: 20rpx;
+  box-shadow: 0 12rpx 24rpx rgba(124, 105, 201, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* 纪念日管理 */
+.anniversary-card {
+  background-color: #FFFDF7;
+  border: 1rpx solid rgba(233, 196, 106, 0.15);
+}
+
+.anniversary-card .card-title::before {
+  background: #E9C46A;
+}
+
 .add-anniversary-btn {
-  font-size: 26rpx;
-  color: #FF69B4;
-  font-weight: bold;
+  font-size: 24rpx;
+  color: #8F7E68;
+  background-color: #FFFDF0;
+  border: 1rpx solid rgba(233, 196, 106, 0.2);
+  padding: 6rpx 20rpx;
+  border-radius: 999rpx;
+}
+
+.add-anniversary-btn:active {
+  background-color: #FFFBD0;
 }
 
 .anniversary-form {
-  margin-bottom: 30rpx;
-  padding-bottom: 30rpx;
-  border-bottom: 2rpx dashed #FFF0F5;
+  margin-bottom: 32rpx;
+  padding-bottom: 32rpx;
+  border-bottom: 1rpx solid rgba(45, 41, 56, 0.05);
   animation: slideDown 0.3s ease-out;
 }
 
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-16rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .form-switch-group {
-  margin-bottom: 30rpx;
-  padding: 0 10rpx;
+  margin-bottom: 32rpx;
+  padding: 0 8rpx;
 }
 
 .switch-label {
   font-size: 28rpx;
-  color: #555555;
-  font-weight: 500;
+  color: #2D2938;
+  font-weight: 700;
 }
 
 .anniversary-list {
-  max-height: 450rpx;
-  overflow-y: auto;
+  max-height: 480rpx;
 }
 
 .anniversary-item {
-  padding: 24rpx 10rpx;
-  border-bottom: 1rpx solid #FFF0F5;
+  padding: 28rpx 8rpx;
+  border-bottom: 1rpx solid rgba(45, 41, 56, 0.05);
+  align-items: center;
+}
+
+.anniversary-item:last-child {
+  border-bottom: none;
+}
+
+.ann-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .ann-title {
   font-size: 28rpx;
-  font-weight: bold;
-  color: #444444;
+  font-weight: 800;
+  color: #2D2938;
   margin-bottom: 8rpx;
 }
 
 .ann-date {
   font-size: 24rpx;
+  font-weight: 700;
+  color: #868095;
 }
 
 /* 系统设置 */
+.settings-card {
+  background-color: #FFFFFF;
+  border: 1rpx solid rgba(45, 41, 56, 0.04);
+}
+
 .setting-item {
-  padding: 10rpx 0;
+  padding: 24rpx 0;
+  align-items: center;
+  border-bottom: 1rpx solid rgba(45, 41, 56, 0.04);
+}
+
+.setting-item:last-of-type {
+  border-bottom: none;
+}
+
+.setting-info {
+  flex: 1;
+  min-width: 0;
+  padding-right: 24rpx;
 }
 
 .setting-name {
   font-size: 28rpx;
-  font-weight: bold;
-  color: #444444;
-  margin-bottom: 6rpx;
+  font-weight: 800;
+  color: #2D2938;
+  margin-bottom: 8rpx;
 }
 
 .logout-btn {
-  margin-top: 40rpx;
+  margin-top: 36rpx;
 }

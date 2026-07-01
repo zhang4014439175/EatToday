@@ -1,0 +1,102 @@
+<view class="container recipe-container">
+  <!-- 顶部分类 Tabs (私房菜 vs 寻宝图) -->
+  <view class="category-tabs flex-row">
+    <view class="tab-item {{currentCategory === 'home' ? 'tab-active' : ''}}" bindtap="switchCategory" data-cat="home">🍳 爱心私房菜</view>
+    <view class="tab-item {{currentCategory === 'out' ? 'tab-active' : ''}}" bindtap="switchCategory" data-cat="out">🗺️ 风味寻宝图</view>
+  </view>
+
+  <!-- 工具栏 (添加与批量管理) -->
+  <view class="toolbar flex-row">
+    <view class="tool-btn add-btn flex-row" bindtap="showAddModal">
+      <text class="icon">➕</text>
+      <text>新增美食</text>
+    </view>
+    <view class="tool-btn manage-btn flex-row {{isBatchMode ? 'active-red' : ''}}" bindtap="toggleBatchMode">
+      <text class="icon">🗑️</text>
+      <text>{{isBatchMode ? '取消管理' : '批量管理'}}</text>
+    </view>
+  </view>
+
+  <!-- 网格美食相册墙 -->
+  <scroll-view class="grid-scroll" scroll-y="true">
+    <view class="recipe-grid">
+      <view class="recipe-card {{isBatchMode ? 'shaking' : ''}}" wx:for="{{filteredFoods}}" wx:key="id" bindtap="onCardClick" data-item="{{item}}">
+        <!-- 批量选择勾选框圈 -->
+        <view class="batch-checkbox {{item.selected ? 'checked' : ''}}" wx:if="{{isBatchMode}}">
+          <text class="checkbox-inner" wx:if="{{item.selected}}">✓</text>
+        </view>
+
+        <!-- 图片展示框 (支持点击上传/修改) -->
+        <view class="card-image-box" catchtap="onUpdatePhoto" data-id="{{item.id}}">
+          <image class="card-img" src="{{item.image_url}}" mode="aspectFill" wx:if="{{item.image_url}}" />
+          <view class="card-img-placeholder" wx:else>
+            <text class="placeholder-icon">🍲</text>
+            <text class="placeholder-text">点击上传美照</text>
+          </view>
+        </view>
+
+        <!-- 信息区 -->
+        <view class="card-info">
+          <view class="dish-name">{{item.name}}</view>
+          <view class="dish-tags" wx:if="{{item.tags}}">{{item.tags}}</view>
+          <view class="dish-tags-empty" wx:else>点击添加标签</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空列表提示 -->
+    <view class="empty-state" wx:if="{{filteredFoods.length === 0}}">
+      <view class="empty-icon">📖</view>
+      <view class="empty-text">还没有添加过美食记录呢</view>
+      <view class="empty-sub">点击上方「新增美食」开启你们的美味相册吧</view>
+    </view>
+  </scroll-view>
+
+  <!-- 底部批量删除确认条 -->
+  <view class="batch-delete-bar flex-row" wx:if="{{isBatchMode && selectedCount > 0}}">
+    <view class="batch-info">已选择 <text class="highlight-count">{{selectedCount}}</text> 道美食</view>
+    <button class="btn-delete" bindtap="deleteSelectedFoods">❌ 批量删除</button>
+  </view>
+
+  <!-- 新增/编辑美食弹层 -->
+  <view class="modal-overlay" wx:if="{{showModal}}">
+    <view class="modal-mask" bindtap="hideModal"></view>
+    <view class="modal-content">
+      <view class="modal-header flex-row">
+        <text class="modal-title">{{isEditMode ? '📝 编辑美食信息' : '➕ 新增爱心美食'}}</text>
+        <text class="modal-close" bindtap="hideModal">×</text>
+      </view>
+
+      <view class="form-body">
+        <view class="form-item">
+          <text class="label">美食名称</text>
+          <input class="input" placeholder="输入美味名称 (如: 咖喱鸡饭)" value="{{formName}}" bindinput="onInputFormName" />
+        </view>
+
+        <view class="form-item">
+          <text class="label">美食标签 (逗号分隔)</text>
+          <input class="input" placeholder="输入美食特点 (如: 热腾腾,超辣)" value="{{formTags}}" bindinput="onInputFormTags" />
+        </view>
+
+        <view class="form-item">
+          <text class="label">就餐品类分类</text>
+          <radio-group class="radio-group" bindchange="onCategoryChange">
+            <label class="radio-label">
+              <radio value="home" checked="{{formCategory === 'home'}}" color="#7C69C9" />
+              🏡 爱心私房菜 (在家吃)
+            </label>
+            <label class="radio-label">
+              <radio value="out" checked="{{formCategory === 'out'}}" color="#7C69C9" />
+              🚗 风味寻宝图 (出去吃)
+            </label>
+          </radio-group>
+        </view>
+      </view>
+
+      <view class="modal-footer flex-row">
+        <button class="btn btn-secondary" bindtap="hideModal">取消</button>
+        <button class="btn btn-primary" bindtap="submitForm">保存提交</button>
+      </view>
+    </view>
+  </view>
+</view>

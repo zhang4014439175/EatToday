@@ -165,7 +165,15 @@
 响应：
 ```json
 {
-  "foods": []
+  "foods": [
+    {
+      "id": 1,
+      "name": "火锅",
+      "tags": "热闹,辣",
+      "image_url": "https://...", // 美食照片路径或 base64
+      "category": "home" // "home" (爱心私房菜) 或 "out" (风味寻宝图)
+    }
+  ]
 }
 ```
 
@@ -174,7 +182,28 @@
 ```json
 {
   "name": "火锅",
-  "tags": "热闹,辣"
+  "tags": "热闹,辣",
+  "image_url": "https://...", // 可选
+  "category": "home" // "home" 或 "out"，默认 "home"
+}
+```
+
+响应：
+```json
+{
+  "success": true,
+  "food": {}
+}
+```
+
+### PUT `/api/food/:id`
+请求：
+```json
+{
+  "name": "新火锅",
+  "tags": "特辣",
+  "image_url": "https://...",
+  "category": "out"
 }
 ```
 
@@ -268,7 +297,8 @@
   "title": "周末去看电影",
   "meetingTime": "2026-07-04 19:30",
   "meetingLocation": "万达影城",
-  "notes": "提前买爆米花"
+  "notes": "提前买爆米花",
+  "status": "accepted" // 可选，餐饮联动自动生成时直接传 "accepted"
 }
 ```
 
@@ -349,5 +379,94 @@
 {
   "success": true,
   "message": "愿望项目已移除"
+}
+```
+
+## 爱心厨房
+
+### GET `/api/kitchen/active`
+响应：
+```json
+{
+  "session": {
+    "id": 1,
+    "dish_name": "红烧肉",
+    "diner_id": 1,
+    "chef_id": 2,
+    "diner_note": "少放糖，加个蛋",
+    "status": "ordered",
+    "chef_note": "",
+    "image_url": "",
+    "praise": "",
+    "created_at": "2026-06-30T07:00:00Z"
+  }
+}
+```
+
+### POST `/api/kitchen/order`
+请求：
+```json
+{
+  "dishName": "红烧肉",
+  "dinerNote": "少放糖，加个蛋"
+}
+```
+响应：
+```json
+{
+  "success": true,
+  "session": {}
+}
+```
+
+### POST `/api/kitchen/accept`
+响应：
+```json
+{
+  "success": true,
+  "message": "主厨已接单，下厨中",
+  "session": {}
+}
+```
+
+### POST `/api/kitchen/serve`
+请求：
+```json
+{
+  "chefNote": "大功告成，爱心餐点出锅啦！",
+  "imageUrl": "/images/cooked_dish.jpg"
+}
+```
+响应：
+```json
+{
+  "success": true,
+  "message": "装盘起锅成功",
+  "session": {}
+}
+```
+
+### POST `/api/kitchen/praise`
+请求：
+```json
+{
+  "praise": "太美味了，不愧是我宝贝！"
+}
+```
+响应：
+```json
+{
+  "success": true,
+  "message": "已评价并送上赞美",
+  "session": {}
+}
+```
+
+### POST `/api/kitchen/reset`
+响应：
+```json
+{
+  "success": true,
+  "message": "爱心厨房会话重置完成"
 }
 ```

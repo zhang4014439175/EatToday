@@ -397,9 +397,9 @@ function handleDate(path, method, options) {
     }
 
     if (path === '/date' && method === 'POST') {
-      if (!user.partner_id) return fail('您必须先配对伴侣才能发起约会提案');
+      if (!user.partner_id) return fail('您必须先配对伴侣才能发起去哪玩提案');
       const { title, meetingTime, meetingLocation, notes } = getBody(options);
-      if (!title || !meetingTime) return fail('约会主题与见面时间不能为空');
+      if (!title || !meetingTime) return fail('去哪玩主题与见面时间不能为空');
       const now = nowIso();
       const plan = {
         id: nextId(state, 'datePlan'),
@@ -423,8 +423,8 @@ function handleDate(path, method, options) {
       const id = Number(actionMatch[1]);
       const action = actionMatch[2];
       const plan = state.datePlans.find(item => item.id === id);
-      if (!plan) return fail('未找到该约会提案', 404, 'NotFoundError');
-      if (plan.partner_id !== user.id) return fail('您无权处理该约会提案', 403, 'ForbiddenError');
+      if (!plan) return fail('未找到该去哪玩提案', 404, 'NotFoundError');
+      if (plan.partner_id !== user.id) return fail('您无权处理该去哪玩提案', 403, 'ForbiddenError');
 
       if (action === 'accept') plan.status = 'accepted';
       if (action === 'reject') plan.status = 'rejected';

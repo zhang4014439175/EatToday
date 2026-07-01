@@ -7,6 +7,8 @@ import authRouter from './routes/auth.js';
 import anniversaryRouter from './routes/anniversary.js';
 import foodRouter from './routes/food.js';
 import dateRouter from './routes/date.js';
+import kitchenRouter from './routes/kitchen.js';
+import calendarRouter from './routes/calendar.js';
 import { initWebSocketServer } from './services/websocket.js';
 
 // 加载环境变量
@@ -25,6 +27,8 @@ app.use('/api/auth', authRouter);
 app.use('/api/anniversary', anniversaryRouter);
 app.use('/api/food', foodRouter);
 app.use('/api/date', dateRouter);
+app.use('/api/kitchen', kitchenRouter);
+app.use('/api/calendar', calendarRouter);
 
 // 初始化 WebSocket 服务
 initWebSocketServer(server);

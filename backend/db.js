@@ -96,12 +96,28 @@ async function initDBOnce(canRecoverEmptyDb) {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         tags TEXT,
+        category TEXT DEFAULT 'home',
+        image_url TEXT,
         created_by INTEGER NOT NULL,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
       );
     `);
+
+    // 兼容旧数据库：动态增加 category 和 image_url 列
+    try {
+      await db.run('ALTER TABLE food_pool ADD COLUMN category TEXT DEFAULT "home";');
+      console.log('Successfully added category column to food_pool table.');
+    } catch (e) {
+      // 已经存在，忽略
+    }
+    try {
+      await db.run('ALTER TABLE food_pool ADD COLUMN image_url TEXT;');
+      console.log('Successfully added image_url column to food_pool table.');
+    } catch (e) {
+      // 已经存在，忽略
+    }
 
     // 4. 创建 food_sessions 点餐投票会话表
     await db.exec(`
@@ -165,6 +181,38 @@ async function initDBOnce(canRecoverEmptyDb) {
       );
     `);
 
+    // 8. 创建 kitchen_sessions 爱心厨房状态表
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS kitchen_sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        dish_name TEXT NOT NULL,
+        diner_id INTEGER NOT NULL,
+        chef_id INTEGER NOT NULL,
+        diner_note TEXT,
+        chef_note TEXT,
+        status TEXT NOT NULL,
+        image_url TEXT,
+        praise TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (diner_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (chef_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+    `);
+
+    // 9. 创建 calendar_custom_events 日历自定义琐事表
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS calendar_custom_events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        event_date TEXT NOT NULL,
+        event_time TEXT,
+        created_by INTEGER NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+      );
+    `);
+
     // 创建核心字段索引，提高查询性能
     await db.exec(`
       CREATE INDEX IF NOT EXISTS idx_users_openid ON users(openid);
@@ -175,6 +223,8 @@ async function initDBOnce(canRecoverEmptyDb) {
       CREATE INDEX IF NOT EXISTS idx_food_votes_session_user ON food_votes(session_id, user_id);
       CREATE INDEX IF NOT EXISTS idx_date_plans_created_partner_status ON date_plans(created_by, partner_id, status);
       CREATE INDEX IF NOT EXISTS idx_date_wishlist_created_by ON date_wishlist(created_by);
+      CREATE INDEX IF NOT EXISTS idx_kitchen_sessions_diner_chef_status ON kitchen_sessions(diner_id, chef_id, status);
+      CREATE INDEX IF NOT EXISTS idx_calendar_custom_events_date ON calendar_custom_events(event_date);
     `);
 
     console.log('Database tables and indices checked/created successfully.');

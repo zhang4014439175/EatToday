@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EatToday Tailwind Preview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ink: '#2f2a32',
+              petal: '#d84f75',
+              blush: '#fff1f5',
+              mint: '#2f9b86',
+              honey: '#f2a33a',
+              porcelain: '#fffaf7'
+            },
+            boxShadow: {
+              soft: '0 18px 60px rgba(76, 48, 60, 0.16)'
+            }
+          }
+        }
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-[#f6f1ed] text-ink antialiased">
+    <div class="mx-auto flex min-h-screen w-full max-w-[430px] flex-col bg-porcelain shadow-soft">
+      <header class="relative overflow-hidden border-b border-rose-100 bg-[#fff7f8] px-5 pb-5 pt-6">
+        <div class="absolute right-5 top-6 h-24 w-24 rounded-full bg-mint/10"></div>
+        <div class="absolute -bottom-10 -left-8 h-32 w-32 rounded-full bg-petal/10"></div>
+
+        <div class="relative flex items-start justify-between gap-4">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-petal">EatToday</p>
+            <h1 class="mt-2 text-3xl font-black leading-tight tracking-normal">今天也一起<br />认真生活</h1>
+            <p class="mt-3 max-w-[280px] text-sm leading-6 text-stone-500">
+              点餐、去哪玩、纪念日都放在一个小小的日常空间里。
+            </p>
+          </div>
+          <button class="grid h-11 w-11 place-items-center rounded-full border border-rose-100 bg-white text-lg font-black text-petal shadow-sm">
+            ↻
+          </button>
+        </div>
+
+        <div class="relative mt-5 grid grid-cols-3 gap-2">
+          <div class="rounded-lg border border-orange-100 bg-white/80 p-3">
+            <div class="text-2xl font-black">42</div>
+            <div class="text-xs text-stone-500">相伴天数</div>
+          </div>
+          <div class="rounded-lg border border-rose-100 bg-white/80 p-3">
+            <div class="text-2xl font-black">6</div>
+            <div class="text-xs text-stone-500">美食库存</div>
+          </div>
+          <div class="rounded-lg border border-emerald-100 bg-white/80 p-3">
+            <div class="text-2xl font-black">3</div>
+            <div class="text-xs text-stone-500">去哪玩记录</div>
+          </div>
+        </div>
+      </header>
+
+      <main class="flex-1 space-y-4 overflow-y-auto px-4 py-4 pb-24">
+        <section class="rounded-lg border border-rose-100 bg-white p-4 shadow-sm">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-[0.18em] text-petal">Pairing</p>
+              <h2 class="mt-1 text-xl font-black">本地测试用户 × 另一半</h2>
+            </div>
+            <span class="rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-petal">已配对</span>
+          </div>
+          <div class="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+            <div class="rounded-lg bg-blush p-3 text-center">
+              <div class="mx-auto grid h-14 w-14 place-items-center rounded-full bg-white text-2xl shadow-sm">你</div>
+              <p class="mt-2 text-sm font-bold">LOV520</p>
+            </div>
+            <div class="text-2xl font-black text-petal">♡</div>
+            <div class="rounded-lg bg-emerald-50 p-3 text-center">
+              <div class="mx-auto grid h-14 w-14 place-items-center rounded-full bg-white text-2xl shadow-sm">TA</div>
+              <p class="mt-2 text-sm font-bold">TA520</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="rounded-lg border border-orange-100 bg-white p-4 shadow-sm">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-[0.18em] text-honey">Food</p>
+              <h2 class="mt-1 text-xl font-black">今天吃什么</h2>
+            </div>
+            <button class="rounded-lg bg-petal px-4 py-2 text-sm font-bold text-white shadow-sm">开始抽取</button>
+          </div>
+
+          <div class="mx-auto my-5 grid h-52 w-52 place-items-center rounded-full border-[10px] border-white bg-[conic-gradient(#ffd1dc,#ffe8b5,#ccefe7,#d8e3ff,#ffd1dc)] shadow-[0_18px_44px_rgba(80,54,64,0.18)]">
+            <div class="grid h-28 w-28 place-items-center rounded-full bg-white/90 p-4 text-center text-lg font-black shadow-sm">
+              火锅
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <span class="rounded-lg border border-stone-100 bg-stone-50 px-3 py-2 text-center text-sm font-bold">烤肉</span>
+            <span class="rounded-lg border border-stone-100 bg-stone-50 px-3 py-2 text-center text-sm font-bold">寿司</span>
+            <span class="rounded-lg border border-stone-100 bg-stone-50 px-3 py-2 text-center text-sm font-bold">麻辣烫</span>
+          </div>
+        </section>
+
+        <section class="rounded-lg border border-emerald-100 bg-white p-4 shadow-sm">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-[0.18em] text-mint">Blind Box</p>
+              <h2 class="mt-1 text-xl font-black">双人盲盒投票</h2>
+            </div>
+            <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-mint">投票中</span>
+          </div>
+          <p class="mt-3 text-sm leading-6 text-stone-500">两个人各自悄悄选 3 个，重合就锁定，没有重合就交给系统随机。</p>
+          <div class="mt-4 grid grid-cols-2 gap-2">
+            <button class="rounded-lg border border-mint bg-emerald-50 px-3 py-3 text-sm font-black text-mint">火锅</button>
+            <button class="rounded-lg border border-stone-100 bg-white px-3 py-3 text-sm font-bold">烤肉</button>
+            <button class="rounded-lg border border-mint bg-emerald-50 px-3 py-3 text-sm font-black text-mint">寿司</button>
+            <button class="rounded-lg border border-stone-100 bg-white px-3 py-3 text-sm font-bold">汉堡炸鸡</button>
+          </div>
+          <button class="mt-4 w-full rounded-lg bg-mint px-4 py-3 text-sm font-black text-white shadow-sm">确认并悄悄提交</button>
+        </section>
+
+        <section class="rounded-lg border border-blue-100 bg-white p-4 shadow-sm">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-[0.18em] text-blue-500">Date</p>
+              <h2 class="mt-1 text-xl font-black">去哪玩行程</h2>
+            </div>
+            <button class="rounded-lg bg-blue-500 px-4 py-2 text-sm font-bold text-white shadow-sm">发起提案</button>
+          </div>
+
+          <div class="mt-4 space-y-3">
+            <article class="rounded-lg border border-stone-100 bg-stone-50 p-3">
+              <div class="flex items-center justify-between gap-3">
+                <h3 class="font-black">去看周末晚上的电影</h3>
+                <span class="shrink-0 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">待确认</span>
+              </div>
+              <p class="mt-2 text-sm text-stone-500">今天 19:30 · 万达影城</p>
+              <div class="mt-3 grid grid-cols-3 gap-2">
+                <button class="rounded-lg bg-mint px-3 py-2 text-xs font-bold text-white">接受</button>
+                <button class="rounded-lg bg-honey px-3 py-2 text-xs font-bold text-white">修改</button>
+                <button class="rounded-lg bg-stone-200 px-3 py-2 text-xs font-bold text-stone-700">婉拒</button>
+              </div>
+            </article>
+
+            <article class="rounded-lg border border-stone-100 bg-stone-50 p-3">
+              <div class="flex items-center justify-between gap-3">
+                <h3 class="font-black">一起去公园散步</h3>
+                <span class="shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-mint">已同意</span>
+              </div>
+              <p class="mt-2 text-sm text-stone-500">今天 16:00 · 滨江公园</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="rounded-lg border border-rose-100 bg-white p-4 shadow-sm">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-[0.18em] text-petal">Memory</p>
+              <h2 class="mt-1 text-xl font-black">重要日子</h2>
+            </div>
+            <button class="rounded-lg border border-rose-200 bg-white px-4 py-2 text-sm font-bold text-petal">新增</button>
+          </div>
+          <div class="mt-4 space-y-3">
+            <div class="flex items-center justify-between rounded-lg bg-blush p-3">
+              <div>
+                <p class="font-black">我们第一次相遇</p>
+                <p class="text-sm text-stone-500">2025-05-20 · 每年重复</p>
+              </div>
+              <span class="text-2xl font-black text-petal">324</span>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <nav class="fixed bottom-0 left-1/2 grid w-full max-w-[430px] -translate-x-1/2 grid-cols-4 gap-2 border-t border-rose-100 bg-white/95 px-3 py-3 backdrop-blur">
+        <button class="rounded-lg bg-rose-50 py-3 text-sm font-black text-petal">今日</button>
+        <button class="rounded-lg py-3 text-sm font-bold text-stone-500">吃什么</button>
+        <button class="rounded-lg py-3 text-sm font-bold text-stone-500">去哪玩</button>
+        <button class="rounded-lg py-3 text-sm font-bold text-stone-500">我的</button>
+      </nav>
+    </div>
+  </body>
+</html>

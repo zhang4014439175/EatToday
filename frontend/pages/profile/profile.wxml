@@ -14,7 +14,7 @@
 
   <!-- 2. 情侣绑定关系卡片 -->
   <view class="card pairing-card text-center" wx:if="{{isLogin}}">
-    <view class="card-title">情侣牵线</view>
+    <view class="card-title">用户配对</view>
     
     <!-- 场景 A: 已配对 -->
     <view class="paired-view flex-row" wx:if="{{isPaired}}">
@@ -62,7 +62,7 @@
 
       <view class="flex-row flex-between form-switch-group">
         <text class="switch-label">是否每年重复</text>
-        <switch checked="{{newAnniversary.is_yearly}}" color="#FF69B4" bindchange="onAnnYearlyChange" />
+        <switch checked="{{newAnniversary.is_yearly}}" color="#7C69C9" bindchange="onAnnYearlyChange" />
       </view>
 
       <button class="btn btn-primary" hover-class="btn-primary-hover" bindtap="submitAnniversary">保存纪念日</button>
@@ -89,10 +89,10 @@
     
     <view class="setting-item flex-row flex-between">
       <view class="setting-info">
-        <view class="setting-name">约会变动提醒推送</view>
-        <view class="text-muted">当伴侣修改或接受约会时发送通知</view>
+        <view class="setting-name">去哪玩变动提醒推送</view>
+        <view class="text-muted">当伴侣修改或接受去哪玩提案时发送通知</view>
       </view>
-      <switch checked="{{settings.dateNotify}}" color="#FF69B4" bindchange="toggleDateNotify" />
+      <switch checked="{{settings.dateNotify}}" color="#7C69C9" bindchange="toggleDateNotify" />
     </view>
 
     <view class="setting-item flex-row flex-between" style="border-top: 1rpx solid #FFF0F5; margin-top:20rpx; padding-top:20rpx;">
@@ -100,7 +100,7 @@
         <view class="setting-name">今天吃什么提醒</view>
         <view class="text-muted">每天饭点前提醒共同投票决定吃什么</view>
       </view>
-      <switch checked="{{settings.foodNotify}}" color="#FF69B4" bindchange="toggleFoodNotify" />
+      <switch checked="{{settings.foodNotify}}" color="#7C69C9" bindchange="toggleFoodNotify" />
     </view>
 
     <button class="btn btn-secondary logout-btn" hover-class="btn-secondary-hover" bindtap="handleLogout">退出登录</button>

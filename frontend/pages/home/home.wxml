@@ -1,16 +1,107 @@
 <view class="container">
-  <!-- 顶部情侣恋爱天数计时器 -->
-  <view class="love-header card">
-    <view class="heart-icon">❤</view>
-    <view class="love-days-title">{{isPaired ? '我们在一起' : '开启恋爱记录'}}</view>
-    <view class="love-days-num">{{loveDays}} <text class="days-unit">天</text></view>
-    <view class="love-partner-info" wx:if="{{isPaired}}">
-      <text class="partner-name">{{userInfo.nickname}}</text>
-      <text class="heart-connector">⚡</text>
-      <text class="partner-name">{{partnerInfo.nickname || '我的另一半'}}</text>
+  <!-- 首页情侣互动日历 -->
+  <view class="card calendar-card">
+    <view class="calendar-header flex-row flex-between">
+      <view class="month-switch flex-row">
+        <view class="arrow-btn" bindtap="prevMonth">◀</view>
+        <text class="current-month-text">{{currentYear}}年{{currentMonth}}月</text>
+        <view class="arrow-btn" bindtap="nextMonth">▶</view>
+      </view>
+      <text class="back-today-btn" bindtap="backToToday">回今天</text>
     </view>
-    <view class="love-partner-info text-muted" wx:else>
-      绑定另一半，即可同步解锁恋爱计时与双人功能
+
+    <!-- 星期表头 -->
+    <view class="week-header flex-row">
+      <text class="week-day weekend">日</text>
+      <text class="week-day">一</text>
+      <text class="week-day">二</text>
+      <text class="week-day">三</text>
+      <text class="week-day">四</text>
+      <text class="week-day">五</text>
+      <text class="week-day weekend">六</text>
+    </view>
+
+    <!-- 日历格子网格 -->
+    <view class="calendar-grid">
+      <view 
+        class="grid-day {{item.isCurrentMonth ? '' : 'other-month'}} {{item.isSelected ? 'selected-day' : ''}} {{item.isToday ? 'today-day' : ''}}" 
+        wx:for="{{calendarDays}}" 
+        wx:key="dateStr" 
+        bindtap="selectDay" 
+        data-day="{{item}}"
+      >
+        <text class="day-number">{{item.day}}</text>
+        
+        <!-- 彩色日程标记点 (Dots) -->
+        <view class="day-dots flex-row">
+          <view class="dot dot-anniversary" wx:if="{{item.hasAnniversary}}"></view>
+          <view class="dot dot-date" wx:if="{{item.hasDate}}"></view>
+          <view class="dot dot-kitchen" wx:if="{{item.hasKitchen}}"></view>
+          <view class="dot dot-food" wx:if="{{item.hasFood}}"></view>
+          <view class="dot dot-custom" wx:if="{{item.hasCustom}}"></view>
+        </view>
+    </view>
+
+    <!-- 展开/收起切换按钮 -->
+    <view class="calendar-toggle-btn flex-row" bindtap="toggleCalendar">
+      <text>{{calendarExpanded ? '▲ 收起日历' : '▼ 展开完整日历'}}</text>
+    </view>
+  </view>
+
+  <!-- 点击天数展示的 Agenda 日程抽屉 -->
+  <view class="card agenda-drawer" wx:if="{{selectedDayAgenda}}">
+    <view class="agenda-header flex-row flex-between">
+      <text class="agenda-title">📅 {{selectedDayAgenda.dateStr}} 的日常</text>
+      <view class="btn-add-custom" bindtap="showAddCustomDialog">➕ 添加备忘</view>
+    </view>
+
+    <!-- 日程事项列表 -->
+    <view class="agenda-list">
+      <view class="agenda-item flex-row" wx:for="{{selectedDayAgenda.events}}" wx:key="uniqueId">
+        <view class="agenda-dot-line">
+          <view class="agenda-dot dot-{{item.type}}"></view>
+          <view class="agenda-line" wx:if="{{index < selectedDayAgenda.events.length - 1}}"></view>
+        </view>
+        <view class="agenda-body flex-1">
+          <view class="agenda-time" wx:if="{{item.time}}">{{item.time}}</view>
+          <view class="agenda-content">
+            <text class="agenda-type-tag tag-{{item.type}}">[{{item.typeText}}]</text>
+            <text class="agenda-text">{{item.title}}</text>
+            <text class="agenda-subtext" wx:if="{{item.location}}"> 📍{{item.location}}</text>
+          </view>
+        </view>
+        <view class="agenda-action" wx:if="{{item.type === 'custom'}}">
+          <text class="agenda-delete-btn" bindtap="deleteCustomEvent" data-id="{{item.id}}">✕</text>
+        </view>
+      </view>
+
+      <view class="empty-agenda" wx:if="{{selectedDayAgenda.events.length === 0}}">
+        这天平平淡淡，没有记录备忘，点击上方「添加备忘」记一笔吧！
+      </view>
+    </view>
+  </view>
+
+  <!-- 添加自定义事件弹窗 -->
+  <view class="dialog-overlay" wx:if="{{showCustomDialog}}">
+    <view class="dialog-mask" bindtap="hideAddCustomDialog"></view>
+    <view class="dialog-box card">
+      <view class="card-title">📝 添加一日备忘</view>
+      <view class="dialog-form">
+        <view class="form-group">
+          <text class="form-label">备忘内容</text>
+          <input class="form-input" placeholder="输入要做的琐事或提醒" value="{{customDialogText}}" bindinput="onInputCustomText" style="height: 80rpx;" />
+        </view>
+        <view class="form-group">
+          <text class="form-label">具体时间 (选填)</text>
+          <picker mode="time" value="{{customDialogTime}}" bindchange="onCustomTimeChange">
+            <view class="picker-box" style="height: 80rpx; line-height: 80rpx; padding: 0 20rpx; border: 1rpx solid rgba(45,41,56,0.12); border-radius: 10rpx; background: #fff;">{{customDialogTime || '选择时间 (点击更改)'}}</view>
+          </picker>
+        </view>
+      </view>
+      <view class="dialog-btns flex-row" style="margin-top: 30rpx;">
+        <button class="btn btn-secondary flex-1" bindtap="hideAddCustomDialog">取消</button>
+        <button class="btn btn-primary flex-1" bindtap="submitCustomEvent" style="margin-left: 20rpx;">确认保存</button>
+      </view>
     </view>
   </view>
 
@@ -26,11 +117,11 @@
     <view class="today-arrow">➔</view>
   </view>
 
-  <!-- 看板 2: 去哪里见面 -->
+  <!-- 看板 2: 今日去哪玩 -->
   <view class="card flex-row flex-between today-card" bindtap="goToDate">
     <view class="today-left">
-      <view class="today-label">📍 去哪里见面</view>
-      <view class="today-value">{{todayDate || '今天暂无确认的约会计划'}}</view>
+      <view class="today-label">📍 今日去哪玩</view>
+      <view class="today-value">{{todayDate || '今天暂无确认的游玩计划'}}</view>
     </view>
     <view class="today-arrow">➔</view>
   </view>

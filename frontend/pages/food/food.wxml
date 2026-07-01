@@ -1,48 +1,23 @@
 <view class="container">
-  <!-- 模式切换 Tabs -->
-  <view class="tab-container card flex-row">
-    <view class="tab-item {{activeTab === 'wheel' ? 'tab-active' : ''}}" bindtap="switchTab" data-tab="wheel">🎡 随机轮盘</view>
-    <view class="tab-item {{activeTab === 'vote' ? 'tab-active' : ''}}" bindtap="switchTab" data-tab="vote">🎁 双人盲盒</view>
-  </view>
-
-  <!-- 1. 随机轮盘模块 -->
-  <view wx:if="{{activeTab === 'wheel'}}" class="tab-content">
-    <view class="card wheel-card text-center">
-      <view class="card-title">治愈选择困难症</view>
-      
-      <!-- 大转盘展示区域 -->
-      <view class="wheel-outer">
-        <view class="wheel-pointer">▼</view>
-        <view class="wheel-plate {{isSpinning ? 'spinning' : ''}}" style="transform: rotate({{rotationAngle}}deg)">
-          <!-- 扇区文字，动态生成 -->
-          <view class="wheel-sector" wx:for="{{foodList}}" wx:key="id" style="transform: rotate({{index * (360 / foodList.length)}}deg)">
-            <text class="sector-text">{{item.name}}</text>
-          </view>
-          <!-- 空池子提示 -->
-          <view class="empty-pool-text" wx:if="{{foodList.length === 0}}">请先添加美食</view>
-        </view>
-      </view>
-
-      <button class="btn btn-primary" hover-class="btn-primary-hover" bindtap="spinWheel" disabled="{{foodList.length < 2 || isSpinning}}">
-        {{isSpinning ? '正在为您挑选...' : '开始抽取'}}
-      </button>
-      <text class="text-muted block-hint" wx:if="{{foodList.length < 2}}">需要在下方自定义食物池中添加至少 2 种食物哦</text>
-    </view>
-
-    <!-- 抽取结果弹窗/卡片 -->
-    <view class="card result-card text-center" wx:if="{{wheelResult}}">
-      <view class="result-title">🎉 抽取成功！今天就吃：</view>
-      <view class="result-name">{{wheelResult.name}}</view>
-      <button class="btn btn-secondary" hover-class="btn-secondary-hover" bindtap="lockWheelResult">锁定为今日午/晚餐</button>
+  <!-- 顶部美食库入口 -->
+  <view class="food-header flex-row" style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 24rpx; width: 100%;">
+    <view class="recipe-book-btn flex-row" bindtap="goToRecipeBook" style="display: flex; align-items: center; gap: 8rpx; padding: 10rpx 24rpx; background: #ffffff; border-radius: 999rpx; border: 1rpx solid rgba(45, 41, 56, 0.08); box-shadow: 0 4rpx 10rpx rgba(45, 41, 56, 0.02); cursor: pointer;">
+      <text style="font-size: 26rpx;">📖</text>
+      <text style="font-size: 24rpx; font-weight: 700; color: #7C69C9;">美食库</text>
     </view>
   </view>
 
-  <!-- 2. 双人盲盒投票模块 -->
-  <view wx:if="{{activeTab === 'vote'}}" class="tab-content">
+  <!-- 就餐模式选择 (在家吃 vs 出去吃) -->
+  <view class="eat-mode-switcher card flex-row" style="margin-bottom: 24rpx;">
+    <view class="eat-mode-item {{eatMode === 'home' ? 'eat-mode-active' : ''}}" bindtap="switchEatMode" data-mode="home">🏡 在家吃</view>
+    <view class="eat-mode-item {{eatMode === 'out' ? 'eat-mode-active' : ''}}" bindtap="switchEatMode" data-mode="out">🚗 出去吃</view>
+  </view>
+
+  <view wx:if="{{eatMode === 'out'}}" class="tab-content">
     <!-- 未登录/未配对状态 -->
     <view class="card text-center" wx:if="{{!isPaired}}">
-      <view class="card-title">双人盲盒模式</view>
-      <text class="text-muted block-hint">必须先进行情侣配对，才能使用双人投票功能</text>
+      <view class="card-title">今天一起吃什么</view>
+      <text class="text-muted block-hint">必须先完成用户配对，才能一起选择今天出去吃什么</text>
       <button class="btn btn-secondary" hover-class="btn-secondary-hover" bindtap="goToProfile">去配对</button>
     </view>
 
@@ -50,9 +25,9 @@
     <view wx:else>
       <!-- 无活跃的投票会话 -->
       <view class="card text-center" wx:if="{{!activeSession}}">
-        <view class="card-title">开始双人选菜</view>
+        <view class="card-title">开始一起选菜</view>
         <text class="text-muted block-hint">发起投票后，两人各自在自己的手机上悄悄勾选 3 个想吃的美食。若有重合直接锁定，无重合则由系统在你们挑选的菜品里随机选择！</text>
-        <button class="btn btn-primary" hover-class="btn-primary-hover" bindtap="createVoteSession">发起今日选菜投票</button>
+        <button class="btn btn-primary" hover-class="btn-primary-hover" bindtap="createVoteSession">发起今日选菜</button>
       </view>
 
       <!-- 活跃投票会话进行中 -->
@@ -63,7 +38,10 @@
         </view>
 
         <!-- 选菜列表（勾选框，最多选3个） -->
-        <view class="vote-instruction">请勾选 3 个您今天想吃的菜品 (已选: {{selectedVoteIds.length}}/3)：</view>
+        <view class="vote-toolbar flex-row flex-between">
+          <view class="vote-instruction">请勾选 3 个您今天想吃的菜品 (已选: {{selectedVoteIds.length}}/3)：</view>
+          <button class="btn btn-secondary random-vote-btn" hover-class="btn-secondary-hover" bindtap="randomVotePick" wx:if="{{canVote}}" disabled="{{voteOptions.length === 0}}">随机选择</button>
+        </view>
         <checkbox-group bindchange="onVoteCheckboxChange" class="food-checkbox-list">
           <label class="food-checkbox-item flex-row {{item.checked ? 'checkbox-checked' : ''}}" wx:for="{{voteOptions}}" wx:key="id">
             <checkbox value="{{item.id}}" checked="{{item.checked}}" disabled="{{!canVote || (selectedVoteIds.length >= 3 && !item.checked)}}" />
@@ -87,30 +65,219 @@
         <view class="result-title">🎯 最终锁定！我们今天吃：</view>
         <view class="result-name">{{activeSession.selected_food_name}}</view>
         <view class="text-muted">匹配原因: {{activeSession.result_reason === 'intersection' ? '💞 心有灵犀，选项重合！' : '🎲 选项无重合，系统随机抽取'}}</view>
+        <button class="btn btn-primary" hover-class="btn-primary-hover" bindtap="convertToDatePlan" data-dish="{{activeSession.selected_food_name}}" style="margin-top: 20rpx;">📌 提为今日去哪玩</button>
         <button class="btn btn-secondary" hover-class="btn-secondary-hover" bindtap="createVoteSession" style="margin-top:20rpx;">重新发起投票</button>
       </view>
     </view>
   </view>
 
-  <!-- 3. 自定义食物池模块 (常驻下方，管理两口子的菜谱) -->
-  <view class="card food-pool-card">
-    <view class="card-title">我们的美食库 ({{foodList.length}})</view>
-    
-    <!-- 添加输入栏 -->
-    <view class="flex-row add-food-box">
-      <input class="form-input add-input" placeholder="输入你想吃的美食或菜名" value="{{newFoodName}}" bindinput="onInputFoodName" />
-      <button class="btn-add" bindtap="addFood">添加</button>
+  <!-- 3. 爱心厨房模块 -->
+  <view wx:if="{{eatMode === 'home'}}" class="tab-content">
+    <!-- 未登录/未配对状态 -->
+    <view class="card text-center" wx:if="{{!isPaired}}">
+      <view class="card-title">爱心小厨房</view>
+      <text class="text-muted block-hint">必须先进行情侣配对，才能使用做饭下单互动功能</text>
+      <button class="btn btn-secondary" hover-class="btn-secondary-hover" bindtap="goToProfile">去配对</button>
     </view>
 
-    <!-- 美食列表展示 -->
-    <view class="food-list">
-      <view class="food-item flex-row flex-between" wx:for="{{foodList}}" wx:key="id">
-        <text class="food-item-name">{{item.name}}</text>
-        <view class="food-delete-btn" bindtap="deleteFood" data-id="{{item.id}}">✕</view>
+    <!-- 已配对状态 -->
+    <view wx:else>
+      <!-- 空闲状态：美团点单式下单界面 -->
+      <view class="card meituan-menu-card" wx:if="{{!kitchenSession}}" style="padding: 0; overflow: visible;">
+        <view class="menu-header">
+          <view class="card-title" style="padding: 24rpx 24rpx 12rpx; margin-bottom: 0;">📖 宝贝的深夜食堂</view>
+          <text class="text-muted block-hint" style="padding: 0 24rpx 16rpx; margin-top: 4rpx; display: block; font-size: 22rpx;">大厨已就位，请食客尽情点餐！❤️</text>
+        </view>
+        
+        <!-- 双栏布局 -->
+        <view class="menu-body flex-row" style="display: flex; height: 560rpx; border-top: 1rpx solid rgba(45, 41, 56, 0.05); border-bottom: 1rpx solid rgba(45, 41, 56, 0.05);">
+          <!-- 左栏：分类导航 -->
+          <scroll-view scroll-y class="menu-sidebar" style="width: 180rpx; background: #F6F5FA; height: 100%; border-right: 1rpx solid rgba(45, 41, 56, 0.05);">
+            <view 
+              class="sidebar-item {{activeCategory === item.key ? 'sidebar-active' : ''}}" 
+              wx:for="{{categories}}" 
+              wx:key="key"
+              bindtap="selectCategory"
+              data-category="{{item.key}}"
+              style="padding: 28rpx 16rpx; font-size: 24rpx; text-align: center; color: #868095; font-weight: 700; border-left: 6rpx solid transparent; transition: all 0.2s ease;"
+            >
+              {{item.name}}
+            </view>
+          </scroll-view>
+          
+          <!-- 右栏：菜品列表 -->
+          <scroll-view scroll-y class="menu-content" style="flex: 1; padding: 20rpx; height: 100%; box-sizing: border-box; background: #ffffff;">
+            <view class="menu-dish-item flex-row" wx:for="{{filteredDishes}}" wx:key="id" style="display: flex; justify-content: space-between; align-items: center; padding: 20rpx 0; border-bottom: 1rpx solid rgba(45, 41, 56, 0.04);">
+              <view class="dish-info" style="flex: 1; padding-right: 16rpx;">
+                <view class="dish-name" style="font-size: 28rpx; font-weight: 800; color: #2D2938;">🍜 {{item.name}}</view>
+                <view class="dish-desc" style="font-size: 22rpx; color: #868095; margin-top: 4rpx;">{{item.tags || '主厨特色，极力推荐'}}</view>
+              </view>
+              <!-- 数量加减按钮 -->
+              <view class="dish-action flex-row" style="display: flex; align-items: center; gap: 16rpx;">
+                <view class="dish-btn dish-minus" wx:if="{{item.quantity > 0}}" bindtap="changeCartQuantity" data-id="{{item.id}}" data-action="minus" style="width: 44rpx; height: 44rpx; border-radius: 50%; border: 2rpx solid #7C69C9; color: #7C69C9; display: flex; align-items: center; justify-content: center; font-size: 32rpx; font-weight: bold; background: #ffffff;">-</view>
+                <text class="dish-quantity" wx:if="{{item.quantity > 0}}" style="font-size: 28rpx; font-weight: 800; color: #2D2938;">{{item.quantity}}</text>
+                <view class="dish-btn dish-plus" bindtap="changeCartQuantity" data-id="{{item.id}}" data-action="plus" style="width: 44rpx; height: 44rpx; border-radius: 50%; background: #7C69C9; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 32rpx; font-weight: bold;">+</view>
+              </view>
+            </view>
+            <view class="empty-dish-hint" wx:if="{{filteredDishes.length === 0}}" style="font-size: 24rpx; color: #868095; text-align: center; padding-top: 80rpx;">
+              此分类暂无美食菜品，可去下方“美食库”添加分类标签哦
+            </view>
+          </scroll-view>
+        </view>
+        
+        <!-- 底部浮动购物车条 -->
+        <view class="menu-cart-bar flex-row" wx:if="{{cartCount > 0}}" style="display: flex; justify-content: space-between; align-items: center; padding: 24rpx; background: #FAF9FC; border-radius: 0 0 24rpx 24rpx;">
+          <view class="cart-left flex-row" style="display: flex; align-items: center; gap: 16rpx;">
+            <view class="cart-icon-box" style="position: relative;">
+              <text class="cart-icon" style="font-size: 44rpx;">🛒</text>
+              <view class="cart-badge" style="position: absolute; top: -10rpx; right: -10rpx; min-width: 32rpx; height: 32rpx; border-radius: 50%; background: #E9C46A; color: #ffffff; font-size: 20rpx; font-weight: bold; display: flex; align-items: center; justify-content: center; padding: 0 4rpx; box-sizing: border-box;">{{cartCount}}</view>
+            </view>
+            <text class="cart-summary" style="font-size: 26rpx; font-weight: 800; color: #2D2938;">已选 {{cartCount}} 道菜肴</text>
+          </view>
+          <button class="btn btn-primary cart-checkout-btn" hover-class="btn-primary-hover" bindtap="showOrderModal" style="margin: 0; padding: 0 40rpx; height: 68rpx; line-height: 68rpx; font-size: 26rpx; min-height: 0; box-shadow: 0 4rpx 10rpx rgba(124, 105, 201, 0.2);">去下单</button>
+        </view>
       </view>
-      <view class="empty-list" wx:if="{{foodList.length === 0}}">
-        目前库里没有美食，快在上方添加第一个吧！
+
+      <!-- 收银台下单确认弹窗 -->
+      <view class="order-confirm-modal" wx:if="{{showConfirmModal}}" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 1000; display: flex; align-items: flex-end; justify-content: center;">
+        <view class="modal-mask" bindtap="hideOrderModal" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(45, 41, 56, 0.6); backdrop-filter: blur(4px);"></view>
+        <view class="modal-content card" style="position: relative; width: 100%; max-width: 600rpx; background: #ffffff; border-radius: 36rpx 36rpx 0 0; padding: 36rpx; box-shadow: 0 -8rpx 32rpx rgba(45, 41, 56, 0.08); margin-bottom: 0;">
+          <view class="modal-header flex-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24rpx;">
+            <text class="modal-title" style="font-size: 32rpx; font-weight: 900; color: #2D2938;">🍜 确认您的爱心餐单</text>
+            <text class="modal-close" bindtap="hideOrderModal" style="font-size: 40rpx; color: #868095; padding: 10rpx; line-height: 1;">×</text>
+          </view>
+          
+          <view class="selected-items-list" style="max-height: 360rpx; overflow-y: auto; margin-bottom: 24rpx;">
+            <view class="selected-item flex-row" wx:for="{{cartItems}}" wx:key="id" style="display: flex; justify-content: space-between; align-items: center; padding: 16rpx 0; border-bottom: 1rpx solid rgba(45, 41, 56, 0.04);">
+              <text class="item-name" style="font-size: 28rpx; font-weight: 700; color: #2D2938;">🍜 {{item.name}}</text>
+              <text class="item-qty" style="font-size: 26rpx; font-weight: 800; color: #7C69C9;">x{{item.quantity}}</text>
+            </view>
+          </view>
+
+          <view class="form-group">
+            <text class="form-label" style="font-size: 24rpx; font-weight: 800; color: #2D2938; margin-bottom: 12rpx; display: block;">有什么要求？如: 少放糖/多葱</text>
+            <input class="form-input" placeholder="输入点单留言偏好需求..." value="{{dinerNote}}" bindinput="onInputDinerNote" />
+          </view>
+
+          <button class="btn btn-primary" hover-class="btn-primary-hover" bindtap="submitCartOrder" style="margin-top: 36rpx; width: 100%;">确认发送给大厨 🍳</button>
+        </view>
+      </view>
+
+      <!-- 有活跃订单的状态流转 -->
+      <view wx:else>
+        
+        <!-- 状态 1: diner已下单，等待chef接单 -->
+        <view class="card kitchen-state-card" wx:if="{{kitchenSession.status === 'ordered'}}">
+          <view class="card-title">💌 爱心订单已送达</view>
+          
+          <view class="dish-detail-box" style="padding: 24rpx; background: #FAF9FC; border-radius: 20rpx; border: 1rpx solid rgba(45, 41, 56, 0.04); margin-bottom: 32rpx;">
+            <view class="dish-name-tag" style="font-size: 32rpx; font-weight: 900; color: #7C69C9; margin-bottom: 10rpx;">🍜 {{kitchenSession.dish_name}}</view>
+            <view class="text-muted block-hint" wx:if="{{kitchenSession.diner_note}}">📝 食客要求：{{kitchenSession.diner_note}}</view>
+          </view>
+
+          <!-- Diner 视图 -->
+          <view class="text-center" wx:if="{{kitchenSession.diner_id === userInfo.id}}">
+            <view class="cooking-heart-loader" style="font-size: 88rpx; margin: 36rpx 0; animation: heartBeatPulse 1s infinite alternate ease-in-out; display: inline-block;">💖</view>
+            <text class="text-muted block-hint" style="display: block; margin-top: 12rpx;">订单已送达，大厨接单中 🍳...</text>
+            <button class="btn btn-secondary" hover-class="btn-secondary-hover" bindtap="cancelOrder" style="margin-top:24rpx;">取消点单</button>
+          </view>
+
+          <!-- Chef 视图 -->
+          <view wx:else class="chef-action-box">
+            <view class="text-muted block-hint" style="margin-bottom: 24rpx;">伴侣为您点了一道爱心餐点，快接单去厨房露一手吧！</view>
+            <view class="flex-row" style="gap: 16rpx; margin-top: 18rpx; display: flex; width: 100%;">
+              <button class="btn btn-primary" hover-class="btn-primary-hover" bindtap="acceptCook" style="margin-top:0; flex: 1;">🍳 接受掌勺</button>
+              <button class="btn btn-secondary" hover-class="btn-secondary-hover" bindtap="cancelOrder" style="margin-top:0; max-width: 180rpx; flex: 1;">婉拒</button>
+            </view>
+          </view>
+        </view>
+
+        <!-- 状态 2: chef已接单，烹饪中 -->
+        <view class="card kitchen-state-card" wx:if="{{kitchenSession.status === 'cooking'}}">
+          <view class="card-title">🍳 爱心下厨进行中</view>
+
+          <view class="dish-detail-box" style="padding: 24rpx; background: #FAF9FC; border-radius: 20rpx; border: 1rpx solid rgba(45, 41, 56, 0.04); margin-bottom: 32rpx;">
+            <view class="dish-name-tag" style="font-size: 32rpx; font-weight: 900; color: #7C69C9; margin-bottom: 10rpx;">🔥 烹饪菜品：{{kitchenSession.dish_name}}</view>
+            <view class="text-muted block-hint" wx:if="{{kitchenSession.diner_note}}">📝 食客要求：{{kitchenSession.diner_note}}</view>
+          </view>
+
+          <!-- Diner 视图 -->
+          <view class="text-center" wx:if="{{kitchenSession.diner_id === userInfo.id}}">
+            <view class="cooking-icon-loader" style="font-size: 88rpx; margin: 36rpx 0; animation: heartBeatPulse 1.4s infinite alternate ease-in-out; display: inline-block;">🍳</view>
+            <text class="text-muted block-hint" style="font-weight:700; color:#7C69C9; display: block;">宝贝正在厨房为您忙碌烹饪，静候起锅装盘 🍲...</text>
+          </view>
+
+          <!-- Chef 视图 -->
+          <view wx:else>
+            <view class="form-group" style="margin-top: 24rpx;">
+              <text class="form-label" style="font-size: 26rpx; font-weight: 800; color: #2D2938; margin-bottom: 12rpx; display: block;">大厨留言 (写一句话送给宝贝)：</text>
+              <input class="form-input" placeholder="大功告成，爱心餐点出锅啦！" value="{{chefNote}}" bindinput="onInputChefNote" />
+            </view>
+
+            <view class="form-group" style="margin-top: 16rpx;">
+              <text class="form-label" style="font-size: 26rpx; font-weight: 800; color: #2D2938; margin-bottom: 12rpx; display: block;">拍个照记录成品吧 (可选)：</text>
+              <view class="dish-upload-area" bindtap="chooseDishPhoto" style="width: 100%; height: 260rpx; border: 2rpx dashed rgba(45, 41, 56, 0.15); border-radius: 20rpx; background: #FAF9FC; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 32rpx; overflow: hidden;">
+                <image class="upload-preview" src="{{cookedDishPhoto}}" mode="aspectFill" wx:if="{{cookedDishPhoto}}" style="width: 100%; height: 100%;" />
+                <view class="upload-placeholder" wx:else style="display: flex; flex-direction: column; align-items: center;">
+                  <text class="plus-icon" style="font-size: 48rpx; color: #868095; font-weight: 300;">+</text>
+                  <text class="upload-hint" style="font-size: 24rpx; color: #868095; margin-top: 8rpx;">上传/拍摄美味照片</text>
+                </view>
+              </view>
+            </view>
+
+            <button class="btn btn-primary" hover-class="btn-primary-hover" bindtap="serveCook">🍲 起锅装盘送上桌</button>
+          </view>
+        </view>
+
+        <!-- 状态 3: chef已装盘送上桌，等待diner吃完并好评 -->
+        <view class="card kitchen-state-card" wx:if="{{kitchenSession.status === 'served'}}">
+          <view class="card-title">🎉 爱心美味已上桌！</view>
+
+          <!-- 菜品图展示 -->
+          <view class="dish-photo-show" wx:if="{{kitchenSession.image_url}}" style="width: 100%; height: 380rpx; border-radius: 24rpx; overflow: hidden; margin-bottom: 24rpx; border: 1rpx solid rgba(45, 41, 56, 0.05); box-shadow: 0 8rpx 20rpx rgba(45, 41, 56, 0.02);">
+            <image class="dish-image" src="{{kitchenSession.image_url}}" mode="aspectFill" style="width: 100%; height: 100%;" />
+          </view>
+
+          <view class="dish-detail-box" style="padding: 24rpx; background: #FAF9FC; border-radius: 20rpx; border: 1rpx solid rgba(45, 41, 56, 0.04); margin-bottom: 32rpx;">
+            <view class="dish-name-tag" style="font-size: 32rpx; font-weight: 900; color: #7C69C9; margin-bottom: 10rpx;">🍲 菜名：{{kitchenSession.dish_name}}</view>
+            <view class="chef-comment-quote" wx:if="{{kitchenSession.chef_note}}" style="background-color: #ffffff; border-left: 6rpx solid #7C69C9; padding: 14rpx 20rpx; border-radius: 10rpx; margin-top: 14rpx; font-size: 26rpx; line-height: 1.4; color: #2D2938;">
+              <text class="quote-text">“ {{kitchenSession.chef_note}} ”</text>
+            </view>
+          </view>
+
+          <!-- Diner 视图 -->
+          <view wx:if="{{kitchenSession.diner_id === userInfo.id}}">
+            <view class="form-group" style="margin-top: 24rpx;">
+              <text class="form-label" style="font-size: 26rpx; font-weight: 800; color: #2D2938; margin-bottom: 12rpx; display: block;">吃饱啦！给大厨送个爱心好评吧：</text>
+              <input class="form-input" placeholder="简直是人间美味！宝贝下厨太辛苦啦，给你一百个赞！❤️" value="{{praiseNote}}" bindinput="onInputPraiseNote" />
+            </view>
+            <button class="btn btn-primary" hover-class="btn-primary-hover" bindtap="praiseCook">😋 吃饱啦，送上评价</button>
+          </view>
+
+          <!-- Chef 视图 -->
+          <view class="text-center" wx:else>
+            <view class="eating-loader" style="font-size: 88rpx; margin: 36rpx 0; animation: heartBeatPulse 1.4s infinite alternate ease-in-out; display: inline-block;">😋</view>
+            <text class="text-muted block-hint" style="display: block;">美味已上桌！宝贝正在品尝，静候好评... ❤️</text>
+          </view>
+        </view>
+
+        <!-- 状态 4: diner已评价，餐点结束 -->
+        <view class="card kitchen-state-card" wx:if="{{kitchenSession.status === 'eaten'}}">
+          <view class="card-title">❤️ 暖心好评记录</view>
+
+          <view class="dish-detail-box" style="padding: 24rpx; background: #FAF9FC; border-radius: 20rpx; border: 1rpx solid rgba(45, 41, 56, 0.04); margin-bottom: 32rpx;">
+            <view class="dish-name-tag" style="font-size: 32rpx; font-weight: 900; color: #7C69C9; margin-bottom: 24rpx;">🍜 这一餐吃的是：{{kitchenSession.dish_name}}</view>
+            <view class="praise-quote" style="background-color: #ffffff; border-left: 6rpx solid #3E8E75; padding: 20rpx; border-radius: 12rpx; margin-top: 14rpx;">
+              <text class="praise-badge" style="font-size: 22rpx; font-weight: 800; color: #3E8E75; background: #F0F7F5; padding: 4rpx 16rpx; border-radius: 99rpx; display: inline-block; margin-bottom: 12rpx;">🏅 宝贝的好评反馈</text>
+              <view class="praise-text" style="font-size: 28rpx; line-height: 1.5; color: #2D2938; font-weight: 700;">“ {{kitchenSession.praise}} ”</view>
+            </view>
+          </view>
+
+          <button class="btn btn-primary" hover-class="btn-primary-hover" bindtap="resetKitchen">开启下一顿美味 🍳</button>
+        </view>
+
       </view>
     </view>
   </view>
+
 </view>

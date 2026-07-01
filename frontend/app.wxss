@@ -1,108 +1,183 @@
 /**app.wxss**/
 page {
-  background-color: #FFF5F7;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  color: #333333;
+  background-color: #FAF9FC;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  color: #2D2938;
   box-sizing: border-box;
+  min-height: 100vh;
+}
+
+view,
+text,
+input,
+textarea,
+button,
+image,
+picker {
+  box-sizing: border-box;
+}
+
+button {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  line-height: normal;
+}
+
+button::after {
+  border: 0;
 }
 
 /* 全局容器 */
 .container {
-  display: flex;
-  flex-direction: column;
-  padding: 30rpx;
-  box-sizing: border-box;
+  min-height: 100vh;
+  padding: 32rpx;
+  background: #FAF9FC;
 }
 
-/* 温馨卡片样式 */
+/* 高级感卡片样式 */
 .card {
+  position: relative;
   background-color: #ffffff;
-  border-radius: 24rpx;
-  padding: 30rpx;
-  margin-bottom: 24rpx;
-  box-shadow: 0 8rpx 20rpx rgba(255, 105, 180, 0.06);
-  border: 1rpx solid rgba(255, 182, 193, 0.15);
+  border-radius: 28rpx;
+  padding: 36rpx;
+  margin-bottom: 28rpx;
+  box-shadow: 0 12rpx 36rpx rgba(45, 41, 56, 0.03);
+  border: 1rpx solid rgba(45, 41, 56, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
 }
 
 .card-title {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #E066FF;
-  margin-bottom: 20rpx;
+  font-size: 30rpx;
+  font-weight: 800;
+  color: #2D2938;
+  margin-bottom: 28rpx;
   display: flex;
   align-items: center;
+  letter-spacing: 1rpx;
 }
 
 .card-title::before {
-  content: "❤";
-  color: #FF69B4;
-  margin-right: 12rpx;
-  font-size: 28rpx;
+  content: "";
+  display: inline-block;
+  width: 8rpx;
+  height: 26rpx;
+  background: #7C69C9;
+  margin-right: 14rpx;
+  border-radius: 99rpx;
 }
 
 /* 按钮系列 */
 .btn {
-  font-size: 30rpx;
-  font-weight: 500;
-  border-radius: 44rpx;
-  padding: 22rpx 0;
+  font-size: 28rpx;
+  font-weight: 700;
+  border-radius: 999rpx;
+  padding: 0;
+  height: 88rpx;
+  line-height: 88rpx;
   text-align: center;
   width: 100% !important;
   box-sizing: border-box;
-  margin: 15rpx 0;
+  margin: 18rpx 0 0;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* 主按钮 (爱心渐变粉) */
+/* 主按钮 (纯色高雅紫罗兰) */
 .btn-primary {
-  background: linear-gradient(135deg, #FF69B4, #FFA07A);
+  background: #7C69C9;
   color: #ffffff;
-  box-shadow: 0 6rpx 16rpx rgba(255, 105, 180, 0.3);
+  box-shadow: 0 8rpx 20rpx rgba(124, 105, 201, 0.2);
 }
 
 .btn-primary-hover {
-  opacity: 0.85;
-  transform: scale(0.98);
+  background: #6B57B8;
+  box-shadow: 0 4rpx 10rpx rgba(124, 105, 201, 0.15);
 }
 
-/* 次按钮 (淡粉紫) */
+/* 次按钮 (淡薰衣草紫) */
 .btn-secondary {
-  background-color: #FFE4E1;
-  color: #FF69B4;
-  border: 1rpx solid rgba(255, 105, 180, 0.3);
+  background-color: #F3F0FA;
+  color: #7C69C9;
+  border: 1rpx solid rgba(124, 105, 201, 0.12);
 }
 
 .btn-secondary-hover {
-  background-color: #FFD1D1;
-  color: #E0559D;
+  background-color: #EAE5F6;
+  color: #6B57B8;
 }
 
 /* 表单输入域 */
 .form-input {
-  background-color: #FFF9FA;
-  border: 2rpx solid #FFE4E1;
-  border-radius: 16rpx;
-  padding: 20rpx;
+  background-color: #FFFFFF;
+  border: 1rpx solid rgba(45, 41, 56, 0.12);
+  border-radius: 20rpx;
+  padding: 20rpx 28rpx;
   font-size: 28rpx;
-  margin-bottom: 20rpx;
+  height: 84rpx;
+  color: #2D2938;
   width: 100%;
   box-sizing: border-box;
+  margin-bottom: 24rpx;
+  transition: all 0.2s ease;
 }
 
 .form-input:focus {
-  border-color: #FF69B4;
+  border-color: #7C69C9;
+  background-color: #FAF9FC;
+  box-shadow: 0 0 0 4rpx rgba(124, 105, 201, 0.08);
 }
 
-/* 辅助文本 */
+/* 微信原生 switch 颜色覆盖 */
+switch {
+  zoom: 0.9;
+}
+
+/* 微信原生 checkbox 样式覆盖 */
+checkbox .wx-checkbox-input {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50% !important;
+  border: 2rpx solid rgba(45, 41, 56, 0.2);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+checkbox .wx-checkbox-input.wx-checkbox-input-checked {
+  border-color: #7C69C9 !important;
+  background: #7C69C9 !important;
+  color: #ffffff !important;
+}
+
+checkbox .wx-checkbox-input.wx-checkbox-input-checked::before {
+  border-radius: 50%;
+  width: 40rpx;
+  height: 40rpx;
+  line-height: 40rpx;
+  text-align: center;
+  font-size: 28rpx;
+  color: #ffffff;
+  background: transparent;
+  transform: translate(-50%, -50%) scale(1);
+  -webkit-transform: translate(-50%, -50%) scale(1);
+}
+
+/* 辅助与公共类 */
 .text-muted {
-  color: #999999;
+  color: #868095;
   font-size: 24rpx;
+  line-height: 1.5;
 }
 
 .text-center {
   text-align: center;
 }
 
-/* 垂直居中 */
 .flex-row {
   display: flex;
   flex-direction: row;
@@ -111,4 +186,40 @@ page {
 
 .flex-between {
   justify-content: space-between;
+}
+
+.empty-list {
+  padding: 48rpx 24rpx;
+  border: 1rpx dashed rgba(45, 41, 56, 0.15);
+  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.4);
+  color: #868095;
+  font-size: 26rpx;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.food-delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: #F1EFF5;
+  color: #868095;
+  font-size: 24rpx;
+  transition: all 0.2s ease;
+}
+
+.food-delete-btn:active {
+  background: #F3F0FA;
+  color: #7C69C9;
+}
+
+.block-hint {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
 }

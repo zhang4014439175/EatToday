@@ -2,19 +2,19 @@
   <!-- 1. 新增提案表单（折叠展示） -->
   <view class="card proposal-form-card">
     <view class="card-title flex-row flex-between" bindtap="toggleForm">
-      <text>💌 发起约会提案</text>
+      <text>💌 发起去哪玩提案</text>
       <text class="toggle-arrow">{{showForm ? '▲ 收起' : '▼ 展开'}}</text>
     </view>
 
     <view class="proposal-form" wx:if="{{showForm}}">
       <view class="form-group">
-        <text class="form-label">约会主题</text>
+        <text class="form-label">去哪玩主题</text>
         <input class="form-input" placeholder="例如：周末去看电影/吃火锅" value="{{newProposal.title}}" bindinput="onInputTitle" />
       </view>
 
       <view class="form-group flex-row flex-between">
         <view class="half-group">
-          <text class="form-label">约会日期</text>
+          <text class="form-label">游玩日期</text>
           <picker mode="date" value="{{newProposal.date}}" bindchange="onDateChange">
             <view class="picker-box">{{newProposal.date || '选择日期'}}</view>
           </picker>
@@ -33,19 +33,19 @@
       </view>
 
       <view class="form-group">
-        <text class="form-label">约会备注</text>
+        <text class="form-label">游玩备注</text>
         <input class="form-input" placeholder="有什么想跟对方提前说的呢？" value="{{newProposal.notes}}" bindinput="onInputNotes" />
       </view>
 
-      <button class="btn btn-primary" hover-class="btn-primary-hover" bindtap="submitProposal">发送约会提案</button>
+      <button class="btn btn-primary" hover-class="btn-primary-hover" bindtap="submitProposal">发送去哪玩提案</button>
     </view>
   </view>
 
   <!-- 2. 约会列表展示 -->
-  <view class="card-title">约会行程记录</view>
+  <view class="card-title">去哪玩记录</view>
   
   <view class="date-list">
-    <view class="card date-item-card" wx:for="{{datePlans}}" wx:key="id">
+    <view class="card date-item-card date-card-{{item.status}}" wx:for="{{datePlans}}" wx:key="id">
       <view class="date-header flex-row flex-between">
         <text class="date-badge badge-{{item.status}}">{{statusMap[item.status]}}</text>
         <text class="date-time-tag">{{item.meeting_time}}</text>
@@ -76,7 +76,7 @@
     </view>
 
     <view class="empty-list" wx:if="{{datePlans.length === 0}}">
-      当前没有行程记录，快给 TA 发送第一个约会提案吧！
+      当前没有行程记录，快给 TA 发送第一个去哪玩提案吧！
     </view>
   </view>
 
@@ -99,7 +99,9 @@
     <!-- 输入栏 -->
     <view class="flex-row add-wish-box">
       <input class="form-input add-input" placeholder="输入想跟 TA 一起去的地方" value="{{newWishName}}" bindinput="onInputWishName" />
-      <button class="btn-add" bindtap="addWish">添加</button>
+      <view class="btn-add" bindtap="addWish">
+        <text class="btn-add-text">添加</text>
+      </view>
     </view>
 
     <!-- 愿望清单 -->
@@ -112,7 +114,7 @@
         </view>
       </view>
       <view class="empty-list" wx:if="{{wishlist.length === 0}}">
-        还没有记录约会愿望，在这里写下你们想去打卡的地方吧！
+        还没有记录游玩愿望，在这里写下你们想去打卡的地方吧！
       </view>
     </view>
   </view>
