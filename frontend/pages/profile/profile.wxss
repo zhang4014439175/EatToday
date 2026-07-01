@@ -112,12 +112,6 @@
   font-size: 64rpx;
   margin: 0 48rpx;
   display: inline-block;
-  animation: heartBeatPulse 1.4s infinite alternate ease-in-out;
-}
-
-@keyframes heartBeatPulse {
-  0% { transform: scale(0.9); opacity: 0.85; filter: drop-shadow(0 0 0 rgba(124, 105, 201, 0)); }
-  100% { transform: scale(1.15); opacity: 1; filter: drop-shadow(0 0 12rpx rgba(124, 105, 201, 0.4)); }
 }
 
 .unpair-box {

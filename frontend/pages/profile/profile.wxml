@@ -47,8 +47,10 @@
 
   <!-- 3. 纪念日管理卡片 -->
   <view class="card anniversary-card" wx:if="{{isLogin}}">
-    <view class="card-title flex-row flex-between">
-      <text>📅 重要日子管理</text>
+    <view class="card-title flex-row flex-between" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+      <view class="flex-row" style="display: flex; align-items: center;">
+        <text>重要日子管理</text>
+      </view>
       <text class="add-anniversary-btn" bindtap="showAddAnniversaryForm">{{showAddAnniversary ? '取消' : '+ 新增'}}</text>
     </view>
 
@@ -85,7 +87,7 @@
 
   <!-- 4. 其它应用设置 -->
   <view class="card settings-card" wx:if="{{isLogin}}">
-    <view class="card-title">⚙ 系统设置</view>
+    <view class="card-title">系统设置</view>
     
     <view class="setting-item flex-row flex-between">
       <view class="setting-info">
