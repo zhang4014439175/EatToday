@@ -1,10 +1,12 @@
+import { API_BASE_URL, WS_URL } from './utils/config.js';
+
 App({
   // 全局共享数据
   globalData: {
     // 本地开发后端 API 地址，如果部署到云服务器需改为 HTTPS 域名
-    baseUrl: 'http://localhost:3000/api',
+    baseUrl: API_BASE_URL,
     // WebSocket 服务器连接地址
-    wsUrl: 'ws://localhost:3000',
+    wsUrl: WS_URL,
     // 登录凭证 token
     token: '',
     // 当前登录用户信息
