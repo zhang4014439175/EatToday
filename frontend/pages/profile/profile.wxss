@@ -167,25 +167,25 @@
 
 /* 纪念日管理 */
 .anniversary-card {
-  background-color: #FFFDF7;
-  border: 1rpx solid rgba(233, 196, 106, 0.15);
+  background-color: #FFFFFF;
+  border: 1rpx solid rgba(45, 41, 56, 0.06);
 }
 
 .anniversary-card .card-title::before {
-  background: #E9C46A;
+  background: #7C69C9;
 }
 
 .add-anniversary-btn {
   font-size: 24rpx;
-  color: #8F7E68;
-  background-color: #FFFDF0;
-  border: 1rpx solid rgba(233, 196, 106, 0.2);
+  color: #ffffff;
+  background-color: #7C69C9;
   padding: 6rpx 20rpx;
   border-radius: 999rpx;
+  font-weight: 700;
 }
 
 .add-anniversary-btn:active {
-  background-color: #FFFBD0;
+  background-color: #6B57B8;
 }
 
 .anniversary-form {
