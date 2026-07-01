@@ -1,5 +1,5 @@
 import express from 'express';
-import { getDB } from '../db.js';
+import { getDB, seedDefaultFoods } from '../db.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { getShanghaiDayUtcRange } from '../utils/date.js';
 
@@ -31,6 +31,32 @@ router.get('/', authMiddleware, async (req, res, next) => {
     );
  
     return res.status(200).json({ foods });
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+
+/**
+ * 预置常见菜品导入
+ * POST /api/food/seed-defaults
+ */
+router.post('/seed-defaults', authMiddleware, async (req, res, next) => {
+  const user = req.user;
+  if (!user.current_space_id) {
+    return res.status(400).json({ error: 'ValidationError', message: '您未关联活跃空间，无法导入菜品。' });
+  }
+
+  try {
+    const db = getDB();
+    await seedDefaultFoods(db, user.current_space_id, user.id);
+    
+    const foods = await db.all(
+      'SELECT * FROM food_pool WHERE space_id = ? ORDER BY id DESC',
+      [user.current_space_id]
+    );
+    return res.status(200).json({ success: true, message: '常见菜品导入成功！', foods });
   } catch (error) {
     next(error);
   }

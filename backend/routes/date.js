@@ -1,5 +1,5 @@
 import express from 'express';
-import { getDB } from '../db.js';
+import { getDB, seedDefaultWishlist } from '../db.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { sendSubscribeMessage } from '../services/wechat.js';
 import { getShanghaiDatePrefix } from '../utils/date.js';
@@ -438,6 +438,30 @@ router.delete('/wishlist/:id', authMiddleware, async (req, res, next) => {
     await db.run('DELETE FROM date_wishlist WHERE id = ?', [id]);
 
     return res.status(200).json({ success: true, message: '愿望项目已移除' });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * 预置约会愿望清单导入
+ * POST /api/date/wishlist/seed-defaults
+ */
+router.post('/wishlist/seed-defaults', authMiddleware, async (req, res, next) => {
+  const user = req.user;
+  if (!user.current_space_id) {
+    return res.status(400).json({ error: 'ValidationError', message: '您未关联活跃空间，无法导入清单。' });
+  }
+
+  try {
+    const db = getDB();
+    await seedDefaultWishlist(db, user.current_space_id, user.id);
+    
+    const wishlist = await db.all(
+      'SELECT * FROM date_wishlist WHERE space_id = ? ORDER BY created_at DESC',
+      [user.current_space_id]
+    );
+    return res.status(200).json({ success: true, message: '愿望清单导入成功！', wishlist });
   } catch (error) {
     next(error);
   }

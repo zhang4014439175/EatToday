@@ -136,6 +136,30 @@ Page({
   },
 
   /**
+   * 一键导入预置约会好玩愿望
+   */
+  async importPresetWishes() {
+    wx.showLoading({ title: '正在导入...' });
+    try {
+      const res = await request({
+        url: '/date/wishlist/seed-defaults',
+        method: 'POST'
+      });
+      wx.hideLoading();
+      if (res.success) {
+        wx.showToast({ title: '导入成功', icon: 'success' });
+        this.fetchWishlist(); // 重新拉取
+      } else {
+        wx.showToast({ title: res.message || '导入失败', icon: 'none' });
+      }
+    } catch (err) {
+      wx.hideLoading();
+      console.error('[Date Page] 导入预置游玩愿望失败:', err);
+      wx.showToast({ title: '网络请求错误，请重试', icon: 'none' });
+    }
+  },
+
+  /**
    * 折叠/展开新增表单
    */
   toggleForm() {

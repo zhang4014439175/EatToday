@@ -111,8 +111,9 @@
           <view class="food-delete-btn" bindtap="deleteWish" data-id="{{item.id}}" style="margin-left: 20rpx;">✕</view>
         </view>
       </view>
-      <view class="empty-list" wx:if="{{wishlist.length === 0}}">
-        还没有记录游玩愿望，在这里写下你们想去打卡的地方吧！
+      <view class="empty-list" wx:if="{{wishlist.length === 0}}" style="text-align: center;">
+        <text style="display: block; margin-bottom: 20rpx;">还没有记录游玩愿望，在这里写下你们想去打卡的地方吧！</text>
+        <button class="btn-import-preset" bindtap="importPresetWishes" style="background: #7C69C9; color: #FFFFFF; font-size: 24rpx; font-weight: bold; border-radius: 99rpx; padding: 6rpx 30rpx; min-height: 60rpx; height: 60rpx; line-height: 48rpx; display: inline-flex; align-items: center; justify-content: center; border: none; box-shadow: 0 4rpx 10rpx rgba(124, 105, 201, 0.25);">✨ 一键导入常见好玩项目</button>
       </view>
     </view>
   </view>

@@ -76,6 +76,30 @@ Page({
   },
 
   /**
+   * 一键导入预置常见菜品
+   */
+  async importPresetFoods() {
+    wx.showLoading({ title: '正在导入...' });
+    try {
+      const res = await request({
+        url: '/food/seed-defaults',
+        method: 'POST'
+      });
+      wx.hideLoading();
+      if (res.success) {
+        wx.showToast({ title: '导入成功', icon: 'success' });
+        this.fetchFoodList(); // 重新拉取
+      } else {
+        wx.showToast({ title: res.message || '导入失败', icon: 'none' });
+      }
+    } catch (err) {
+      wx.hideLoading();
+      console.error('[Recipe Page] 导入预置菜品失败:', err);
+      wx.showToast({ title: '网络请求错误，请重试', icon: 'none' });
+    }
+  },
+
+  /**
    * 过滤分类美食
    */
   filterFoods() {

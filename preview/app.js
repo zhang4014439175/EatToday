@@ -672,7 +672,8 @@
           <div style="text-align: center; padding-top: 60px;">
             <div style="font-size: 40px; margin-bottom: 10px;">📖</div>
             <div style="font-size: 14px; font-weight: bold; color: var(--ink);">美食书还是空荡荡的</div>
-            <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">开启属于你们的爱心菜谱回忆吧</div>
+            <div style="font-size: 11px; color: var(--muted); margin-top: 4px; margin-bottom: 16px;">开启属于你们的爱心菜谱回忆吧</div>
+            <button class="btn" data-action="recipe-seed-defaults" style="display: inline-flex; align-items: center; justify-content: center; font-size: 11px; min-height: 32px; height: 32px; padding: 0 16px; margin: 0 auto; border-radius: 99rpx; background: #7C69C9; color: #FFF; border: none; font-weight: 800; cursor: pointer; box-shadow: 0 4px 10px rgba(124, 105, 201, 0.25);">✨ 一键导入预置常见菜品</button>
           </div>
         ` : ''}
       </div>
@@ -778,7 +779,12 @@
           <button class="btn" data-action="add-wish">添加</button>
         </div>
         <div class="list" style="margin-top: 12px;">
-          ${state.wishlist.map(wish => `<div class="list-item row"><strong>${escapeText(wish.name)}</strong><button class="btn ghost" data-action="wish-to-date" data-name="${escapeText(wish.name)}">提为行程</button></div>`).join('')}
+          ${state.wishlist.map(wish => `<div class="list-item row"><strong>${escapeText(wish.name)}</strong><button class="btn ghost" data-action="wish-to-date" data-name="${escapeText(wish.name)}">提为行程</button></div>`).join('') || `
+            <div style="text-align: center; padding: 16px 0;">
+              <p class="muted" style="font-size: 11px; margin-bottom: 10px;">还没有记录游玩愿望，写下你们想去打卡的地方吧！</p>
+              <button class="btn secondary" data-action="wish-seed-defaults" style="display: inline-flex; min-height: 28px; height: 28px; font-size: 10px; padding: 0 14px; margin: 0 auto; border-radius: 99rpx; background: #7C69C9; color: #FFF; border: none; font-weight: 800; cursor: pointer; box-shadow: 0 2px 8px rgba(124, 105, 201, 0.2);">✨ 一键导入常见好玩项目</button>
+            </div>
+          `}
         </div>
       </section>
     `;
@@ -1004,6 +1010,51 @@
     }
     if (action === 'recipe-batch-delete-confirm') {
       deleteSelectedH5Recipes();
+    }
+    if (action === 'recipe-seed-defaults') {
+      const defaultFoods = [
+        { id: Date.now() + 1, name: '西红柿炒鸡蛋 🍅🍳', category: 'home', tags: '快手菜,酸甜' },
+        { id: Date.now() + 2, name: '鱼香肉丝 🥕🐖', category: 'home', tags: '川菜,下饭' },
+        { id: Date.now() + 3, name: '红烧肉 🥩', category: 'home', tags: '本帮菜,大荤' },
+        { id: Date.now() + 4, name: '可乐鸡翅 🍗', category: 'home', tags: '甜口,小吃' },
+        { id: Date.now() + 5, name: '宫保鸡丁 🥜', category: 'home', tags: '川菜,微辣' },
+        { id: Date.now() + 6, name: '酸菜鱼 🐟', category: 'home', tags: '酸辣,大菜' },
+        { id: Date.now() + 7, name: '麻婆豆腐 🌶️', category: 'home', tags: '川菜,麻辣' },
+        { id: Date.now() + 8, name: '清炒时蔬 🥬', category: 'home', tags: '素菜,清淡' },
+        { id: Date.now() + 9, name: '四川火锅 🍲', category: 'out', tags: '聚餐,麻辣' },
+        { id: Date.now() + 10, name: '炭烤串串 🍢', category: 'out', tags: '夜宵,烧烤' },
+        { id: Date.now() + 11, name: '日式拉面 🍜', category: 'out', tags: '面食,清淡' },
+        { id: Date.now() + 12, name: '韩式炸鸡 🍗', category: 'out', tags: '高热量,炸物' },
+        { id: Date.now() + 13, name: '经典披萨 🍕', category: 'out', tags: '西餐,聚餐' },
+        { id: Date.now() + 14, name: '港式茶餐厅 🥟', category: 'out', tags: '粤菜,点心' },
+        { id: Date.now() + 15, name: '多汁汉堡 🍔', category: 'out', tags: '快餐,炸物' }
+      ];
+
+      defaultFoods.forEach(food => {
+        if (!state.foods.some(f => f.name === food.name)) {
+          state.foods.push(food);
+        }
+      });
+      saveState();
+      render();
+    }
+    if (action === 'wish-seed-defaults') {
+      const defaultWishes = [
+        { id: Date.now() + 1, name: '爬山 🏔️' },
+        { id: Date.now() + 2, name: '骑自行车 🚲' },
+        { id: Date.now() + 3, name: '逛街 🛍️' },
+        { id: Date.now() + 4, name: '旅游 ✈️' },
+        { id: Date.now() + 5, name: '唱歌 🎤' },
+        { id: Date.now() + 6, name: '打牌 🃏' }
+      ];
+
+      defaultWishes.forEach(wish => {
+        if (!state.wishlist.some(w => w.name === wish.name)) {
+          state.wishlist.push(wish);
+        }
+      });
+      saveState();
+      render();
     }
     if (action === 'cal-toggle') {
       state.calendarExpanded = !state.calendarExpanded;

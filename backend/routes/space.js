@@ -1,5 +1,5 @@
 import express from 'express';
-import { getDB } from '../db.js';
+import { getDB, seedDefaultFoods, seedDefaultWishlist } from '../db.js';
 import { authMiddleware } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -53,6 +53,11 @@ router.post('/create', authMiddleware, async (req, res, next) => {
       'INSERT INTO space_members (space_id, user_id, role, joined_at) VALUES (?, ?, ?, ?)',
       [spaceId, userId, 'admin', now]
     );
+
+    // 预置常见美食至该新空间
+    await seedDefaultFoods(db, spaceId, userId);
+    // 预置想去的地方清单至该新空间
+    await seedDefaultWishlist(db, spaceId, userId);
 
     // 更新用户的当前活跃空间为刚新建的空间
     await db.run('UPDATE users SET current_space_id = ? WHERE id = ?', [spaceId, userId]);
@@ -323,6 +328,10 @@ router.post('/leave', authMiddleware, async (req, res, next) => {
           'INSERT INTO space_members (space_id, user_id, role, joined_at) VALUES (?, ?, ?, ?)',
           [newSoloId, userId, 'admin', now]
         );
+        // 预置常见美食至该 fallback 空间
+        await seedDefaultFoods(db, newSoloId, userId);
+        // 预置想去的地方清单至该 fallback 空间
+        await seedDefaultWishlist(db, newSoloId, userId);
         fallbackSpace = { space_id: newSoloId };
       }
 

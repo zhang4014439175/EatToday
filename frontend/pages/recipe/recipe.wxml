@@ -49,6 +49,7 @@
       <view class="empty-icon">📖</view>
       <view class="empty-text">还没有添加过美食记录呢</view>
       <view class="empty-sub">点击上方「新增美食」开启你们的美味相册吧</view>
+      <button class="btn-import-preset" bindtap="importPresetFoods" style="margin-top: 30rpx; background: #7C69C9; color: #FFFFFF; font-size: 26rpx; font-weight: bold; border-radius: 99rpx; padding: 10rpx 40rpx; min-height: 70rpx; height: 70rpx; line-height: 50rpx; display: inline-flex; align-items: center; justify-content: center; border: none; box-shadow: 0 4rpx 12rpx rgba(124, 105, 201, 0.3);">✨ 一键导入预置常见菜品</button>
     </view>
   </scroll-view>
 
