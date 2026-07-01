@@ -1040,16 +1040,16 @@
     }
     if (action === 'wish-seed-defaults') {
       const defaultWishes = [
-        { id: Date.now() + 1, name: '爬山 🏔️' },
-        { id: Date.now() + 2, name: '骑自行车 🚲' },
-        { id: Date.now() + 3, name: '逛街 🛍️' },
-        { id: Date.now() + 4, name: '旅游 ✈️' },
-        { id: Date.now() + 5, name: '唱歌 🎤' },
-        { id: Date.now() + 6, name: '打牌 🃏' }
+        { id: Date.now() + 1, name: '爬山' },
+        { id: Date.now() + 2, name: '骑自行车' },
+        { id: Date.now() + 3, name: '逛街' },
+        { id: Date.now() + 4, name: '旅游' },
+        { id: Date.now() + 5, name: '唱歌' },
+        { id: Date.now() + 6, name: '打牌' }
       ];
 
       defaultWishes.forEach(wish => {
-        if (!state.wishlist.some(w => w.name === wish.name)) {
+        if (!state.wishlist.some(w => w.name.trim() === wish.name)) {
           state.wishlist.push(wish);
         }
       });
@@ -1384,7 +1384,17 @@
     const input = document.querySelector('#wishName');
     const name = input.value.trim();
     if (!name) return;
+
+    const isDup = state.wishlist.some(w => w.name.trim() === name);
+    if (isDup) {
+      toast('该好玩的地方已在清单中啦');
+      return;
+    }
+
     state.wishlist.unshift({ id: nextId(state.wishlist), name });
+    input.value = '';
+    saveState();
+    render();
   }
 
   function wishToDate(name) {

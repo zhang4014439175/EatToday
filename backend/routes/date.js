@@ -403,6 +403,15 @@ router.post('/wishlist', authMiddleware, async (req, res, next) => {
     const db = getDB();
     const now = new Date().toISOString();
 
+    const existing = await db.get(
+      'SELECT id FROM date_wishlist WHERE name = ? AND space_id = ?',
+      [name.trim(), user.current_space_id]
+    );
+
+    if (existing) {
+      return res.status(400).json({ error: 'ValidationError', message: '该好玩的地方已在清单中啦' });
+    }
+
     const result = await db.run(
       'INSERT INTO date_wishlist (name, created_by, space_id, created_at) VALUES (?, ?, ?, ?)',
       [name.trim(), user.id, user.current_space_id, now]

@@ -378,6 +378,12 @@ Page({
     const { newWishName } = this.data;
     if (!newWishName.trim()) return;
 
+    const isDup = this.data.wishlist.some(w => w.name.trim() === newWishName.trim());
+    if (isDup) {
+      wx.showToast({ title: '该地方已经在清单中啦', icon: 'none' });
+      return;
+    }
+
     try {
       await request({
         url: '/date/wishlist',
@@ -389,7 +395,7 @@ Page({
       this.fetchWishlist();
     } catch (err) {
       // Mock 添加
-      const newList = [...this.data.wishlist, { id: Date.now(), name: newWishName }];
+      const newList = [...this.data.wishlist, { id: Date.now(), name: newWishName.trim() }];
       this.setData({
         wishlist: newList,
         newWishName: ''

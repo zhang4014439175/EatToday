@@ -485,12 +485,12 @@ export async function seedDefaultFoods(db, spaceId, userId) {
 
 export async function seedDefaultWishlist(db, spaceId, userId) {
   const defaultWishes = [
-    '爬山 🏔️',
-    '骑自行车 🚲',
-    '逛街 🛍️',
-    '旅游 ✈️',
-    '唱歌 🎤',
-    '打牌 🃏'
+    '爬山',
+    '骑自行车',
+    '逛街',
+    '旅游',
+    '唱歌',
+    '打牌'
   ];
 
   const now = new Date().toISOString();
