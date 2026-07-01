@@ -74,7 +74,7 @@
     <!-- 未登录/未配对状态 -->
     <view class="card text-center" wx:if="{{!isPaired}}">
       <view class="card-title">爱心小厨房</view>
-      <text class="text-muted block-hint">必须先进行情侣配对，才能使用做饭下单互动功能</text>
+      <text class="text-muted block-hint">必须先完成用户配对，才能使用做饭下单互动功能</text>
       <button class="btn btn-secondary" hover-class="btn-secondary-hover" bindtap="goToProfile">去配对</button>
     </view>
 

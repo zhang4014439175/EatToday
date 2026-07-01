@@ -37,9 +37,9 @@
 
     <!-- 场景 B: 未配对 -->
     <view class="unpaired-view" wx:else>
-      <view class="text-muted hint-text">将您的配对码发送给伴侣，或者在下方输入伴侣的配对码来完成牵线绑定：</view>
+      <view class="text-muted hint-text">将您的配对码发送给对方，或者在下方输入对方的配对码来完成绑定：</view>
       <view class="flex-row pair-input-box">
-        <input class="form-input pair-input" placeholder="输入另一半的6位配对码" value="{{inputPairCode}}" bindinput="onInputPairCode" />
+        <input class="form-input pair-input" placeholder="输入对方的6位配对码" placeholder-style="font-size: 26rpx; font-weight: 500; letter-spacing: 0; color: #868095;" value="{{inputPairCode}}" bindinput="onInputPairCode" />
         <button class="btn-pair-submit" bindtap="handlePair">牵线</button>
       </view>
     </view>
