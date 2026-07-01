@@ -176,19 +176,26 @@
 }
 
 .vote-toolbar {
-  align-items: center;
-  gap: 16rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 18rpx;
   margin-bottom: 24rpx;
 }
 
 .vote-toolbar .vote-instruction {
-  flex: 1;
+  flex: none;
+  width: 100%;
   margin-bottom: 0;
+  box-sizing: border-box;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 .random-vote-btn {
-  width: auto;
-  min-width: 156rpx;
+  width: 100%;
+  min-width: 0;
   min-height: 56rpx;
   margin: 0;
   padding: 0 20rpx;
@@ -518,5 +525,4 @@
   border-radius: 8rpx;
   font-weight: 800;
 }
-
 
