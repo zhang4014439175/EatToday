@@ -40,6 +40,7 @@
           <view class="dot dot-food" wx:if="{{item.hasFood}}"></view>
           <view class="dot dot-custom" wx:if="{{item.hasCustom}}"></view>
         </view>
+      </view>
     </view>
 
     <!-- 展开/收起切换按钮 -->
