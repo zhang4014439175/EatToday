@@ -1,6 +1,6 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import { getDB } from '../db.js';
+import { getDB, ensureUserHasSpace } from '../db.js';
 import { code2Session } from '../services/wechat.js';
 import { generateUniquePairCode, bindPartnerTransaction } from '../services/pairing.js';
 import { authMiddleware } from '../middleware/auth.js';
@@ -53,6 +53,11 @@ router.post('/login', async (req, res, next) => {
       user = await db.get('SELECT * FROM users WHERE id = ?', [result.lastID]);
     }
 
+    // 确保用户登录后拥有空间，没有则默认创建个人空间
+    const currentSpaceId = await ensureUserHasSpace(db, user, now);
+    user = await db.get('SELECT * FROM users WHERE id = ?', [user.id]);
+    const currentSpace = await db.get('SELECT * FROM spaces WHERE id = ?', [currentSpaceId]);
+
     // 签发 JWT (有效期 30 天)
     const token = jwt.sign({ id: user.id, openid: user.openid }, TOKEN_SECRET, { expiresIn: '30d' });
 
@@ -61,7 +66,8 @@ router.post('/login', async (req, res, next) => {
 
     return res.status(200).json({
       token,
-      user
+      user,
+      currentSpace
     });
   } catch (error) {
     next(error);

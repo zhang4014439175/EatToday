@@ -508,3 +508,79 @@ export async function seedDefaultWishlist(db, spaceId, userId) {
     }
   }
 }
+
+export async function ensureUserHasSpace(db, user, now = new Date().toISOString()) {
+  if (!user || !user.id) {
+    throw new Error('Cannot ensure space for an invalid user.');
+  }
+
+  if (user.current_space_id) {
+    const currentMembership = await db.get(
+      `SELECT sm.space_id
+       FROM space_members sm
+       JOIN spaces s ON s.id = sm.space_id
+       WHERE sm.user_id = ? AND sm.space_id = ?`,
+      [user.id, user.current_space_id]
+    );
+    if (currentMembership) {
+      return currentMembership.space_id;
+    }
+  }
+
+  const memberSpace = await db.get(
+    `SELECT sm.space_id
+     FROM space_members sm
+     JOIN spaces s ON s.id = sm.space_id
+     WHERE sm.user_id = ?
+     ORDER BY CASE WHEN s.type = 'solo' THEN 0 ELSE 1 END, sm.id
+     LIMIT 1`,
+    [user.id]
+  );
+  if (memberSpace) {
+    await db.run('UPDATE users SET current_space_id = ? WHERE id = ?', [memberSpace.space_id, user.id]);
+    return memberSpace.space_id;
+  }
+
+  await db.run('BEGIN IMMEDIATE TRANSACTION;');
+  try {
+    const existingSpace = await db.get(
+      `SELECT sm.space_id
+       FROM space_members sm
+       JOIN spaces s ON s.id = sm.space_id
+       WHERE sm.user_id = ?
+       ORDER BY CASE WHEN s.type = 'solo' THEN 0 ELSE 1 END, sm.id
+       LIMIT 1`,
+      [user.id]
+    );
+    if (existingSpace) {
+      await db.run('UPDATE users SET current_space_id = ? WHERE id = ?', [existingSpace.space_id, user.id]);
+      await db.run('COMMIT;');
+      return existingSpace.space_id;
+    }
+
+    const code = await generateUniqueSpaceCode(db);
+    const spaceName = `${user.nickname || '用户'} 的个人空间`;
+    const spaceResult = await db.run(
+      'INSERT INTO spaces (name, code, type, created_by, created_at) VALUES (?, ?, ?, ?, ?)',
+      [spaceName, code, 'solo', user.id, now]
+    );
+    const spaceId = spaceResult.lastID;
+
+    await db.run(
+      'INSERT INTO space_members (space_id, user_id, role, joined_at) VALUES (?, ?, ?, ?)',
+      [spaceId, user.id, 'admin', now]
+    );
+
+    await seedDefaultFoods(db, spaceId, user.id);
+    await seedDefaultWishlist(db, spaceId, user.id);
+    await db.run('UPDATE users SET current_space_id = ? WHERE id = ?', [spaceId, user.id]);
+    await db.run('COMMIT;');
+
+    return spaceId;
+  } catch (error) {
+    try {
+      await db.run('ROLLBACK;');
+    } catch (_) {}
+    throw error;
+  }
+}

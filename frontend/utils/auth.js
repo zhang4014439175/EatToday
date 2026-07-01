@@ -26,13 +26,14 @@ export function login(nickname = '', avatarUrl = '') {
             showLoading: true,
             loadingMsg: '正在登录...'
           }).then(data => {
-            const { token, user } = data;
+            const { token, user, currentSpace } = data;
             
             // 3. 将登录状态保存至本地缓存及全局 globalData
             const app = getApp();
             if (app) {
               app.globalData.token = token;
               app.globalData.userInfo = user;
+              app.globalData.currentSpace = currentSpace || null;
               if (user.partner_id) {
                 app.globalData.partnerInfo = { id: user.partner_id }; // 占位，后面可通过 /auth/me 获取完整信息
               }
@@ -40,6 +41,11 @@ export function login(nickname = '', avatarUrl = '') {
 
             wx.setStorageSync('token', token);
             wx.setStorageSync('userInfo', JSON.stringify(user));
+            if (currentSpace) {
+              wx.setStorageSync('currentSpace', JSON.stringify(currentSpace));
+            } else {
+              wx.removeStorageSync('currentSpace');
+            }
             
             console.log('[Auth] 账户成功登录并建立会话:', user.nickname);
             resolve(user);
@@ -69,14 +75,20 @@ export function login(nickname = '', avatarUrl = '') {
           showLoading: true,
           loadingMsg: '模拟登录中...'
         }).then(data => {
-          const { token, user } = data;
+          const { token, user, currentSpace } = data;
           const app = getApp();
           if (app) {
             app.globalData.token = token;
             app.globalData.userInfo = user;
+            app.globalData.currentSpace = currentSpace || null;
           }
           wx.setStorageSync('token', token);
           wx.setStorageSync('userInfo', JSON.stringify(user));
+          if (currentSpace) {
+            wx.setStorageSync('currentSpace', JSON.stringify(currentSpace));
+          } else {
+            wx.removeStorageSync('currentSpace');
+          }
           resolve(user);
         }).catch(mockErr => {
           reject(mockErr);
@@ -95,10 +107,13 @@ export function logout() {
     app.globalData.token = '';
     app.globalData.userInfo = null;
     app.globalData.partnerInfo = null;
+    app.globalData.currentSpace = null;
+    app.globalData.spaces = [];
   }
   wx.removeStorageSync('token');
   wx.removeStorageSync('userInfo');
   wx.removeStorageSync('partnerInfo');
+  wx.removeStorageSync('currentSpace');
   
   console.log('[Auth] 已成功退出登录并清理本地缓存');
   
