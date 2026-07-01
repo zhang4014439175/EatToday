@@ -6,16 +6,9 @@ import { getShanghaiDayUtcRange } from '../utils/date.js';
 const router = express.Router();
 
 function getAccessibleFoodCondition(user) {
-  if (user.partner_id) {
-    return {
-      where: '(created_by = ? OR created_by = ?)',
-      params: [user.id, user.partner_id]
-    };
-  }
-
   return {
-    where: 'created_by = ?',
-    params: [user.id]
+    where: 'space_id = ?',
+    params: [user.current_space_id]
   };
 }
 
@@ -27,18 +20,16 @@ router.get('/', authMiddleware, async (req, res, next) => {
   try {
     const db = getDB();
     const user = req.user;
-
-    let query = 'SELECT * FROM food_pool WHERE created_by = ?';
-    let params = [user.id];
-
-    if (user.partner_id) {
-      query += ' OR created_by = ?';
-      params.push(user.partner_id);
+ 
+    if (!user.current_space_id) {
+      return res.status(200).json({ foods: [] });
     }
-
-    query += ' ORDER BY created_at DESC';
-    const foods = await db.all(query, params);
-
+ 
+    const foods = await db.all(
+      'SELECT * FROM food_pool WHERE space_id = ? ORDER BY created_at DESC',
+      [user.current_space_id]
+    );
+ 
     return res.status(200).json({ foods });
   } catch (error) {
     next(error);
@@ -52,20 +43,24 @@ router.get('/', authMiddleware, async (req, res, next) => {
 router.post('/', authMiddleware, async (req, res, next) => {
   const { name, tags, category, image_url } = req.body;
   const user = req.user;
-
+ 
   if (!name || !name.trim()) {
     return res.status(400).json({ error: 'ValidationError', message: '美食名称不能为空' });
   }
-
+ 
+  if (!user.current_space_id) {
+    return res.status(400).json({ error: 'ValidationError', message: '用户未关联活跃空间，无法添加美食' });
+  }
+ 
   try {
     const db = getDB();
     const now = new Date().toISOString();
-
+ 
     const result = await db.run(
-      'INSERT INTO food_pool (name, tags, category, image_url, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [name.trim(), tags || '', category || 'home', image_url || '', user.id, now, now]
+      'INSERT INTO food_pool (name, tags, category, image_url, created_by, space_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [name.trim(), tags || '', category || 'home', image_url || '', user.id, user.current_space_id, now, now]
     );
-
+ 
     const newFood = await db.get('SELECT * FROM food_pool WHERE id = ?', [result.lastID]);
     return res.status(201).json({ success: true, food: newFood });
   } catch (error) {
@@ -81,30 +76,30 @@ router.put('/:id', authMiddleware, async (req, res, next) => {
   const id = req.params.id;
   const { name, tags, category, image_url } = req.body;
   const user = req.user;
-
+ 
   if (!name || !name.trim()) {
     return res.status(400).json({ error: 'ValidationError', message: '美食名称不能为空' });
   }
-
+ 
   try {
     const db = getDB();
     // 检查是否存在
-    const food = await db.get('SELECT id, created_by FROM food_pool WHERE id = ?', [id]);
+    const food = await db.get('SELECT id, created_by, space_id FROM food_pool WHERE id = ?', [id]);
     if (!food) {
       return res.status(404).json({ error: 'NotFoundError', message: '未找到该美食项目' });
     }
-
-    // 只能修改自己或伴侣创建的
-    if (food.created_by !== user.id && food.created_by !== user.partner_id) {
-      return res.status(403).json({ error: 'ForbiddenError', message: '您无权修改此美食项目' });
+ 
+    // 同一空间内的成员均可修改
+    if (food.space_id !== user.current_space_id) {
+      return res.status(403).json({ error: 'ForbiddenError', message: '您无权修改此空间的美食项目' });
     }
-
+ 
     const now = new Date().toISOString();
     await db.run(
       'UPDATE food_pool SET name = ?, tags = ?, category = ?, image_url = ?, updated_at = ? WHERE id = ?',
       [name.trim(), tags || '', category || 'home', image_url || '', now, id]
     );
-
+ 
     const updatedFood = await db.get('SELECT * FROM food_pool WHERE id = ?', [id]);
     return res.status(200).json({ success: true, food: updatedFood });
   } catch (error) {
@@ -113,28 +108,28 @@ router.put('/:id', authMiddleware, async (req, res, next) => {
 });
 
 /**
- * 删除美食 (情侣双方均可删除)
+ * 删除美食 (同一空间成员均可删除)
  * DELETE /api/food/:id
  */
 router.delete('/:id', authMiddleware, async (req, res, next) => {
   const id = req.params.id;
   const user = req.user;
-
+ 
   try {
     const db = getDB();
     // 检查是否存在
-    const food = await db.get('SELECT id, created_by FROM food_pool WHERE id = ?', [id]);
+    const food = await db.get('SELECT id, created_by, space_id FROM food_pool WHERE id = ?', [id]);
     if (!food) {
       return res.status(404).json({ error: 'NotFoundError', message: '未找到该美食项目' });
     }
-
-    // 只能删除自己或伴侣创建的
-    if (food.created_by !== user.id && food.created_by !== user.partner_id) {
-      return res.status(403).json({ error: 'ForbiddenError', message: '您无权删除此美食项目' });
+ 
+    // 同一空间内的成员均可删除
+    if (food.space_id !== user.current_space_id) {
+      return res.status(403).json({ error: 'ForbiddenError', message: '您无权删除此空间的美食项目' });
     }
-
+ 
     await db.run('DELETE FROM food_pool WHERE id = ?', [id]);
-
+ 
     return res.status(200).json({ success: true, message: '删除成功' });
   } catch (error) {
     next(error);
@@ -150,32 +145,46 @@ router.get('/today', authMiddleware, async (req, res, next) => {
     const db = getDB();
     const user = req.user;
     const { start, end } = getShanghaiDayUtcRange();
+ 
+    // 获取用户所属的所有物理空间 IDs
+    const memberSpaces = await db.all('SELECT space_id FROM space_members WHERE user_id = ?', [user.id]);
+    const spaceIds = memberSpaces.map(s => s.space_id);
+
+    if (spaceIds.length === 0) {
+      return res.status(200).json({ food: null });
+    }
+
+    const placeholders = spaceIds.map(() => '?').join(',');
     
-    // SQLite 查询今天已锁定的投票会话或轮盘结果
-    // 匹配 created_at 格式为 YYYY-MM-DD% 的锁死会话
-    const session = await db.get(
-      `SELECT fs.*, fp.name as food_name 
+    // SQLite 查询这些空间中今天已锁定的投票会话或轮盘结果
+    const sessions = await db.all(
+      `SELECT fs.*, fp.name as food_name, s.name as space_name 
        FROM food_sessions fs
+       JOIN spaces s ON fs.space_id = s.id
        JOIN food_pool fp ON fs.selected_food_id = fp.id
        WHERE fs.status = 'locked' 
-         AND (fs.created_by = ? OR fs.partner_id = ?)
+         AND fs.space_id IN (${placeholders})
          AND fs.created_at >= ?
          AND fs.created_at < ?
-       ORDER BY fs.updated_at DESC
-       LIMIT 1`,
-      [user.id, user.id, start, end]
+       ORDER BY fs.updated_at DESC`,
+      [...spaceIds, start, end]
     );
+ 
+    if (sessions.length > 0) {
+      const showSpaceTag = spaceIds.length > 1;
+      const combinedName = sessions
+        .map(s => showSpaceTag ? `${s.space_name}: ${s.food_name}` : s.food_name)
+        .join(' | ');
 
-    if (session) {
       return res.status(200).json({
         food: {
-          id: session.selected_food_id,
-          name: session.food_name,
-          reason: session.result_reason
+          id: sessions[0].selected_food_id,
+          name: combinedName,
+          reason: sessions.map(s => s.result_reason).filter(Boolean).join('; ') || '今天的美食选择'
         }
       });
     }
-
+ 
     return res.status(200).json({ food: null });
   } catch (error) {
     next(error);
@@ -213,10 +222,10 @@ router.post('/lock-wheel', authMiddleware, async (req, res, next) => {
     const existing = await db.get(
       `SELECT id FROM food_sessions 
        WHERE status = 'locked' 
-         AND (created_by = ? OR partner_id = ?) 
+         AND space_id = ? 
          AND created_at >= ?
          AND created_at < ?`,
-      [user.id, user.id, start, end]
+      [user.current_space_id, start, end]
     );
 
     if (existing) {
@@ -230,9 +239,9 @@ router.post('/lock-wheel', authMiddleware, async (req, res, next) => {
     } else {
       // 否则插入一条锁定记录
       await db.run(
-        `INSERT INTO food_sessions (created_by, partner_id, status, selected_food_id, result_reason, created_at, updated_at)
+        `INSERT INTO food_sessions (space_id, created_by, status, selected_food_id, result_reason, created_at, updated_at)
          VALUES (?, ?, 'locked', ?, 'random', ?, ?)`,
-        [user.id, user.partner_id || null, foodId, now, now]
+        [user.current_space_id, user.id, foodId, now, now]
       );
     }
 
@@ -249,8 +258,8 @@ router.post('/lock-wheel', authMiddleware, async (req, res, next) => {
 router.post('/session', authMiddleware, async (req, res, next) => {
   const user = req.user;
 
-  if (!user.partner_id) {
-    return res.status(400).json({ error: 'ValidationError', message: '您必须先配对伴侣才能开启投票会话' });
+  if (!user.current_space_id) {
+    return res.status(400).json({ error: 'ValidationError', message: '您必须先关联空间才能开启投票会话' });
   }
 
   try {
@@ -261,14 +270,14 @@ router.post('/session', authMiddleware, async (req, res, next) => {
     // 检查今天是否已有活跃的投票会话
     const existing = await db.get(
       `SELECT * FROM food_sessions 
-         WHERE (created_by = ? OR partner_id = ?) 
+         WHERE space_id = ? 
          AND created_at >= ?
          AND created_at < ?`,
-      [user.id, user.id, start, end]
+      [user.current_space_id, start, end]
     );
 
     if (existing) {
-      // 如果已有投票，若其处于 locked 状态，支持重新发起（删除旧的或更新状态为 voting）
+      // 如果已有投票，若其处于 locked 状态，支持重新发起
       if (existing.status === 'locked') {
         // 清理旧投票关联记录并重置会话
         await db.run('DELETE FROM food_votes WHERE session_id = ?', [existing.id]);
@@ -286,9 +295,9 @@ router.post('/session', authMiddleware, async (req, res, next) => {
 
     // 创建新的投票会话
     const result = await db.run(
-      `INSERT INTO food_sessions (created_by, partner_id, status, created_at, updated_at)
+      `INSERT INTO food_sessions (space_id, created_by, status, created_at, updated_at)
        VALUES (?, ?, 'voting', ?, ?)`,
-      [user.id, user.partner_id, now, now]
+      [user.current_space_id, user.id, now, now]
     );
 
     const session = await db.get('SELECT * FROM food_sessions WHERE id = ?', [result.lastID]);
@@ -309,16 +318,20 @@ router.get('/session/active', authMiddleware, async (req, res, next) => {
     const db = getDB();
     const { start, end } = getShanghaiDayUtcRange();
 
+    if (!user.current_space_id) {
+      return res.status(200).json({ session: null, votes: [] });
+    }
+
     const session = await db.get(
       `SELECT fs.*, fp.name as selected_food_name
        FROM food_sessions fs
        LEFT JOIN food_pool fp ON fs.selected_food_id = fp.id
-       WHERE (fs.created_by = ? OR fs.partner_id = ?) 
+       WHERE fs.space_id = ?
          AND fs.created_at >= ?
          AND fs.created_at < ?
        ORDER BY fs.updated_at DESC
        LIMIT 1`,
-      [user.id, user.id, start, end]
+      [user.current_space_id, start, end]
     );
 
     if (!session) {
@@ -343,7 +356,7 @@ router.get('/session/active', authMiddleware, async (req, res, next) => {
  */
 router.post('/session/:id/vote', authMiddleware, async (req, res, next) => {
   const sessionId = req.params.id;
-  const { foodIds } = req.body; // [12, 15, 17]
+  const { foodIds } = req.body;
   const user = req.user;
 
   if (!Array.isArray(foodIds) || foodIds.length === 0 || foodIds.length > 3) {
@@ -364,8 +377,9 @@ router.post('/session/:id/vote', authMiddleware, async (req, res, next) => {
       return res.status(400).json({ error: 'ValidationError', message: '该选菜会话投票已结束' });
     }
 
-    if (session.created_by !== user.id && session.partner_id !== user.id) {
-      return res.status(403).json({ error: 'ForbiddenError', message: '您无权参与该投票会话' });
+    // 校验空间一致性
+    if (session.space_id !== user.current_space_id) {
+      return res.status(403).json({ error: 'ForbiddenError', message: '您无权参与此空间下的投票会话' });
     }
 
     const uniqueFoodIds = [...new Set(foodIds.map(id => Number(id)))].filter(Number.isInteger);
@@ -403,45 +417,48 @@ router.post('/session/:id/vote', authMiddleware, async (req, res, next) => {
         );
       }
 
-      // 获取所有投票者
+      // 获取当前活跃空间的成员总数
+      const memberCountRow = await db.get(
+        'SELECT COUNT(*) as count FROM space_members WHERE space_id = ?',
+        [session.space_id]
+      );
+      const activeMembersCount = memberCountRow.count;
+
+      // 获取所有已在会话下投过票的人
       const voters = await db.all(
         'SELECT DISTINCT user_id FROM food_votes WHERE session_id = ?',
         [sessionId]
       );
 
-      // 如果两个人都投票了，触发心有灵犀双人匹配算法！
-      if (voters.length === 2) {
-        // 用户 1 投的食物
-        const votes1 = await db.all('SELECT food_id FROM food_votes WHERE session_id = ? AND user_id = ?', [sessionId, session.created_by]);
-        const ids1 = votes1.map(v => v.food_id);
-
-        // 用户 2 投的食物
-        const votes2 = await db.all('SELECT food_id FROM food_votes WHERE session_id = ? AND user_id = ?', [sessionId, session.partner_id]);
-        const ids2 = votes2.map(v => v.food_id);
-
-        // 1. 求交集
-        const intersection = ids1.filter(id => ids2.includes(id));
-        let chosenFoodId = null;
-        let reason = '';
-
-        if (intersection.length > 0) {
-          // 有交集：心有灵犀！在重合的食物中随机选一个
-          chosenFoodId = intersection[Math.floor(Math.random() * intersection.length)];
-          reason = 'intersection';
-        } else {
-          // 无交集：并集，在两边所有投的食物中随机选一个
-          const union = [...new Set([...ids1, ...ids2])];
-          chosenFoodId = union[Math.floor(Math.random() * union.length)];
-          reason = 'random';
-        }
-
-        // 更新会话锁定结果
-        await db.run(
-          `UPDATE food_sessions 
-           SET status = 'locked', selected_food_id = ?, result_reason = ?, updated_at = ? 
-           WHERE id = ?`,
-          [chosenFoodId, reason, now, sessionId]
+      // 如果空间里的所有人都投完票了，触发聚合选菜算法！
+      if (voters.length >= activeMembersCount) {
+        // 统计每个人投出的菜品票数
+        const voteCounts = await db.all(
+          `SELECT food_id, COUNT(*) as count 
+           FROM food_votes 
+           WHERE session_id = ? 
+           GROUP BY food_id 
+           ORDER BY count DESC`,
+          [sessionId]
         );
+
+        if (voteCounts.length > 0) {
+          const maxCount = voteCounts[0].count;
+          // 找出所有获得最高票数的菜品（可能有平局）
+          const candidateFoods = voteCounts.filter(v => v.count === maxCount).map(v => v.food_id);
+
+          // 随机从最高票数的菜品中抽取一个作为获胜者
+          const chosenFoodId = candidateFoods[Math.floor(Math.random() * candidateFoods.length)];
+          const reason = maxCount > 1 ? 'intersection' : 'random';
+
+          // 更新会话锁定结果
+          await db.run(
+            `UPDATE food_sessions 
+             SET status = 'locked', selected_food_id = ?, result_reason = ?, updated_at = ? 
+             WHERE id = ?`,
+            [chosenFoodId, reason, now, sessionId]
+          );
+        }
       }
 
       await db.run('COMMIT;');

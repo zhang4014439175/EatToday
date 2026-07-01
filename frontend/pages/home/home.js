@@ -58,10 +58,7 @@ Page({
       });
 
       this.calculateLoveDays(user);
-
-      if (isPaired) {
-        this.fetchTodayDashboard();
-      }
+      this.fetchTodayDashboard();
     } catch (err) {
       console.error('[Home Page] 刷新失败:', err);
     }

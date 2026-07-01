@@ -75,6 +75,32 @@ async function initDBOnce(canRecoverEmptyDb) {
       );
     `);
 
+    // 1.5 创建 spaces 空间表 和 space_members 成员表
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS spaces (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        code TEXT UNIQUE NOT NULL,
+        type TEXT NOT NULL DEFAULT 'group',
+        created_by INTEGER NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+      );
+    `);
+
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS space_members (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        space_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        role TEXT NOT NULL DEFAULT 'member',
+        joined_at TEXT NOT NULL,
+        UNIQUE(space_id, user_id),
+        FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+    `);
+
     // 2. 创建 anniversaries 纪念日表
     await db.exec(`
       CREATE TABLE IF NOT EXISTS anniversaries (
@@ -213,6 +239,32 @@ async function initDBOnce(canRecoverEmptyDb) {
       );
     `);
 
+    // 动态升级已有的关系表，增加 space_id / current_space_id 字段
+    try {
+      await db.run('ALTER TABLE users ADD COLUMN current_space_id INTEGER;');
+    } catch (e) {}
+    try {
+      await db.run('ALTER TABLE anniversaries ADD COLUMN space_id INTEGER;');
+    } catch (e) {}
+    try {
+      await db.run('ALTER TABLE food_pool ADD COLUMN space_id INTEGER;');
+    } catch (e) {}
+    try {
+      await db.run('ALTER TABLE food_sessions ADD COLUMN space_id INTEGER;');
+    } catch (e) {}
+    try {
+      await db.run('ALTER TABLE date_plans ADD COLUMN space_id INTEGER;');
+    } catch (e) {}
+    try {
+      await db.run('ALTER TABLE kitchen_sessions ADD COLUMN space_id INTEGER;');
+    } catch (e) {}
+    try {
+      await db.run('ALTER TABLE calendar_custom_events ADD COLUMN space_id INTEGER;');
+    } catch (e) {}
+    try {
+      await db.run('ALTER TABLE date_wishlist ADD COLUMN space_id INTEGER;');
+    } catch (e) {}
+
     // 创建核心字段索引，提高查询性能
     await db.exec(`
       CREATE INDEX IF NOT EXISTS idx_users_openid ON users(openid);
@@ -225,7 +277,12 @@ async function initDBOnce(canRecoverEmptyDb) {
       CREATE INDEX IF NOT EXISTS idx_date_wishlist_created_by ON date_wishlist(created_by);
       CREATE INDEX IF NOT EXISTS idx_kitchen_sessions_diner_chef_status ON kitchen_sessions(diner_id, chef_id, status);
       CREATE INDEX IF NOT EXISTS idx_calendar_custom_events_date ON calendar_custom_events(event_date);
+      CREATE INDEX IF NOT EXISTS idx_spaces_code ON spaces(code);
+      CREATE INDEX IF NOT EXISTS idx_space_members_space_user ON space_members(space_id, user_id);
     `);
+
+    // 执行历史数据到多空间协作架构的自动平滑迁移
+    await migrateToMultiSpace(db);
 
     console.log('Database tables and indices checked/created successfully.');
   } catch (error) {
@@ -272,4 +329,118 @@ function cleanupBootstrapDatabaseFiles() {
       console.warn(`Failed to remove bootstrap SQLite file ${filePath}: ${error.message}`);
     }
   }
+}
+
+/**
+ * 产生唯一的6位空间码
+ */
+async function generateUniqueSpaceCode(db) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  while (true) {
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    const row = await db.get('SELECT id FROM spaces WHERE code = ?', [code]);
+    if (!row) {
+      return code;
+    }
+  }
+}
+
+/**
+ * 历史数据迁移：从原先的 partner_id 双人配对，平滑迁移到 Spaces 空间架构
+ */
+async function migrateToMultiSpace(db) {
+  console.log('Starting data migration to Multi-Space Collaborative architecture...');
+  const nowStr = new Date().toISOString();
+
+  // 1. 获取所有没有 current_space_id 的用户
+  const users = await db.all('SELECT * FROM users WHERE current_space_id IS NULL OR current_space_id = 0');
+  
+  for (const user of users) {
+    // 再次查询该用户，防止其在前面的循环中已被更新（例如作为伴侣）
+    const freshUser = await db.get('SELECT * FROM users WHERE id = ?', [user.id]);
+    if (!freshUser || (freshUser.current_space_id && freshUser.current_space_id !== 0)) {
+      continue;
+    }
+
+    if (freshUser.partner_id) {
+      // 检查伴侣的信息
+      const partner = await db.get('SELECT * FROM users WHERE id = ?', [freshUser.partner_id]);
+      if (partner) {
+        // 创建一个 Group 空间 (情侣也是好友群组的一种，方便扩容)
+        const code = await generateUniqueSpaceCode(db);
+        const spaceName = `${freshUser.nickname || '用户'}-${partner.nickname || '用户'} 的双人空间`;
+        
+        const spaceResult = await db.run(
+          'INSERT INTO spaces (name, code, type, created_by, created_at) VALUES (?, ?, ?, ?, ?)',
+          [spaceName, code, 'group', freshUser.id, nowStr]
+        );
+        const spaceId = spaceResult.lastID;
+
+        // 添加成员
+        await db.run(
+          'INSERT INTO space_members (space_id, user_id, role, joined_at) VALUES (?, ?, ?, ?)',
+          [spaceId, freshUser.id, 'admin', nowStr]
+        );
+        await db.run(
+          'INSERT INTO space_members (space_id, user_id, role, joined_at) VALUES (?, ?, ?, ?)',
+          [spaceId, partner.id, 'member', nowStr]
+        );
+
+        // 更新双方的当前空间
+        await db.run('UPDATE users SET current_space_id = ? WHERE id IN (?, ?)', [spaceId, freshUser.id, partner.id]);
+        console.log(`Migrated pair: User ${freshUser.id} & User ${partner.id} into Group Space ${spaceId}`);
+        continue;
+      }
+    }
+
+    // 如果是没有配对的单身用户，创建一个 Solo 空间
+    const code = await generateUniqueSpaceCode(db);
+    const spaceName = `${freshUser.nickname || '用户'} 的个人空间`;
+    const spaceResult = await db.run(
+      'INSERT INTO spaces (name, code, type, created_by, created_at) VALUES (?, ?, ?, ?, ?)',
+      [spaceName, code, 'solo', freshUser.id, nowStr]
+    );
+    const spaceId = spaceResult.lastID;
+
+    // 添加成员
+    await db.run(
+      'INSERT INTO space_members (space_id, user_id, role, joined_at) VALUES (?, ?, ?, ?)',
+      [spaceId, freshUser.id, 'admin', nowStr]
+    );
+
+    // 更新当前空间
+    await db.run('UPDATE users SET current_space_id = ? WHERE id = ?', [spaceId, freshUser.id]);
+    console.log(`Migrated single user: User ${freshUser.id} into Solo Space ${spaceId}`);
+  }
+
+  const businessTables = [
+    { table: 'anniversaries', userField: 'created_by' },
+    { table: 'food_pool', userField: 'created_by' },
+    { table: 'food_sessions', userField: 'created_by' },
+    { table: 'date_plans', userField: 'created_by' },
+    { table: 'kitchen_sessions', userField: 'chef_id' },
+    { table: 'calendar_custom_events', userField: 'created_by' },
+    { table: 'date_wishlist', userField: 'created_by' }
+  ];
+
+  for (const item of businessTables) {
+    const records = await db.all(`SELECT * FROM ${item.table} WHERE space_id IS NULL OR space_id = 0`);
+    for (const record of records) {
+      const userId = record[item.userField];
+      if (userId) {
+        const user = await db.get('SELECT current_space_id FROM users WHERE id = ?', [userId]);
+        if (user && user.current_space_id) {
+          await db.run(`UPDATE ${item.table} SET space_id = ? WHERE id = ?`, [user.current_space_id, record.id]);
+        }
+      }
+    }
+    if (records.length > 0) {
+      console.log(`Migrated ${records.length} records in table ${item.table} to their corresponding space_ids.`);
+    }
+  }
+
+  console.log('Data migration complete.');
 }

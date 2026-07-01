@@ -31,7 +31,7 @@ export async function authMiddleware(req, res, next) {
     // 注入数据库实例并核对用户在库中是否仍然存在
     const db = getDB();
     const user = await db.get(
-      'SELECT id, openid, nickname, avatar_url, partner_id, pair_code FROM users WHERE id = ?',
+      'SELECT id, openid, nickname, avatar_url, partner_id, pair_code, current_space_id FROM users WHERE id = ?',
       [decoded.id]
     );
 

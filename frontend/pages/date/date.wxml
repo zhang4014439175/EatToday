@@ -1,4 +1,14 @@
 <view class="container">
+  <!-- 空间快速切换栏 -->
+  <view class="space-quick-bar flex-row" bindtap="onTapSpaceSwitcher" wx:if="{{currentSpace}}">
+    <view class="space-quick-name">
+      <text class="quick-icon">🏠</text>
+      <text>{{currentSpace.name || '默认空间'}}</text>
+      <text class="quick-arrow">▼</text>
+    </view>
+    <view class="space-quick-badge">{{currentSpace.type === 'solo' ? '个人' : '群组'}}</view>
+  </view>
+
   <!-- 1. 新增提案表单（常驻展开且高度优化） -->
   <view class="card proposal-form-card" style="padding: 24rpx; margin-bottom: 24rpx;">
     <view class="card-title" style="margin-bottom: 20rpx; padding: 0;">发起去哪玩提案</view>

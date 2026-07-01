@@ -96,7 +96,24 @@
         { id: 1, title: '一起去拿快递 📦', event_date: today(), event_time: '15:30' }
       ],
       showCalendarCustomDialog: false,
-      calendarExpanded: false
+      calendarExpanded: false,
+      currentSpaceId: 1,
+      spaces: [
+        { id: 1, name: '我们的温存空间 🏠', code: 'LOV520', type: 'group', member_count: 2 },
+        { id: 2, name: '我的个人角落 👤', code: 'SOLO88', type: 'solo', member_count: 1 }
+      ],
+      spaceMembers: {
+        1: [
+          { id: 1, nickname: '本地测试用户', avatar_url: '', role: 'admin' },
+          { id: 2, nickname: '猪猪队友 🐷', avatar_url: '', role: 'member' }
+        ],
+        2: [
+          { id: 1, nickname: '本地测试用户', avatar_url: '', role: 'admin' }
+        ]
+      },
+      spaceActiveTab: 'join',
+      spaceInputCode: '',
+      spaceInputName: ''
     };
   }
 
@@ -121,8 +138,35 @@
     return list.reduce((max, item) => Math.max(max, item.id), 0) + 1;
   }
 
+  function getCurrentSpace() {
+    const spaces = state.spaces || [
+      { id: 1, name: '我们的温存空间 🏠', code: 'LOV520', type: 'group', member_count: 2 },
+      { id: 2, name: '我的个人角落 👤', code: 'SOLO88', type: 'solo', member_count: 1 }
+    ];
+    if (!state.spaces) state.spaces = spaces;
+    const currentSpaceId = state.currentSpaceId || 1;
+    if (!state.currentSpaceId) state.currentSpaceId = currentSpaceId;
+    return spaces.find(s => s.id === currentSpaceId) || spaces[0];
+  }
+
+  function getSpaceMembers() {
+    const spaceMembers = state.spaceMembers || {
+      1: [
+        { id: 1, nickname: '本地测试用户', avatar_url: '', role: 'admin' },
+        { id: 2, nickname: '猪猪队友 🐷', avatar_url: '', role: 'member' }
+      ],
+      2: [
+        { id: 1, nickname: '本地测试用户', avatar_url: '', role: 'admin' }
+      ]
+    };
+    if (!state.spaceMembers) state.spaceMembers = spaceMembers;
+    const currentSpaceId = state.currentSpaceId || 1;
+    return spaceMembers[currentSpaceId] || [];
+  }
+
   function isPaired() {
-    return Boolean(state.user.partnerId);
+    const currentSpace = getCurrentSpace();
+    return currentSpace && currentSpace.type !== 'solo';
   }
 
   function html(strings, ...values) {
@@ -451,6 +495,21 @@
     `;
   }
 
+  function renderSpaceQuickBar() {
+    const currentSpace = getCurrentSpace();
+    if (!currentSpace) return '';
+    return html`
+      <div class="space-quick-bar" data-action="quick-space-click" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background-color: #FFFFFF; border-radius: 12px; margin-bottom: 12px; border: 1px solid rgba(45, 41, 56, 0.05); box-shadow: 0 4px 10px rgba(45, 41, 56, 0.02); cursor: pointer;">
+        <div style="font-size: 13px; font-weight: 800; color: #2D2938; display: flex; align-items: center;">
+          <span style="margin-right: 6px; font-size: 16px;">🏠</span>
+          <span>${escapeText(currentSpace.name)}</span>
+          <span style="font-size: 9px; color: #868095; margin-left: 6px;">▼</span>
+        </div>
+        <span style="font-size: 10px; color: #7C69C9; background-color: #F3F0FA; padding: 2px 8px; border-radius: 4px; font-weight: 800;">${currentSpace.type === 'solo' ? '个人' : '群组'}</span>
+      </div>
+    `;
+  }
+
   function renderHome() {
     const ann = nearestAnniversary();
     const plan = todayAcceptedDate();
@@ -488,7 +547,7 @@
             <h2 style="margin: 0; font-size: 15px; font-weight: 900;">🏡 爱心厨房</h2>
             <button class="btn secondary" data-action="go-to-recipe-book" style="min-height: 24px; height: 24px; padding: 0 10px; font-size: 10px; margin: 0; box-shadow: none;">美食库 📖</button>
           </div>
-          ${isPaired() ? renderKitchenSection() : '<div class="empty">先去“我的”里完成配对</div>'}
+          ${isPaired() ? renderKitchenSection() : '<div class="empty">请先在“我的”页面切换至群组空间以使用做饭下单功能</div>'}
         </section>
       `;
     } else {
@@ -503,7 +562,7 @@
             <h2 style="margin: 0; font-size: 15px; font-weight: 900;">🍕 今天一起吃什么</h2>
             <button class="btn secondary" data-action="go-to-recipe-book" style="min-height: 24px; height: 24px; padding: 0 10px; font-size: 10px; margin: 0; box-shadow: none;">美食库 📖</button>
           </div>
-          ${isPaired() ? renderVoteSession(session) : '<div class="empty">先去“我的”里完成配对</div>'}
+          ${isPaired() ? renderVoteSession(session) : '<div class="empty">请先在“我的”页面切换至群组空间以开启多人投票</div>'}
         </section>
 
         ${session && session.lockedFood ? html`
@@ -521,6 +580,7 @@
     }
 
     return html`
+      ${renderSpaceQuickBar()}
       <!-- 就餐模式选择 (在家吃 vs 出去吃) -->
       <div class="eat-mode-switcher card flex-row" style="background-color: var(--rose-soft); border-radius: 999px; padding: 6px; display: flex; margin-bottom: 16px; border: 1px solid rgba(45, 41, 56, 0.04);">
         <button class="eat-mode-item ${eatMode === 'home' ? 'eat-mode-active' : ''}" data-action="switch-eat-mode" data-mode="home" style="flex: 1; border: 0; background: transparent; color: var(--muted); padding: 10px 0; border-radius: 999px; font-weight: 700; transition: all 0.2s ease;">🏡 在家吃</button>
@@ -691,6 +751,7 @@
 
   function renderDate() {
     return html`
+      ${renderSpaceQuickBar()}
       <section class="card stack" style="gap: 10px;">
         <h2 style="font-size: 15px; margin: 0 0 4px;">发起去哪玩提案</h2>
         <input id="dateTitle" class="input" placeholder="主题：想去干嘛 (如看电影/吃火锅)" />
@@ -751,6 +812,9 @@
   }
 
   function renderProfile() {
+    const currentSpace = getCurrentSpace();
+    const members = getSpaceMembers();
+    const activeTab = state.spaceActiveTab || 'join';
     return html`
       <section class="card">
         <div class="row">
@@ -770,8 +834,70 @@
       </section>
 
       <section class="card stack">
-        <h2>用户配对</h2>
-        ${isPaired() ? `<div class="list-item"><strong>已和 ${escapeText(state.partner.nickname)} 配对</strong><p class="muted">可以体验一起选菜和去哪玩流转。</p></div><button class="btn secondary" data-action="unpair">解除绑定</button>` : `<p class="muted">输入伴侣配对码体验配对：TA520</p><div class="row"><input id="pairCode" class="input" placeholder="输入配对码" /><button class="btn" data-action="pair">配对</button></div>`}
+        <div class="row" style="justify-content: space-between; align-items: center; margin-bottom: 12px; display: flex;">
+          <h2 style="margin-bottom: 0;">当前空间</h2>
+          <span class="pill status-accepted" style="background-color: #F3F0FA; color: #7C69C9; padding: 4px 10px; font-size: 10px; font-weight: 800; border-radius: 99rpx;">${currentSpace.type === 'solo' ? '个人空间' : '群组空间'}</span>
+        </div>
+        
+        <div class="current-space-info" style="background: #F8F7FC; padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid rgba(124, 105, 201, 0.05);">
+          <div style="font-weight: 800; font-size: 15px; color: #2D2938; margin-bottom: 4px;">🏠 ${escapeText(currentSpace.name)}</div>
+          ${currentSpace.type !== 'solo' ? `<p class="muted" style="margin: 0; font-size: 12px;">邀请码：<strong style="color: #2D2938; font-weight: 900; letter-spacing: 1px;">${escapeText(currentSpace.code)}</strong></p>` : ''}
+        </div>
+
+        <!-- 空间成员 -->
+        <div class="member-section" style="margin-bottom: 16px;">
+          <div class="muted" style="font-size: 11px; font-weight: 800; margin-bottom: 8px; color: #868095;">空间成员 (${members.length}人)</div>
+          <div class="row" style="gap: 16px; flex-wrap: wrap; display: flex;">
+            ${members.map(m => `
+              <div style="display: flex; flex-direction: column; align-items: center; width: 60px; text-align: center;">
+                <div style="width: 40px; height: 40px; border-radius: 12px; background: #F3F0FA; border: 2px solid #ffffff; box-shadow: 0 4px 10px rgba(45,41,56,0.06); display: flex; align-items: center; justify-content: center; font-size: 18px;">👤</div>
+                <span style="font-size: 9px; color: ${m.role === 'admin' ? '#ffffff' : '#868095'}; background: ${m.role === 'admin' ? '#7C69C9' : '#F3F0FA'}; padding: 1px 4px; border-radius: 4px; margin-top: 4px; font-weight: 800; display: inline-block;">${m.role === 'admin' ? '管理员' : '成员'}</span>
+                <span style="font-size: 11px; font-weight: 700; color: #2D2938; margin-top: 2px; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">${escapeText(m.nickname)}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- 切换其它空间 -->
+        ${state.spaces.length > 1 ? html`
+          <div class="switch-section" style="margin-bottom: 16px; border-top: 1px solid rgba(45, 41, 56, 0.05); padding-top: 12px;">
+            <div class="muted" style="font-size: 11px; font-weight: 800; margin-bottom: 8px; color: #868095;">切换其它空间</div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              ${state.spaces.map(s => `
+                <div class="list-item row" style="padding: 10px 14px; border-radius: 10px; background: ${s.id === state.currentSpaceId ? '#F3F0FA' : '#F9F9FB'}; border: 1px solid ${s.id === state.currentSpaceId ? 'rgba(124, 105, 201, 0.15)' : 'rgba(45, 41, 56, 0.02)'}; cursor: pointer; justify-content: space-between; align-items: center; display: flex;" data-action="switch-space" data-id="${s.id}">
+                  <span style="font-size: 12px; font-weight: 800; color: #2D2938;">${s.type === 'solo' ? '👤' : '👥'} ${escapeText(s.name)}</span>
+                  <span class="muted" style="font-size: 11px; font-weight: 700;">${s.member_count}人</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+
+        <!-- 空间操作 (新建/加入) -->
+        <div class="space-actions" style="border-top: 1px solid rgba(45, 41, 56, 0.05); padding-top: 12px;">
+          <div class="row" style="gap: 16px; margin-bottom: 10px; display: flex;">
+            <span style="font-size: 12px; font-weight: 800; color: ${activeTab === 'join' ? '#7C69C9' : '#868095'}; border-bottom: 2px solid ${activeTab === 'join' ? '#7C69C9' : 'transparent'}; padding-bottom: 4px; cursor: pointer;" data-action="space-tab-switch" data-tab="join">加入群组</span>
+            <span style="font-size: 12px; font-weight: 800; color: ${activeTab === 'create' ? '#7C69C9' : '#868095'}; border-bottom: 2px solid ${activeTab === 'create' ? '#7C69C9' : 'transparent'}; padding-bottom: 4px; cursor: pointer;" data-action="space-tab-switch" data-tab="create">新建群组</span>
+          </div>
+
+          ${activeTab === 'join' ? html`
+            <div class="row" style="gap: 8px; display: flex; align-items: center;">
+              <input id="spaceJoinCode" class="input" placeholder="输入邀请码 (如 TA520)" style="flex: 1; margin-bottom: 0;" />
+              <button class="btn" data-action="space-join" style="padding: 0 16px; height: 38px; min-height: 38px; font-size: 12px; margin: 0;">加入</button>
+            </div>
+          ` : html`
+            <div class="row" style="gap: 8px; display: flex; align-items: center;">
+              <input id="spaceCreateName" class="input" placeholder="输入新空间名称" style="flex: 1; margin-bottom: 0;" />
+              <button class="btn" data-action="space-create" style="padding: 0 16px; height: 38px; min-height: 38px; font-size: 12px; margin: 0;">创建</button>
+            </div>
+          `}
+
+          ${currentSpace.type !== 'solo' ? html`
+            <div style="margin-top: 12px; text-align: center;">
+              <span style="font-size: 11px; color: #ff4d4f; text-decoration: underline; cursor: pointer;" data-action="space-leave">退出当前空间</span>
+            </div>
+          ` : ''}
+        </div>
       </section>
 
       <section class="card stack">
@@ -999,8 +1125,84 @@
     if (action === 'delete-date') deleteDate(Number(target.dataset.id));
     if (action === 'add-wish') addWish();
     if (action === 'wish-to-date') wishToDate(target.dataset.name);
-    if (action === 'pair') pair();
-    if (action === 'unpair') unpair();
+    if (action === 'quick-space-click') {
+      const list = state.spaces.map((s, idx) => `${idx + 1}. ${s.name}`).join('\n');
+      const ans = window.prompt(`请选择要切换的空间编号（1-${state.spaces.length}）：\n\n${list}`, '1');
+      if (ans) {
+        const idx = Number(ans) - 1;
+        if (idx >= 0 && idx < state.spaces.length) {
+          state.currentSpaceId = state.spaces[idx].id;
+          toast(`已切换空间至 ${state.spaces[idx].name}`);
+        }
+      }
+    }
+    if (action === 'switch-space') {
+      const id = Number(target.dataset.id);
+      state.currentSpaceId = id;
+      toast(`已成功切换空间`);
+    }
+    if (action === 'space-tab-switch') {
+      state.spaceActiveTab = target.dataset.tab;
+    }
+    if (action === 'space-create') {
+      const input = document.querySelector('#spaceCreateName');
+      const name = input ? input.value.trim() : '';
+      if (!name) return toast('请输入空间名称哦');
+      
+      const newId = nextId(state.spaces);
+      const inviteCode = 'SPC' + Math.floor(100 + Math.random() * 900);
+      
+      state.spaces.push({
+        id: newId,
+        name,
+        code: inviteCode,
+        type: 'group',
+        member_count: 1
+      });
+      state.spaceMembers[newId] = [
+        { id: state.user.id, nickname: state.user.nickname, avatar_url: '', role: 'admin' }
+      ];
+      state.currentSpaceId = newId;
+      toast(`空间「${name}」创建成功！`);
+    }
+    if (action === 'space-join') {
+      const input = document.querySelector('#spaceJoinCode');
+      const code = input ? input.value.trim().toUpperCase() : '';
+      if (!code) return toast('请输入6位空间邀请码哦');
+      
+      const targetSpace = state.spaces.find(s => s.code === code);
+      if (targetSpace) {
+        if (targetSpace.id === state.currentSpaceId) return toast('您已经在这个空间里啦！');
+        state.currentSpaceId = targetSpace.id;
+        toast(`成功加入并切换到空间：「${targetSpace.name}」`);
+      } else {
+        const newId = nextId(state.spaces);
+        const name = '受邀加入的好友空间 👥';
+        state.spaces.push({
+          id: newId,
+          name,
+          code,
+          type: 'group',
+          member_count: 2
+        });
+        state.spaceMembers[newId] = [
+          { id: state.user.id, nickname: state.user.nickname, avatar_url: '', role: 'member' },
+          { id: 99, nickname: '空间管理员', avatar_url: '', role: 'admin' }
+        ];
+        state.currentSpaceId = newId;
+        toast(`成功加入空间：「${name}」`);
+      }
+    }
+    if (action === 'space-leave') {
+      const currentSpace = getCurrentSpace();
+      if (currentSpace.type === 'solo') return;
+      if (window.confirm(`确认要退出当前空间「${currentSpace.name}」吗？`)) {
+        state.spaces = state.spaces.filter(s => s.id !== currentSpace.id);
+        delete state.spaceMembers[currentSpace.id];
+        state.currentSpaceId = state.spaces[0].id;
+        toast('已成功退出空间');
+      }
+    }
     if (action === 'add-anniversary') addAnniversary();
     if (action === 'delete-anniversary') deleteAnniversary(Number(target.dataset.id));
     saveState();

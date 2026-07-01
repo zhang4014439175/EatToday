@@ -10,19 +10,18 @@ const router = express.Router();
  */
 router.get('/active', authMiddleware, async (req, res, next) => {
   const user = req.user;
-  if (!user.partner_id) {
+  if (!user.current_space_id) {
     return res.status(200).json({ session: null });
   }
 
   try {
     const db = getDB();
-    // 查找两个人之间最新的一条且状态不是 'archived' 的厨房会话
     const session = await db.get(
       `SELECT * FROM kitchen_sessions 
-       WHERE ((diner_id = ? AND chef_id = ?) OR (diner_id = ? AND chef_id = ?)) 
+       WHERE space_id = ? 
          AND status != 'archived' 
        ORDER BY created_at DESC LIMIT 1`,
-      [user.id, user.partner_id, user.partner_id, user.id]
+      [user.current_space_id]
     );
 
     return res.status(200).json({ session: session || null });
@@ -36,11 +35,11 @@ router.get('/active', authMiddleware, async (req, res, next) => {
  * POST /api/kitchen/order
  */
 router.post('/order', authMiddleware, async (req, res, next) => {
-  const { dish_name, diner_note } = req.body;
+  let { dish_name, diner_note, chef_id } = req.body;
   const user = req.user;
 
-  if (!user.partner_id) {
-    return res.status(400).json({ error: 'ValidationError', message: '您还没有绑定伴侣，无法发起点单。' });
+  if (!user.current_space_id) {
+    return res.status(400).json({ error: 'ValidationError', message: '您还没有关联空间，无法发起点单。' });
   }
 
   if (!dish_name || !dish_name.trim()) {
@@ -51,13 +50,26 @@ router.post('/order', authMiddleware, async (req, res, next) => {
     const db = getDB();
     const now = new Date().toISOString();
 
+    // 如果未指定大厨且空间里只有2个人，自动选择另一个人作为大厨
+    if (!chef_id) {
+      const members = await db.all('SELECT user_id FROM space_members WHERE space_id = ?', [user.current_space_id]);
+      if (members.length === 2) {
+        const other = members.find(m => m.user_id !== user.id);
+        if (other) chef_id = other.user_id;
+      }
+    }
+
+    if (!chef_id) {
+      return res.status(400).json({ error: 'ValidationError', message: '请选择为您烹饪的家庭大厨。' });
+    }
+
     // 检查是否已存在未归档的厨房会话
     const existing = await db.get(
       `SELECT id FROM kitchen_sessions 
-       WHERE ((diner_id = ? AND chef_id = ?) OR (diner_id = ? AND chef_id = ?)) 
+       WHERE space_id = ? 
          AND status != 'archived' 
        ORDER BY created_at DESC LIMIT 1`,
-      [user.id, user.partner_id, user.partner_id, user.id]
+      [user.current_space_id]
     );
 
     if (existing) {
@@ -65,9 +77,9 @@ router.post('/order', authMiddleware, async (req, res, next) => {
     }
 
     const result = await db.run(
-      `INSERT INTO kitchen_sessions (dish_name, diner_id, chef_id, diner_note, chef_note, status, image_url, praise, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [dish_name.trim(), user.id, user.partner_id, diner_note || '', '', 'ordered', '', '', now, now]
+      `INSERT INTO kitchen_sessions (dish_name, diner_id, chef_id, diner_note, chef_note, status, image_url, praise, space_id, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [dish_name.trim(), user.id, chef_id, diner_note || '', '', 'ordered', '', '', user.current_space_id, now, now]
     );
 
     const session = await db.get('SELECT * FROM kitchen_sessions WHERE id = ?', [result.lastID]);
@@ -86,12 +98,12 @@ router.post('/accept', authMiddleware, async (req, res, next) => {
 
   try {
     const db = getDB();
-    // 查找必须是以当前用户为大厨 (chef_id) 且状态为 'ordered' 的会话
+    // 查找必须是以当前用户为大厨且在当前活跃空间，状态为 'ordered' 的会话
     const session = await db.get(
       `SELECT * FROM kitchen_sessions 
-       WHERE chef_id = ? AND status = 'ordered' 
+       WHERE chef_id = ? AND status = 'ordered' AND space_id = ?
        ORDER BY created_at DESC LIMIT 1`,
-      [user.id]
+      [user.id, user.current_space_id]
     );
 
     if (!session) {
@@ -121,12 +133,12 @@ router.post('/serve', authMiddleware, async (req, res, next) => {
 
   try {
     const db = getDB();
-    // 必须是当前用户为大厨且状态为 'cooking' 的会话
+    // 必须是当前用户为大厨且状态为 'cooking' 的会话，且属于当前活跃空间
     const session = await db.get(
       `SELECT * FROM kitchen_sessions 
-       WHERE chef_id = ? AND status = 'cooking' 
+       WHERE chef_id = ? AND status = 'cooking' AND space_id = ?
        ORDER BY created_at DESC LIMIT 1`,
-      [user.id]
+      [user.id, user.current_space_id]
     );
 
     if (!session) {
@@ -156,12 +168,12 @@ router.post('/praise', authMiddleware, async (req, res, next) => {
 
   try {
     const db = getDB();
-    // 必须是当前用户为食客 (diner_id) 且状态为 'served' 的会话
+    // 必须是当前用户为食客且状态为 'served' 的会话，且属于当前活跃空间
     const session = await db.get(
       `SELECT * FROM kitchen_sessions 
-       WHERE diner_id = ? AND status = 'served' 
+       WHERE diner_id = ? AND status = 'served' AND space_id = ?
        ORDER BY created_at DESC LIMIT 1`,
-      [user.id]
+      [user.id, user.current_space_id]
     );
 
     if (!session) {
@@ -171,7 +183,7 @@ router.post('/praise', authMiddleware, async (req, res, next) => {
     const now = new Date().toISOString();
     await db.run(
       `UPDATE kitchen_sessions SET status = 'eaten', praise = ?, updated_at = ? WHERE id = ?`,
-      [praise || '味道极赞！宝贝辛苦啦！❤️', now, session.id]
+      [praise || '味道极赞！辛苦啦！❤️', now, session.id]
     );
 
     const updated = await db.get('SELECT * FROM kitchen_sessions WHERE id = ?', [session.id]);
@@ -190,13 +202,13 @@ router.post('/reset', authMiddleware, async (req, res, next) => {
 
   try {
     const db = getDB();
-    // 归档两个人之间最新的一条且状态不是 'archived' 的厨房会话
+    // 归档当前空间下最新的一条且状态不是 'archived' 的厨房会话
     const session = await db.get(
       `SELECT * FROM kitchen_sessions 
-       WHERE ((diner_id = ? AND chef_id = ?) OR (diner_id = ? AND chef_id = ?)) 
+       WHERE space_id = ? 
          AND status != 'archived' 
        ORDER BY created_at DESC LIMIT 1`,
-      [user.id, user.partner_id, user.partner_id, user.id]
+      [user.current_space_id]
     );
 
     if (session) {

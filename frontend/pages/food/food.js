@@ -1,4 +1,5 @@
 import { request } from '../../utils/request.js';
+import { initSpaceSwitcher } from '../../utils/space.js';
 
 Page({
   data: {
@@ -9,6 +10,7 @@ Page({
     foodList: [], // 菜品候选池
     outFoodList: [], // 出去吃的菜品池
     wheelResult: null,
+    currentSpace: null,
     
     // 伴侣与投票状态
     isPaired: false,
@@ -43,6 +45,16 @@ Page({
   },
 
   onShow() {
+    const app = getApp();
+    this.setData({
+      currentSpace: app.globalData.currentSpace
+    });
+
+    initSpaceSwitcher(this, () => {
+      this.checkPairStatus();
+      this.fetchFoodList();
+    });
+
     this.checkPairStatus();
     this.fetchFoodList();
   },
@@ -66,7 +78,7 @@ Page({
         userInfo: meData.user || null
       });
 
-      if (isPaired) {
+      if (meData.user && meData.user.current_space_id) {
         this.fetchActiveSession();
         this.fetchKitchenSession();
       }

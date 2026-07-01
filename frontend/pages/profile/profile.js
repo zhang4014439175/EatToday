@@ -1,13 +1,17 @@
 import { request } from '../../utils/request.js';
 import { login, logout } from '../../utils/auth.js';
+import { createSpace, joinSpace, switchSpace, getMySpaces, getCurrentSpace, leaveSpace } from '../../utils/space.js';
 
 Page({
   data: {
     isLogin: false,
-    isPaired: false,
     userInfo: null,
-    partnerInfo: null,
-    inputPairCode: '',
+    currentSpace: null,
+    spaces: [],
+    spaceMembers: [],
+    activeTab: 'join', // 'join' | 'create'
+    inputSpaceCode: '',
+    inputSpaceName: '',
     
     // 纪念日管理
     showAddAnniversary: false,
@@ -40,9 +44,10 @@ Page({
     } else {
       this.setData({
         isLogin: false,
-        isPaired: false,
         userInfo: null,
-        partnerInfo: null,
+        currentSpace: null,
+        spaces: [],
+        spaceMembers: [],
         anniversaries: []
       });
     }
@@ -68,133 +73,165 @@ Page({
   },
 
   /**
-   * 载入个人及配对伴侣数据，以及纪念日列表
+   * 载入个人空间与群组空间数据，以及纪念日列表
    */
   async loadProfileData() {
     try {
       // 1. 获取最新用户信息
       const meData = await request({ url: '/auth/me' });
-      const { user, partner } = meData;
-      const isPaired = !!(user && user.partner_id);
+      const { user } = meData;
+
+      // 2. 获取我加入的全部空间列表
+      const spaces = await getMySpaces();
+
+      // 3. 获取当前空间成员与详细信息
+      let currentSpace = null;
+      let spaceMembers = [];
+      try {
+        const spaceData = await getCurrentSpace();
+        currentSpace = spaceData.space;
+        spaceMembers = spaceData.members;
+      } catch (spaceErr) {
+        console.error('获取活跃空间详情失败，尝试使用本地缓存', spaceErr);
+        const cachedSpace = wx.getStorageSync('currentSpace');
+        if (cachedSpace) {
+          currentSpace = JSON.parse(cachedSpace);
+        }
+      }
 
       this.setData({
         userInfo: user,
-        partnerInfo: partner,
-        isPaired
+        spaces,
+        currentSpace,
+        spaceMembers
       });
 
-      // 2. 加载纪念日列表
+      // 4. 加载纪念日列表
       this.fetchAnniversaries();
     } catch (err) {
-      console.warn('[Profile Page] 拉取线上主页数据失败，启用本地 Mock');
-      // 如果后端没通，设置 Mock 个人账户以便前端展示
+      console.warn('[Profile Page] 拉取线上空间数据失败，启用本地 Mock');
       const mockUser = {
         id: 1,
         nickname: '本地测试用户',
         pair_code: 'LOV520',
-        avatar_url: '',
-        partner_id: null
+        avatar_url: ''
       };
+      const mockSpace = { id: 1, name: '本地模拟空间', code: 'ABCDEF', type: 'group' };
+      const mockMembers = [
+        { id: 1, nickname: '本地测试用户', avatar_url: '', role: 'admin' },
+        { id: 2, nickname: '模拟好友', avatar_url: '', role: 'member' }
+      ];
       this.setData({
         userInfo: mockUser,
-        isPaired: false
+        currentSpace: mockSpace,
+        spaceMembers: mockMembers,
+        spaces: [mockSpace]
       });
     }
   },
 
   /**
-   * 复制我自己的配对码
+   * 复制当前活跃空间的邀请码
    */
-  copyPairCode() {
-    const code = this.data.userInfo?.pair_code;
+  copySpaceCode() {
+    const code = this.data.currentSpace?.code;
     if (!code) return;
     wx.setClipboardData({
       data: code,
       success: () => {
-        wx.showToast({ title: '配对码已复制', icon: 'success' });
+        wx.showToast({ title: '邀请码已复制', icon: 'success' });
       }
     });
   },
 
-  onInputPairCode(e) {
-    this.setData({ inputPairCode: e.detail.value });
+  switchActionTab(e) {
+    const tab = e.currentTarget.dataset.tab;
+    this.setData({ activeTab: tab });
+  },
+
+  onInputSpaceCode(e) {
+    this.setData({ inputSpaceCode: e.detail.value });
+  },
+
+  onInputSpaceName(e) {
+    this.setData({ inputSpaceName: e.detail.value });
   },
 
   /**
-   * 提交绑定伴侣配对码
+   * 创建新空间
    */
-  async handlePair() {
-    const { inputPairCode } = this.data;
-    if (!inputPairCode.trim()) {
-      wx.showToast({ title: '请输入配对码', icon: 'none' });
+  async handleCreateSpace() {
+    const name = this.data.inputSpaceName.trim();
+    if (!name) {
+      wx.showToast({ title: '请输入空间名称', icon: 'none' });
       return;
     }
 
     try {
-      const res = await request({
-        url: '/auth/pair',
-        method: 'POST',
-        data: { pairCode: inputPairCode },
-        showLoading: true,
-        loadingMsg: '正在绑定...'
-      });
-
-      wx.showToast({ title: res.message || '配对成功！', icon: 'success' });
-      this.setData({ inputPairCode: '' });
+      await createSpace(name);
+      wx.showToast({ title: '空间创建成功', icon: 'success' });
+      this.setData({ inputSpaceName: '' });
       this.loadProfileData();
     } catch (err) {
-      // 本地 Mock 配对成功效果
-      wx.showToast({ title: '模拟牵线成功！', icon: 'success' });
-      const mockPartner = {
-        id: 99,
-        nickname: '猪猪队友 🐷',
-        avatar_url: ''
-      };
-      const updatedUser = { ...this.data.userInfo, partner_id: 99 };
-      this.setData({
-        userInfo: updatedUser,
-        partnerInfo: mockPartner,
-        isPaired: true,
-        inputPairCode: ''
-      });
-      // 写入本地缓存模拟
-      wx.setStorageSync('userInfo', JSON.stringify(updatedUser));
-      wx.setStorageSync('partnerInfo', JSON.stringify(mockPartner));
-      this.fetchAnniversaries();
+      wx.showToast({ title: err.message || '创建空间失败', icon: 'none' });
     }
   },
 
   /**
-   * 解除绑定伴侣关系
+   * 加入已有的群组空间
    */
-  handleUnpair() {
+  async handleJoinSpace() {
+    const code = this.data.inputSpaceCode.trim();
+    if (!code) {
+      wx.showToast({ title: '请输入空间邀请码', icon: 'none' });
+      return;
+    }
+
+    try {
+      await joinSpace(code);
+      wx.showToast({ title: '成功加入空间', icon: 'success' });
+      this.setData({ inputSpaceCode: '' });
+      this.loadProfileData();
+    } catch (err) {
+      wx.showToast({ title: err.message || '加入空间失败', icon: 'none' });
+    }
+  },
+
+  /**
+   * 快速切换空间
+   */
+  async handleSwitchSpace(e) {
+    const spaceId = e.currentTarget.dataset.id;
+    if (spaceId === this.data.currentSpace?.id) return;
+
+    try {
+      await switchSpace(spaceId);
+      wx.showToast({ title: '空间已切换', icon: 'success' });
+      this.loadProfileData();
+    } catch (err) {
+      wx.showToast({ title: err.message || '切换空间失败', icon: 'none' });
+    }
+  },
+
+  /**
+   * 退出当前所选空间
+   */
+  handleLeaveCurrentSpace() {
+    const space = this.data.currentSpace;
+    if (!space || space.type === 'solo') return;
+
     wx.showModal({
-      title: '解除绑定',
-      content: '确定要解除与伴侣的情侣绑定关系吗？解绑后双方的数据将不再同步。',
+      title: '退出空间',
+      content: `确认要退出群组空间「${space.name}」吗？退出后，如果该空间没有其他成员，它将被彻底删除。`,
       confirmColor: '#ff3333',
       success: async (res) => {
         if (res.confirm) {
           try {
-            await request({
-              url: '/auth/unpair',
-              method: 'POST',
-              showLoading: true,
-              loadingMsg: '解除绑定中...'
-            });
-            wx.showToast({ title: '已解除绑定', icon: 'success' });
+            await leaveSpace(space.id);
+            wx.showToast({ title: '已成功退出空间', icon: 'success' });
             this.loadProfileData();
           } catch (err) {
-            // Mock 解绑
-            const updatedUser = { ...this.data.userInfo, partner_id: null };
-            this.setData({
-              userInfo: updatedUser,
-              partnerInfo: null,
-              isPaired: false,
-              anniversaries: []
-            });
-            wx.setStorageSync('userInfo', JSON.stringify(updatedUser));
-            wx.removeStorageSync('partnerInfo');
-            wx.showToast({ title: '模拟已解除绑定', icon: 'success' });
+            wx.showToast({ title: err.message || '退出空间失败', icon: 'none' });
           }
         }
       }

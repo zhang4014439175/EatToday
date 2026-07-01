@@ -12,35 +12,82 @@
     </view>
   </view>
 
-  <!-- 2. 情侣绑定关系卡片 -->
-  <view class="card pairing-card text-center" wx:if="{{isLogin}}">
-    <view class="card-title">用户配对</view>
-    
-    <!-- 场景 A: 已配对 -->
-    <view class="paired-view flex-row" wx:if="{{isPaired}}">
-      <view class="couple-avatar-box">
-        <image class="avatar-lg" src="{{userInfo.avatar_url || '/images/default_avatar.png'}}" mode="aspectFill" />
-        <text class="avatar-name">我</text>
-      </view>
-      <view class="couple-heart">💗</view>
-      <view class="couple-avatar-box">
-        <image class="avatar-lg" src="{{partnerInfo.avatar_url || '/images/default_avatar.png'}}" mode="aspectFill" />
-        <text class="avatar-name">{{partnerInfo.nickname || '另一半'}}</text>
-      </view>
+  <!-- 2. 空间管理与成员卡片 -->
+  <view class="card space-card" wx:if="{{isLogin}}">
+    <view class="card-header flex-row flex-between" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24rpx; width: 100%;">
+      <view class="card-title" style="margin-bottom: 0;">当前空间</view>
+      <view class="active-badge">{{currentSpace.type === 'solo' ? '个人空间' : '群组空间'}}</view>
     </view>
     
-    <!-- 已配对的解绑选项 -->
-    <view class="unpair-box" wx:if="{{isPaired}}">
-      <view class="text-muted" style="margin-bottom: 20rpx;">已和「{{partnerInfo.nickname}}」成功配对！</view>
-      <text class="unpair-link" bindtap="handleUnpair">解除绑定</text>
+    <!-- 空间基础详情 -->
+    <view class="current-space-info">
+      <view class="space-name-row flex-row">
+        <text class="space-emoji">🏠</text>
+        <text class="space-name">{{currentSpace.name || '默认空间'}}</text>
+      </view>
+      <view class="space-code-row flex-row" wx:if="{{currentSpace.type !== 'solo'}}">
+        <text class="space-code-label">邀请码：</text>
+        <text class="space-code">{{currentSpace.code}}</text>
+        <text class="copy-link" bindtap="copySpaceCode">复制</text>
+      </view>
     </view>
 
-    <!-- 场景 B: 未配对 -->
-    <view class="unpaired-view" wx:else>
-      <view class="text-muted hint-text">将您的配对码发送给对方，或者在下方输入对方的配对码来完成绑定：</view>
-      <view class="flex-row pair-input-box">
-        <input class="form-input pair-input" placeholder="输入对方的6位配对码" placeholder-style="font-size: 26rpx; font-weight: 500; letter-spacing: 0; color: #868095;" value="{{inputPairCode}}" bindinput="onInputPairCode" />
-        <button class="btn-pair-submit" bindtap="handlePair">牵线</button>
+    <!-- 空间成员列表 -->
+    <view class="member-section" wx:if="{{spaceMembers.length > 0}}">
+      <view class="section-title">空间成员 ({{spaceMembers.length}}人)</view>
+      <view class="members-grid flex-row">
+        <view class="member-item" wx:for="{{spaceMembers}}" wx:key="id">
+          <image class="member-avatar" src="{{item.avatar_url || '/images/default_avatar.png'}}" mode="aspectFill" />
+          <view class="member-role {{item.role === 'admin' ? 'admin' : ''}}">{{item.role === 'admin' ? '管理员' : '成员'}}</view>
+          <view class="member-name">{{item.nickname || '用户'}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 切换其它空间列表 -->
+    <view class="switch-section" wx:if="{{spaces.length > 1}}">
+      <view class="section-title">切换其它空间</view>
+      <view class="spaces-list">
+        <view class="space-item flex-row flex-between {{item.id === currentSpace.id ? 'active' : ''}}" wx:for="{{spaces}}" wx:key="id" bindtap="handleSwitchSpace" data-id="{{item.id}}">
+          <view class="space-item-left flex-row">
+            <text class="space-icon">{{item.type === 'solo' ? '👤' : '👥'}}</text>
+            <text class="space-item-name">{{item.name}}</text>
+          </view>
+          <view class="space-item-right flex-row">
+            <text class="member-count-badge">{{item.member_count}}人</text>
+            <text class="active-dot" wx:if="{{item.id === currentSpace.id}}"></text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空间操作面板 (创建/加入/退出) -->
+    <view class="space-actions">
+      <!-- 选项按钮，用来展开不同的输入面板 -->
+      <view class="action-tab-header flex-row">
+        <view class="action-tab {{activeTab === 'join' ? 'active' : ''}}" bindtap="switchActionTab" data-tab="join">加入群组</view>
+        <view class="action-tab {{activeTab === 'create' ? 'active' : ''}}" bindtap="switchActionTab" data-tab="create">新建群组</view>
+      </view>
+
+      <!-- 加入空间面板 -->
+      <view class="action-panel" wx:if="{{activeTab === 'join'}}">
+        <view class="flex-row input-btn-group">
+          <input class="form-input action-input" placeholder="输入6位空间邀请码" value="{{inputSpaceCode}}" bindinput="onInputSpaceCode" />
+          <button class="btn-action-submit" bindtap="handleJoinSpace">加入</button>
+        </view>
+      </view>
+
+      <!-- 创建空间面板 -->
+      <view class="action-panel" wx:if="{{activeTab === 'create'}}">
+        <view class="flex-row input-btn-group">
+          <input class="form-input action-input" placeholder="输入空间名称" value="{{inputSpaceName}}" bindinput="onInputSpaceName" />
+          <button class="btn-action-submit" bindtap="handleCreateSpace">创建</button>
+        </view>
+      </view>
+      
+      <!-- 退出当前空间 (只限非 solo 空间) -->
+      <view class="leave-box" wx:if="{{currentSpace.type !== 'solo'}}">
+        <text class="leave-link" bindtap="handleLeaveCurrentSpace">退出当前空间</text>
       </view>
     </view>
   </view>

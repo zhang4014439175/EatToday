@@ -49,19 +49,14 @@ router.get('/', authMiddleware, async (req, res, next) => {
     const db = getDB();
     const user = req.user;
     
-    // 构建查询条件，获取情侣双方创建的所有纪念日
-    let query = 'SELECT * FROM anniversaries WHERE created_by = ?';
-    let params = [user.id];
-
-    if (user.partner_id) {
-      query += ' OR created_by = ?';
-      params.push(user.partner_id);
+    if (!user.current_space_id) {
+      return res.status(200).json({ anniversaries: [] });
     }
 
-    // 默认按日期逆序排列
-    query += ' ORDER BY date DESC';
-
-    const anniversaries = await db.all(query, params);
+    const anniversaries = await db.all(
+      'SELECT * FROM anniversaries WHERE space_id = ? ORDER BY date DESC',
+      [user.current_space_id]
+    );
 
     return res.status(200).json({ anniversaries });
   } catch (error) {
@@ -77,30 +72,40 @@ router.get('/nearest', authMiddleware, async (req, res, next) => {
   try {
     const db = getDB();
     const user = req.user;
+ 
+    // 获取用户所属的所有物理空间 IDs
+    const memberSpaces = await db.all('SELECT space_id FROM space_members WHERE user_id = ?', [user.id]);
+    const spaceIds = memberSpaces.map(s => s.space_id);
 
-    let query = 'SELECT * FROM anniversaries WHERE created_by = ?';
-    let params = [user.id];
-
-    if (user.partner_id) {
-      query += ' OR created_by = ?';
-      params.push(user.partner_id);
+    if (spaceIds.length === 0) {
+      return res.status(200).json({ anniversary: null });
     }
 
-    const list = await db.all(query, params);
+    const placeholders = spaceIds.map(() => '?').join(',');
+
+    const list = await db.all(
+      `SELECT a.*, s.name as space_name FROM anniversaries a
+       JOIN spaces s ON a.space_id = s.id
+       WHERE a.space_id IN (${placeholders})`,
+      spaceIds
+    );
     
     if (list.length === 0) {
       return res.status(200).json({ anniversary: null });
     }
+ 
+    const showSpaceTag = spaceIds.length > 1;
 
     // 计算每个纪念日距离今天的天数，排除已经过期的单次纪念日
     const upcomingList = list
       .map(ann => {
         const daysLeft = calculateDaysLeft(ann.date, ann.is_yearly);
-        return { ...ann, daysLeft };
+        const displayTitle = showSpaceTag ? `[${ann.space_name}] ${ann.title}` : ann.title;
+        return { ...ann, title: displayTitle, daysLeft };
       })
       .filter(ann => ann.daysLeft >= 0) // 过滤掉过期的单次
       .sort((a, b) => a.daysLeft - b.daysLeft); // 按剩余天数升序
-
+ 
     return res.status(200).json({
       anniversary: upcomingList.length > 0 ? upcomingList[0] : null
     });
@@ -121,19 +126,24 @@ router.post('/', authMiddleware, async (req, res, next) => {
     return res.status(400).json({ error: 'ValidationError', message: '纪念日主题与日期不能为空' });
   }
 
+  if (!user.current_space_id) {
+    return res.status(400).json({ error: 'ValidationError', message: '用户未关联活跃空间，无法创建纪念日' });
+  }
+
   try {
     const db = getDB();
     const now = new Date().toISOString();
 
     const result = await db.run(
-      `INSERT INTO anniversaries (title, date, date_type, is_yearly, created_by, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO anniversaries (title, date, date_type, is_yearly, created_by, space_id, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         title.trim(),
         date,
         dateType !== undefined ? Number(dateType) : 0, // 0为公历，1为农历
         isYearly !== undefined ? Number(isYearly) : 0,  // 0为单次，1为每年重复
         user.id,
+        user.current_space_id,
         now,
         now
       ]
@@ -159,14 +169,14 @@ router.delete('/:id', authMiddleware, async (req, res, next) => {
 
   try {
     const db = getDB();
-    const ann = await db.get('SELECT id, created_by FROM anniversaries WHERE id = ?', [id]);
+    const ann = await db.get('SELECT id, created_by, space_id FROM anniversaries WHERE id = ?', [id]);
 
     if (!ann) {
       return res.status(404).json({ error: 'NotFoundError', message: '未找到该纪念日记录' });
     }
 
-    if (ann.created_by !== user.id) {
-      return res.status(403).json({ error: 'ForbiddenError', message: '您无权删除伴侣创建的纪念日记录' });
+    if (ann.space_id !== user.current_space_id) {
+      return res.status(403).json({ error: 'ForbiddenError', message: '该纪念日不属于您当前的活跃空间，无权删除' });
     }
 
     await db.run('DELETE FROM anniversaries WHERE id = ?', [id]);

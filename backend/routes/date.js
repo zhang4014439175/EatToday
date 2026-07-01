@@ -15,11 +15,15 @@ router.get('/', authMiddleware, async (req, res, next) => {
     const db = getDB();
     const user = req.user;
 
+    if (!user.current_space_id) {
+      return res.status(200).json({ plans: [] });
+    }
+
     const plans = await db.all(
       `SELECT * FROM date_plans 
-       WHERE created_by = ? OR partner_id = ? 
+       WHERE space_id = ? 
        ORDER BY meeting_time DESC`,
-      [user.id, user.id]
+      [user.current_space_id]
     );
 
     return res.status(200).json({ plans });
@@ -37,19 +41,46 @@ router.get('/today', authMiddleware, async (req, res, next) => {
     const db = getDB();
     const user = req.user;
     const todayStr = getShanghaiDatePrefix();
+ 
+    // 获取用户所属的所有空间 IDs
+    const memberSpaces = await db.all('SELECT space_id FROM space_members WHERE user_id = ?', [user.id]);
+    const spaceIds = memberSpaces.map(s => s.space_id);
+
+    if (spaceIds.length === 0) {
+      return res.status(200).json({ plan: null });
+    }
+
+    const placeholders = spaceIds.map(() => '?').join(',');
 
     // 查询今天已同意(accepted)的约会计划
     // 匹配 meeting_time 格式为 YYYY-MM-DD% 的计划
-    const plan = await db.get(
-      `SELECT * FROM date_plans 
-       WHERE status = 'accepted' 
-         AND (created_by = ? OR partner_id = ?)
-         AND meeting_time LIKE ?
-       LIMIT 1`,
-      [user.id, user.id, `${todayStr}%`]
+    const plans = await db.all(
+      `SELECT dp.*, s.name as space_name FROM date_plans dp
+       JOIN spaces s ON dp.space_id = s.id
+       WHERE dp.status = 'accepted' 
+         AND dp.space_id IN (${placeholders})
+         AND dp.meeting_time LIKE ?`,
+      [...spaceIds, `${todayStr}%`]
     );
+ 
+    if (plans.length > 0) {
+      const showSpaceTag = spaceIds.length > 1;
+      const combinedTitle = plans
+        .map(p => showSpaceTag ? `${p.space_name}: ${p.title}` : p.title)
+        .join(' | ');
 
-    return res.status(200).json({ plan: plan || null });
+      return res.status(200).json({
+        plan: {
+          id: plans[0].id,
+          title: combinedTitle,
+          meeting_time: plans[0].meeting_time,
+          meeting_location: plans.map(p => p.meeting_location).filter(Boolean).join(' / '),
+          notes: plans.map(p => p.notes).filter(Boolean).join('; ')
+        }
+      });
+    }
+
+    return res.status(200).json({ plan: null });
   } catch (error) {
     next(error);
   }
@@ -67,6 +98,10 @@ router.post('/', authMiddleware, async (req, res, next) => {
     return res.status(400).json({ error: 'ValidationError', message: '您必须先配对伴侣才能发起约会提案' });
   }
 
+  if (!user.current_space_id) {
+    return res.status(400).json({ error: 'ValidationError', message: '您未关联活跃空间，无法发起约会' });
+  }
+
   if (!title || !title.trim() || !meetingTime) {
     return res.status(400).json({ error: 'ValidationError', message: '约会主题与见面时间不能为空' });
   }
@@ -76,8 +111,8 @@ router.post('/', authMiddleware, async (req, res, next) => {
     const now = new Date().toISOString();
 
     const result = await db.run(
-      `INSERT INTO date_plans (title, meeting_time, meeting_location, notes, status, created_by, partner_id, created_at, updated_at)
-       VALUES (?, ?, ?, ?, 'pending', ?, ?, ?, ?)`,
+      `INSERT INTO date_plans (title, meeting_time, meeting_location, notes, status, created_by, partner_id, space_id, created_at, updated_at)
+       VALUES (?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?)`,
       [
         title.trim(),
         meetingTime,
@@ -85,6 +120,7 @@ router.post('/', authMiddleware, async (req, res, next) => {
         notes || '',
         user.id,
         user.partner_id,
+        user.current_space_id,
         now,
         now
       ]
@@ -131,8 +167,12 @@ router.post('/:id/accept', authMiddleware, async (req, res, next) => {
       return res.status(404).json({ error: 'NotFoundError', message: '未找到该约会提案' });
     }
 
-    if (plan.partner_id !== user.id) {
-      return res.status(403).json({ error: 'ForbiddenError', message: '您无权处理该约会提案' });
+    if (plan.space_id !== user.current_space_id) {
+      return res.status(403).json({ error: 'ForbiddenError', message: '您无权处理该空间的约会提案' });
+    }
+
+    if (plan.created_by === user.id) {
+      return res.status(403).json({ error: 'ForbiddenError', message: '您不能处理自己发起的提案' });
     }
 
     if (plan.status !== 'pending' && plan.status !== 'revision_requested') {
@@ -146,14 +186,14 @@ router.post('/:id/accept', authMiddleware, async (req, res, next) => {
 
     // 异步发送微信通知给发起者
     const creator = await db.get('SELECT openid FROM users WHERE id = ?', [plan.created_by]);
-    if (creator) {
+    if (creator && creator.openid) {
       sendSubscribeMessage(
         creator.openid,
         'MOCK_TEMPLATE_ACCEPT_ID',
         'pages/date/date',
         {
           thing1: { value: '约会提案已接受' },
-          thing2: { value: `伴侣同意了约会提案：${plan.title.substring(0, 15)}` },
+          thing2: { value: `${user.nickname} 同意了约会提案：${plan.title.substring(0, 15)}` },
           time3: { value: plan.meeting_time }
         }
       ).catch(e => console.error('[Notification Error] 发送接受通知异常:', e));
@@ -182,8 +222,12 @@ router.post('/:id/reject', authMiddleware, async (req, res, next) => {
       return res.status(404).json({ error: 'NotFoundError', message: '未找到该约会提案' });
     }
 
-    if (plan.partner_id !== user.id) {
-      return res.status(403).json({ error: 'ForbiddenError', message: '您无权处理该约会提案' });
+    if (plan.space_id !== user.current_space_id) {
+      return res.status(403).json({ error: 'ForbiddenError', message: '您无权处理该空间的约会提案' });
+    }
+
+    if (plan.created_by === user.id) {
+      return res.status(403).json({ error: 'ForbiddenError', message: '您不能处理自己发起的提案' });
     }
 
     if (plan.status !== 'pending' && plan.status !== 'revision_requested') {
@@ -197,14 +241,14 @@ router.post('/:id/reject', authMiddleware, async (req, res, next) => {
 
     // 异步发送微信通知给发起者
     const creator = await db.get('SELECT openid FROM users WHERE id = ?', [plan.created_by]);
-    if (creator) {
+    if (creator && creator.openid) {
       sendSubscribeMessage(
         creator.openid,
         'MOCK_TEMPLATE_REJECT_ID',
         'pages/date/date',
         {
           thing1: { value: '约会提案已婉拒' },
-          thing2: { value: `伴侣婉拒了约会提案：${plan.title.substring(0, 15)}` },
+          thing2: { value: `${user.nickname} 婉拒了约会提案：${plan.title.substring(0, 15)}` },
           time3: { value: plan.meeting_time }
         }
       ).catch(e => console.error('[Notification Error] 发送拒绝通知异常:', e));
@@ -238,8 +282,12 @@ router.post('/:id/revision', authMiddleware, async (req, res, next) => {
       return res.status(404).json({ error: 'NotFoundError', message: '未找到该约会提案' });
     }
 
-    if (plan.partner_id !== user.id) {
-      return res.status(403).json({ error: 'ForbiddenError', message: '您无权修改该约会提案' });
+    if (plan.space_id !== user.current_space_id) {
+      return res.status(403).json({ error: 'ForbiddenError', message: '您无权处理该空间的约会提案' });
+    }
+
+    if (plan.created_by === user.id) {
+      return res.status(403).json({ error: 'ForbiddenError', message: '您不能处理自己发起的提案' });
     }
 
     if (plan.status !== 'pending') {
@@ -253,14 +301,14 @@ router.post('/:id/revision', authMiddleware, async (req, res, next) => {
 
     // 异步发送微信通知给发起者
     const creator = await db.get('SELECT openid FROM users WHERE id = ?', [plan.created_by]);
-    if (creator) {
+    if (creator && creator.openid) {
       sendSubscribeMessage(
         creator.openid,
         'MOCK_TEMPLATE_REVISION_ID',
         'pages/date/date',
         {
           thing1: { value: '约会修改建议' },
-          thing2: { value: `伴侣提出了修改意见：${revisionNote.substring(0, 15)}` },
+          thing2: { value: `${user.nickname} 提出了修改意见：${revisionNote.substring(0, 15)}` },
           time3: { value: plan.meeting_time }
         }
       ).catch(e => console.error('[Notification Error] 发送修改意见通知异常:', e));
@@ -288,13 +336,12 @@ router.delete('/:id', authMiddleware, async (req, res, next) => {
       return res.status(404).json({ error: 'NotFoundError', message: '未找到该行程记录' });
     }
 
+    if (plan.space_id !== user.current_space_id) {
+      return res.status(403).json({ error: 'ForbiddenError', message: '您无权操作此空间的行程记录' });
+    }
+
     // 只有发起人能在 pending/revision 时撤销；已处理的提案双方皆可删除以清理列表
     const isCreator = plan.created_by === user.id;
-    const isReceiver = plan.partner_id === user.id;
-
-    if (!isCreator && !isReceiver) {
-      return res.status(403).json({ error: 'ForbiddenError', message: '您无权删除该行程记录' });
-    }
 
     if (plan.status === 'pending' && !isCreator) {
       return res.status(400).json({ error: 'ValidationError', message: '只有发起人才能在对方同意前撤销提案' });
@@ -321,16 +368,14 @@ router.get('/wishlist', authMiddleware, async (req, res, next) => {
     const db = getDB();
     const user = req.user;
 
-    let query = 'SELECT * FROM date_wishlist WHERE created_by = ?';
-    let params = [user.id];
-
-    if (user.partner_id) {
-      query += ' OR created_by = ?';
-      params.push(user.partner_id);
+    if (!user.current_space_id) {
+      return res.status(200).json({ wishlist: [] });
     }
 
-    query += ' ORDER BY created_at DESC';
-    const wishlist = await db.all(query, params);
+    const wishlist = await db.all(
+      'SELECT * FROM date_wishlist WHERE space_id = ? ORDER BY created_at DESC',
+      [user.current_space_id]
+    );
 
     return res.status(200).json({ wishlist });
   } catch (error) {
@@ -350,13 +395,17 @@ router.post('/wishlist', authMiddleware, async (req, res, next) => {
     return res.status(400).json({ error: 'ValidationError', message: '愿望内容不能为空' });
   }
 
+  if (!user.current_space_id) {
+    return res.status(400).json({ error: 'ValidationError', message: '您未关联活跃空间，无法添加愿望' });
+  }
+
   try {
     const db = getDB();
     const now = new Date().toISOString();
 
     const result = await db.run(
-      'INSERT INTO date_wishlist (name, created_by, created_at) VALUES (?, ?, ?)',
-      [name.trim(), user.id, now]
+      'INSERT INTO date_wishlist (name, created_by, space_id, created_at) VALUES (?, ?, ?, ?)',
+      [name.trim(), user.id, user.current_space_id, now]
     );
 
     const newWish = await db.get('SELECT * FROM date_wishlist WHERE id = ?', [result.lastID]);
@@ -376,15 +425,14 @@ router.delete('/wishlist/:id', authMiddleware, async (req, res, next) => {
 
   try {
     const db = getDB();
-    const wish = await db.get('SELECT id, created_by FROM date_wishlist WHERE id = ?', [id]);
+    const wish = await db.get('SELECT id, created_by, space_id FROM date_wishlist WHERE id = ?', [id]);
 
     if (!wish) {
       return res.status(404).json({ error: 'NotFoundError', message: '未找到该约会愿望项目' });
     }
 
-    // 允许自己和伴侣删除愿望
-    if (wish.created_by !== user.id && wish.created_by !== user.partner_id) {
-      return res.status(403).json({ error: 'ForbiddenError', message: '您无权删除此愿望项目' });
+    if (wish.space_id !== user.current_space_id) {
+      return res.status(403).json({ error: 'ForbiddenError', message: '您无权删除此空间下的愿望项目' });
     }
 
     await db.run('DELETE FROM date_wishlist WHERE id = ?', [id]);

@@ -1,4 +1,5 @@
 import { request } from '../../utils/request.js';
+import { initSpaceSwitcher } from '../../utils/space.js';
 
 Page({
   data: {
@@ -21,6 +22,7 @@ Page({
     },
     userInfo: null,
     partnerInfo: null,
+    currentSpace: null,
     
     // 修改建议弹窗状态
     reviseDialogVisible: false,
@@ -29,6 +31,17 @@ Page({
   },
 
   onShow() {
+    const app = getApp();
+    this.setData({
+      currentSpace: app.globalData.currentSpace
+    });
+
+    initSpaceSwitcher(this, () => {
+      this.loadUserInfos();
+      this.fetchDatePlans();
+      this.fetchWishlist();
+    });
+
     this.loadUserInfos();
     this.fetchDatePlans();
     this.fetchWishlist();

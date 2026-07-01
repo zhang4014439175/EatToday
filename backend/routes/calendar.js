@@ -19,14 +19,25 @@ router.get('/month', authMiddleware, async (req, res, next) => {
   const monthStr = String(month).padStart(2, '0');
   const prefix = `${year}-${monthStr}-%`;
 
-  const userIds = [user.id];
-  if (user.partner_id) {
-    userIds.push(user.partner_id);
-  }
-
   try {
     const db = getDB();
     const eventsByDay = {};
+
+    // 1. 获取用户所属的所有空间 IDs
+    const memberSpaces = await db.all(
+      `SELECT sm.space_id, s.name AS space_name FROM space_members sm
+       JOIN spaces s ON sm.space_id = s.id
+       WHERE sm.user_id = ?`,
+      [user.id]
+    );
+    const spaceIds = memberSpaces.map(s => s.space_id);
+    const showSpaceTag = spaceIds.length > 1;
+
+    if (spaceIds.length === 0) {
+      return res.status(200).json({ success: true, year: Number(year), month: Number(month), events: {} });
+    }
+
+    const placeholders = spaceIds.map(() => '?').join(',');
 
     const addEvent = (dateStr, event) => {
       if (!dateStr) return;
@@ -37,16 +48,17 @@ router.get('/month', authMiddleware, async (req, res, next) => {
       eventsByDay[day].push(event);
     };
 
-    // 1. 获取纪念日 (Anniversaries)
+    // 2. 获取纪念日 (Anniversaries)
     let annQuery = `
-      SELECT * FROM anniversaries 
-      WHERE created_by IN (${userIds.map(() => '?').join(',')})
+      SELECT a.*, s.name AS space_name FROM anniversaries a
+      JOIN spaces s ON a.space_id = s.id
+      WHERE a.space_id IN (${placeholders})
         AND (
-          (is_yearly = 1 AND SUBSTR(date, 6, 2) = ?)
-          OR (is_yearly = 0 AND date LIKE ?)
+          (a.is_yearly = 1 AND SUBSTR(a.date, 6, 2) = ?)
+          OR (a.is_yearly = 0 AND a.date LIKE ?)
         )
     `;
-    let annParams = [...userIds, monthStr, prefix];
+    let annParams = [...spaceIds, monthStr, prefix];
     const anniversaries = await db.all(annQuery, annParams);
 
     anniversaries.forEach(item => {
@@ -55,42 +67,34 @@ router.get('/month', authMiddleware, async (req, res, next) => {
         const md = item.date.substring(5, 10); // "MM-DD"
         targetDate = `${year}-${md}`;
       }
+      const displayTitle = showSpaceTag ? `[${item.space_name}] ${item.title}` : item.title;
       addEvent(targetDate, {
         id: item.id,
         type: 'anniversary',
-        title: item.title,
+        title: displayTitle,
         time: null,
         is_yearly: item.is_yearly,
         original_date: item.date
       });
     });
 
-    // 2. 获取约会计划 (Date Plans)
+    // 3. 获取约会计划 (Date Plans)
     let dateQuery = `
-      SELECT * FROM date_plans 
-      WHERE ((created_by = ? AND partner_id = ?) OR (created_by = ? AND partner_id = ?))
-        AND meeting_time LIKE ?
-        AND status != 'rejected'
+      SELECT dp.*, s.name AS space_name FROM date_plans dp
+      JOIN spaces s ON dp.space_id = s.id
+      WHERE dp.space_id IN (${placeholders})
+        AND dp.meeting_time LIKE ?
+        AND dp.status != 'rejected'
     `;
-    if (!user.partner_id) {
-      dateQuery = `
-        SELECT * FROM date_plans 
-        WHERE created_by = ? 
-          AND meeting_time LIKE ?
-          AND status != 'rejected'
-      `;
-    }
-    const dateParams = user.partner_id 
-      ? [user.id, user.partner_id, user.partner_id, user.id, prefix]
-      : [user.id, prefix];
-    const datePlans = await db.all(dateQuery, dateParams);
+    const datePlans = await db.all(dateQuery, [...spaceIds, prefix]);
 
     datePlans.forEach(plan => {
       const timePart = plan.meeting_time.substring(11, 16);
+      const displayTitle = showSpaceTag ? `[${plan.space_name}] ${plan.title}` : plan.title;
       addEvent(plan.meeting_time, {
         id: plan.id,
         type: 'date',
-        title: plan.title,
+        title: displayTitle,
         time: timePart || null,
         location: plan.meeting_location,
         status: plan.status,
@@ -98,33 +102,24 @@ router.get('/month', authMiddleware, async (req, res, next) => {
       });
     });
 
-    // 3. 获取爱心厨房记录 (Kitchen Sessions)
+    // 4. 获取爱心厨房记录 (Kitchen Sessions)
     let kitchenQuery = `
-      SELECT * FROM kitchen_sessions 
-      WHERE ((diner_id = ? AND chef_id = ?) OR (diner_id = ? AND chef_id = ?))
-        AND created_at LIKE ?
-        AND status != 'archived'
+      SELECT ks.*, s.name AS space_name FROM kitchen_sessions ks
+      JOIN spaces s ON ks.space_id = s.id
+      WHERE ks.space_id IN (${placeholders})
+        AND ks.created_at LIKE ?
+        AND ks.status != 'archived'
     `;
-    if (!user.partner_id) {
-      kitchenQuery = `
-        SELECT * FROM kitchen_sessions 
-        WHERE (diner_id = ? OR chef_id = ?)
-          AND created_at LIKE ?
-          AND status != 'archived'
-      `;
-    }
-    const kitchenParams = user.partner_id
-      ? [user.id, user.partner_id, user.partner_id, user.id, prefix]
-      : [user.id, user.id, prefix];
-    const kitchenSessions = await db.all(kitchenQuery, kitchenParams);
+    const kitchenSessions = await db.all(kitchenQuery, [...spaceIds, prefix]);
 
     kitchenSessions.forEach(session => {
       const datePart = session.created_at.substring(0, 10);
       const timePart = session.created_at.substring(11, 16);
+      const displayTitle = showSpaceTag ? `[${session.space_name}] 爱心厨：${session.dish_name}` : `爱心厨：${session.dish_name}`;
       addEvent(datePart, {
         id: session.id,
         type: 'kitchen',
-        title: `爱心厨：${session.dish_name}`,
+        title: displayTitle,
         time: timePart,
         status: session.status,
         chef_id: session.chef_id,
@@ -136,54 +131,45 @@ router.get('/month', authMiddleware, async (req, res, next) => {
       });
     });
 
-    // 4. 获取出去吃锁定记录 (Dine Out Locks)
+    // 5. 获取出去吃锁定记录 (Dine Out Locks)
     let foodQuery = `
-      SELECT fs.*, fp.name AS food_name FROM food_sessions fs
+      SELECT fs.*, fp.name AS food_name, s.name AS space_name FROM food_sessions fs
+      JOIN spaces s ON fs.space_id = s.id
       LEFT JOIN food_pool fp ON fs.selected_food_id = fp.id
-      WHERE ((fs.created_by = ? AND fs.partner_id = ?) OR (fs.created_by = ? AND fs.partner_id = ?))
+      WHERE fs.space_id IN (${placeholders})
         AND fs.status = 'locked'
         AND fs.created_at LIKE ?
     `;
-    if (!user.partner_id) {
-      foodQuery = `
-        SELECT fs.*, fp.name AS food_name FROM food_sessions fs
-        LEFT JOIN food_pool fp ON fs.selected_food_id = fp.id
-        WHERE fs.created_by = ?
-          AND fs.status = 'locked'
-          AND fs.created_at LIKE ?
-      `;
-    }
-    const foodParams = user.partner_id
-      ? [user.id, user.partner_id, user.partner_id, user.id, prefix]
-      : [user.id, prefix];
-    const foodSessions = await db.all(foodQuery, foodParams);
+    const foodSessions = await db.all(foodQuery, [...spaceIds, prefix]);
 
     foodSessions.forEach(session => {
       const datePart = session.created_at.substring(0, 10);
+      const displayTitle = showSpaceTag ? `[${session.space_name}] 出去吃：${session.food_name || '锁定菜品'}` : `出去吃：${session.food_name || '锁定菜品'}`;
       addEvent(datePart, {
         id: session.id,
         type: 'food',
-        title: `出去吃：${session.food_name || '锁定菜品'}`,
+        title: displayTitle,
         time: null,
         reason: session.result_reason
       });
     });
 
-    // 5. 获取自定义小备忘事件 (Custom Events)
+    // 6. 获取自定义小备忘事件 (Custom Events)
     let customQuery = `
-      SELECT ce.*, u.nickname AS creator_name FROM calendar_custom_events ce
+      SELECT ce.*, u.nickname AS creator_name, s.name AS space_name FROM calendar_custom_events ce
+      JOIN spaces s ON ce.space_id = s.id
       LEFT JOIN users u ON ce.created_by = u.id
-      WHERE ce.created_by IN (${userIds.map(() => '?').join(',')})
+      WHERE ce.space_id IN (${placeholders})
         AND ce.event_date LIKE ?
     `;
-    let customParams = [...userIds, prefix];
-    const customEvents = await db.all(customQuery, customParams);
+    const customEvents = await db.all(customQuery, [...spaceIds, prefix]);
 
     customEvents.forEach(item => {
+      const displayTitle = showSpaceTag ? `[${item.space_name}] ${item.title}` : item.title;
       addEvent(item.event_date, {
         id: item.id,
         type: 'custom',
-        title: item.title,
+        title: displayTitle,
         time: item.event_time || null,
         creator_name: item.creator_name,
         created_by: item.created_by
@@ -221,14 +207,18 @@ router.post('/custom-event', authMiddleware, async (req, res, next) => {
     return res.status(400).json({ error: 'ValidationError', message: '事件日期格式不正确 (必须为 YYYY-MM-DD)。' });
   }
 
+  if (!user.current_space_id) {
+    return res.status(400).json({ error: 'ValidationError', message: '您当前未关联活跃空间。' });
+  }
+
   try {
     const db = getDB();
     const now = new Date().toISOString();
 
     const result = await db.run(
-      `INSERT INTO calendar_custom_events (title, event_date, event_time, created_by, created_at)
-       VALUES (?, ?, ?, ?, ?)`,
-      [title.trim(), event_date, event_time || null, user.id, now]
+      `INSERT INTO calendar_custom_events (title, event_date, event_time, created_by, space_id, created_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [title.trim(), event_date, event_time || null, user.id, user.current_space_id, now]
     );
 
     const newEvent = await db.get(
@@ -259,8 +249,13 @@ router.delete('/custom-event/:id', authMiddleware, async (req, res, next) => {
       return res.status(404).json({ error: 'NotFoundError', message: '未找到该自定义备忘事件。' });
     }
 
-    if (event.created_by !== user.id && event.created_by !== user.partner_id) {
-      return res.status(403).json({ error: 'ForbiddenError', message: '您无权删除此备忘事件。' });
+    // 校验用户是否属于该备忘所在的物理空间
+    const memberSpaces = await db.all('SELECT space_id FROM space_members WHERE user_id = ?', [user.id]);
+    const spaceIds = memberSpaces.map(s => s.space_id);
+    const isMember = spaceIds.includes(event.space_id);
+
+    if (!isMember) {
+      return res.status(403).json({ error: 'ForbiddenError', message: '您无权删除此空间下的备忘事件。' });
     }
 
     await db.run('DELETE FROM calendar_custom_events WHERE id = ?', [id]);
