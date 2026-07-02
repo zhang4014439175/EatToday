@@ -384,11 +384,92 @@ router.get('/wishlist', authMiddleware, async (req, res, next) => {
 });
 
 /**
+ * 获取该空间的游玩分类
+ * GET /api/date/wishlist/categories
+ */
+router.get('/wishlist/categories', authMiddleware, async (req, res, next) => {
+  try {
+    const db = getDB();
+    const user = req.user;
+
+    if (!user.current_space_id) {
+      return res.status(200).json({ categories: [] });
+    }
+
+    let categories = await db.all(
+      'SELECT * FROM categories WHERE space_id = ? AND type = "play" ORDER BY id ASC',
+      [user.current_space_id]
+    );
+
+    if (categories.length === 0) {
+      // 自动预置默认分类
+      const defaultCats = ['户外活动', '室内休闲'];
+      const now = new Date().toISOString();
+      for (const name of defaultCats) {
+        await db.run(
+          'INSERT INTO categories (space_id, type, name, created_at) VALUES (?, ?, ?, ?)',
+          [user.current_space_id, 'play', name, now]
+        );
+      }
+      categories = await db.all(
+        'SELECT * FROM categories WHERE space_id = ? AND type = "play" ORDER BY id ASC',
+        [user.current_space_id]
+      );
+    }
+
+    return res.status(200).json({ categories });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * 新增游玩分类
+ * POST /api/date/wishlist/categories
+ */
+router.post('/wishlist/categories', authMiddleware, async (req, res, next) => {
+  const { name } = req.body;
+  const user = req.user;
+
+  if (!name || !name.trim()) {
+    return res.status(400).json({ error: 'ValidationError', message: '分类名称不能为空' });
+  }
+
+  if (!user.current_space_id) {
+    return res.status(400).json({ error: 'ValidationError', message: '您未关联活跃空间，无法新增分类' });
+  }
+
+  try {
+    const db = getDB();
+    const now = new Date().toISOString();
+
+    const existing = await db.get(
+      'SELECT id FROM categories WHERE space_id = ? AND type = "play" AND name = ?',
+      [user.current_space_id, name.trim()]
+    );
+
+    if (existing) {
+      return res.status(400).json({ error: 'ValidationError', message: '该分类名称已存在' });
+    }
+
+    const result = await db.run(
+      'INSERT INTO categories (space_id, type, name, created_at) VALUES (?, ?, ?, ?)',
+      [user.current_space_id, 'play', name.trim(), now]
+    );
+
+    const newCat = await db.get('SELECT * FROM categories WHERE id = ?', [result.lastID]);
+    return res.status(201).json({ success: true, category: newCat });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
  * 添加一个愿望到清单
  * POST /api/date/wishlist
  */
 router.post('/wishlist', authMiddleware, async (req, res, next) => {
-  const { name } = req.body;
+  const { name, custom_category } = req.body;
   const user = req.user;
 
   if (!name || !name.trim()) {
@@ -413,8 +494,8 @@ router.post('/wishlist', authMiddleware, async (req, res, next) => {
     }
 
     const result = await db.run(
-      'INSERT INTO date_wishlist (name, created_by, space_id, created_at) VALUES (?, ?, ?, ?)',
-      [name.trim(), user.id, user.current_space_id, now]
+      'INSERT INTO date_wishlist (name, custom_category, created_by, space_id, created_at) VALUES (?, ?, ?, ?, ?)',
+      [name.trim(), custom_category || null, user.id, user.current_space_id, now]
     );
 
     const newWish = await db.get('SELECT * FROM date_wishlist WHERE id = ?', [result.lastID]);
@@ -482,7 +563,7 @@ router.post('/wishlist/seed-defaults', authMiddleware, async (req, res, next) =>
  */
 router.put('/wishlist/:id', authMiddleware, async (req, res, next) => {
   const id = req.params.id;
-  const { name } = req.body;
+  const { name, custom_category } = req.body;
   const user = req.user;
 
   if (!name || !name.trim()) {
@@ -511,8 +592,8 @@ router.put('/wishlist/:id', authMiddleware, async (req, res, next) => {
     }
 
     await db.run(
-      'UPDATE date_wishlist SET name = ? WHERE id = ?',
-      [name.trim(), id]
+      'UPDATE date_wishlist SET name = ?, custom_category = ? WHERE id = ?',
+      [name.trim(), custom_category || null, id]
     );
 
     return res.status(200).json({ success: true, message: '愿望修改成功' });

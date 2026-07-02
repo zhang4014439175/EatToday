@@ -422,7 +422,7 @@
     return html`
       <div class="card agenda-drawer" style="padding: 16px; margin-bottom: 16px; border: 1px solid rgba(45,41,56,0.04); background:#fff; border-radius:14px; box-shadow:var(--shadow);">
         <div class="row" style="justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(45, 41, 56, 0.06); padding-bottom: 10px; margin-bottom: 12px; width:100%;">
-          <strong style="font-size: 13px; color: var(--ink);">📅 ${selectedDate} 的日常</strong>
+          <strong style="font-size: 13px; color: var(--ink);">${selectedDate} 的日常</strong>
           <button class="btn secondary" data-action="cal-show-add-dialog" style="min-height: 26px; height: 26px; padding: 0 10px; font-size: 10px; margin: 0; box-shadow: none;">➕ 添加备忘</button>
         </div>
 
@@ -602,8 +602,8 @@
 
       <!-- 工具栏 -->
       <div class="row" style="gap: 10px; margin-bottom: 16px; width: 100%;">
-        <button class="btn ghost" data-action="recipe-modal-show-add" style="flex: 1; min-height: 36px; height: 36px; font-size: 12px; box-shadow: none; border-radius: 10px; border-color: rgba(124, 105, 201, 0.2); color: var(--rose);">➕ 新增美食</button>
-        <button class="btn ghost ${isBatchMode ? 'active-red' : ''}" data-action="recipe-toggle-batch" style="flex: 1; min-height: 36px; height: 36px; font-size: 12px; box-shadow: none; border-radius: 10px; ${isBatchMode ? 'background:#FFF5F5; color:#FF4D4F; border-color:#FF4D4F;' : ''}">🗑️ ${isBatchMode ? '取消管理' : '批量管理'}</button>
+        <button class="btn" data-action="recipe-modal-show-add" style="flex: 1; min-height: 38px; height: 38px; font-size: 12px; border-radius: 19px; background: linear-gradient(135deg, var(--rose), #FFA39E); color: #FFF; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(255, 77, 79, 0.2);">+ 新增美食</button>
+        <button class="btn" data-action="recipe-toggle-batch" style="flex: 1; min-height: 38px; height: 38px; font-size: 12px; border-radius: 19px; background: ${isBatchMode ? '#FFF5F5' : '#FFF'}; color: ${isBatchMode ? '#FF4D4F' : 'var(--rose)'}; border: 1px solid ${isBatchMode ? '#FF4D4F' : 'rgba(255, 77, 79, 0.3)'}; font-weight: bold; cursor: pointer; box-shadow: 0 2px 6px rgba(255, 77, 79, 0.05);">⚙ ${isBatchMode ? '取消管理' : '批量管理'}</button>
       </div>
 
       <!-- 双栏容器 -->
@@ -663,14 +663,19 @@
             }).join('')}
           </div>
 
-          ${filteredFoods.length === 0 ? `
+          ${state.foods.length === 0 ? `
             <div style="text-align: center; padding-top: 60px;">
               <div style="font-size: 40px; margin-bottom: 10px;">📖</div>
               <div style="font-size: 14px; font-weight: bold; color: var(--ink);">美食书还是空荡荡的</div>
               <div style="font-size: 11px; color: var(--muted); margin-top: 4px; margin-bottom: 16px;">开启属于你们的爱心菜谱回忆吧</div>
               <button class="btn" data-action="recipe-seed-defaults" style="display: inline-flex; align-items: center; justify-content: center; font-size: 11px; min-height: 32px; height: 32px; padding: 0 16px; margin: 0 auto; border-radius: 99rpx; background: #7C69C9; color: #FFF; border: none; font-weight: 800; cursor: pointer; box-shadow: 0 4px 10px rgba(124, 105, 201, 0.25);">一键导入预置常见菜品</button>
             </div>
-          ` : ''}
+          ` : (filteredFoods.length === 0 ? `
+            <div style="text-align: center; padding-top: 60px;">
+              <div style="font-size: 14px; font-weight: bold; color: var(--ink);">该分类下暂无美食</div>
+              <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">切换到其他分类或添加新的菜品吧</div>
+            </div>
+          ` : '')}
         </div>
       </div>
 
@@ -795,8 +800,8 @@
 
       <!-- 工具栏 -->
       <div class="row" style="gap: 10px; margin-bottom: 16px; width: 100%;">
-        <button class="btn ghost" data-action="playbook-modal-show-add" style="flex: 1; min-height: 36px; height: 36px; font-size: 12px; box-shadow: none; border-radius: 10px; border-color: rgba(124, 105, 201, 0.2); color: var(--rose);">➕ 新增玩乐</button>
-        <button class="btn ghost ${isBatchMode ? 'active-red' : ''}" data-action="playbook-toggle-batch" style="flex: 1; min-height: 36px; height: 36px; font-size: 12px; box-shadow: none; border-radius: 10px; ${isBatchMode ? 'background:#FFF5F5; color:#FF4D4F; border-color:#FF4D4F;' : ''}">🗑️ ${isBatchMode ? '取消管理' : '批量管理'}</button>
+        <button class="btn" data-action="playbook-modal-show-add" style="flex: 1; min-height: 38px; height: 38px; font-size: 12px; border-radius: 19px; background: linear-gradient(135deg, var(--rose), #FFA39E); color: #FFF; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(255, 77, 79, 0.2);">+ 新增玩乐</button>
+        <button class="btn" data-action="playbook-toggle-batch" style="flex: 1; min-height: 38px; height: 38px; font-size: 12px; border-radius: 19px; background: ${isBatchMode ? '#FFF5F5' : '#FFF'}; color: ${isBatchMode ? '#FF4D4F' : 'var(--rose)'}; border: 1px solid ${isBatchMode ? '#FF4D4F' : 'rgba(255, 77, 79, 0.3)'}; font-weight: bold; cursor: pointer; box-shadow: 0 2px 6px rgba(255, 77, 79, 0.05);">⚙ ${isBatchMode ? '取消管理' : '批量管理'}</button>
       </div>
 
       <!-- 双栏容器 -->
@@ -851,13 +856,18 @@
             }).join('')}
           </div>
 
-          ${filteredWishes.length === 0 ? `
+          ${state.wishlist.length === 0 ? `
             <div style="text-align: center; padding-top: 60px;">
               <div style="font-size: 40px; margin-bottom: 10px;">🗺️</div>
               <div style="font-size: 14px; font-weight: bold; color: var(--ink);">这里什么都没有哦</div>
               <button class="btn" data-action="wish-seed-defaults" style="display: inline-flex; align-items: center; justify-content: center; font-size: 11px; min-height: 32px; height: 32px; padding: 0 16px; margin: 10px auto 0; border-radius: 99rpx; background: #7C69C9; color: #FFF; border: none; font-weight: 800; cursor: pointer; box-shadow: 0 4px 10px rgba(124, 105, 201, 0.25);">一键导入常见游玩</button>
             </div>
-          ` : ''}
+          ` : (filteredWishes.length === 0 ? `
+            <div style="text-align: center; padding-top: 60px;">
+              <div style="font-size: 14px; font-weight: bold; color: var(--ink);">该分类下暂无游玩项目</div>
+              <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">切换到其他分类或添加新的项目吧</div>
+            </div>
+          ` : '')}
         </div>
       </div>
 

@@ -4,14 +4,8 @@ Page({
   data: {
     foods: [],
     filteredFoods: [],
-    categories: [
-      { key: 'signature', name: '拿手菜' },
-      { key: 'hot', name: '热腾腾' },
-      { key: 'soup', name: '靓汤水' },
-      { key: 'staple', name: '主食面' },
-      { key: 'others', name: '随便吃' }
-    ],
-    currentCategory: 'signature',
+    categories: [],
+    currentCategory: '拿手菜',
     isBatchMode: false,
     selectedCount: 0,
     
@@ -21,7 +15,8 @@ Page({
     formId: null,
     formName: '',
     formTags: '',
-    formCategory: 'home'
+    formCategory: 'home',
+    formCustomCategory: ''
   },
 
   onLoad() {
@@ -33,6 +28,9 @@ Page({
    */
   async fetchFoodList() {
     try {
+      const catRes = await request({ url: '/food/categories' });
+      const categories = catRes.categories || [];
+
       const res = await request({ url: '/food' });
       const rawFoods = res.foods || [];
       
@@ -47,31 +45,44 @@ Page({
       });
 
       this.setData({
+        categories,
         foods: processedFoods,
         isBatchMode: false,
         selectedCount: 0
+      }, () => {
+        if (categories.length > 0 && !categories.some(c => c.name === this.data.currentCategory)) {
+          this.setData({ currentCategory: categories[0].name });
+        }
+        this.filterFoods();
       });
-      this.filterFoods();
     } catch (err) {
       console.warn('[Recipe Page] 获取美食库失败，使用本地缓存或 Mock 兜底');
-      // Mock 兜底
+      const mockCats = [
+        { name: '拿手菜' },
+        { name: '热腾腾' },
+        { name: '靓汤水' },
+        { name: '主食面' },
+        { name: '随便吃' }
+      ];
       const localFoods = wx.getStorageSync('local_recipe_foods');
       if (localFoods && localFoods.length > 0) {
         this.setData({
+          categories: mockCats,
           foods: localFoods.map(f => ({ ...f, selected: false })),
           isBatchMode: false,
           selectedCount: 0
         });
       } else {
         const mockList = [
-          { id: 1, name: '火锅 🍲', category: 'home', tags: '特色,聚会', image_url: '' },
-          { id: 2, name: '烤肉 🥓', category: 'home', tags: '肉食,美味', image_url: '' },
-          { id: 3, name: '螺蛳粉 🍜', category: 'home', tags: '酸辣', image_url: '' },
-          { id: 4, name: '日料寿司 🍣', category: 'out', tags: '精致', image_url: '' },
-          { id: 5, name: '麻辣烫 🍢', category: 'out', tags: '麻辣', image_url: '' },
-          { id: 6, name: '汉堡炸鸡 🍔', category: 'out', tags: '高热量', image_url: '' }
+          { id: 1, name: '火锅', category: 'home', custom_category: '热腾腾', tags: '特色,聚会', image_url: '' },
+          { id: 2, name: '烤肉', category: 'home', custom_category: '热腾腾', tags: '肉食,美味', image_url: '' },
+          { id: 3, name: '螺蛳粉', category: 'home', custom_category: '主食面', tags: '酸辣', image_url: '' },
+          { id: 4, name: '日料寿司', category: 'out', custom_category: '拿手菜', tags: '精致', image_url: '' },
+          { id: 5, name: '麻辣烫', category: 'out', custom_category: '热腾腾', tags: '麻辣', image_url: '' },
+          { id: 6, name: '汉堡炸鸡', category: 'out', custom_category: '随便吃', tags: '高热量', image_url: '' }
         ];
         this.setData({
+          categories: mockCats,
           foods: mockList,
           isBatchMode: false,
           selectedCount: 0
@@ -110,13 +121,65 @@ Page({
    * 自动判定菜肴所属标签分类
    */
   getDishCategory(dish) {
+    if (dish.custom_category) return dish.custom_category;
+
     const name = dish.name || '';
     const tags = ((dish.tags || '') + name).toLowerCase();
-    if (tags.includes('拿手') || tags.includes('招牌') || tags.includes('推荐') || dish.id <= 3) return 'signature';
-    if (tags.includes('汤') || tags.includes('水') || tags.includes('煲')) return 'soup';
-    if (tags.includes('面') || tags.includes('饭') || tags.includes('粉') || tags.includes('主食')) return 'staple';
-    if (tags.includes('热') || tags.includes('炒') || tags.includes('肉') || tags.includes('辣') || tags.includes('川') || tags.includes('火锅') || tags.includes('烤') || tags.includes('炸') || tags.includes('煮')) return 'hot';
-    return 'others';
+    if (tags.includes('拿手') || tags.includes('招牌') || tags.includes('推荐') || dish.id <= 3) return '拿手菜';
+    if (tags.includes('汤') || tags.includes('水') || tags.includes('煲')) return '靓汤水';
+    if (tags.includes('面') || tags.includes('饭') || tags.includes('粉') || tags.includes('主食')) return '主食面';
+    if (tags.includes('热') || tags.includes('炒') || tags.includes('肉') || tags.includes('辣') || tags.includes('川') || tags.includes('火锅') || tags.includes('烤') || tags.includes('炸') || tags.includes('煮')) return '热腾腾';
+    return '随便吃';
+  },
+
+  /**
+   * 弹出输入框，新增美食分类
+   */
+  showAddCategoryDialog() {
+    wx.showModal({
+      title: '新增美食分类',
+      placeholderText: '请输入新分类名称',
+      editable: true,
+      success: async (res) => {
+        if (res.confirm && res.content) {
+          const name = res.content.trim();
+          if (!name) return;
+          try {
+            wx.showLoading({ title: '正在添加...' });
+            const addRes = await request({
+              url: '/food/categories',
+              method: 'POST',
+              data: { name }
+            });
+            wx.hideLoading();
+            if (addRes.success) {
+              wx.showToast({ title: '添加分类成功', icon: 'success' });
+              this.fetchFoodList();
+            } else {
+              wx.showToast({ title: addRes.message || '添加失败', icon: 'none' });
+            }
+          } catch (err) {
+            wx.hideLoading();
+            console.error('[Recipe Page] 新增分类失败:', err);
+            // Mock 本地
+            const mockCats = [...this.data.categories, { name }];
+            this.setData({ categories: mockCats });
+            wx.showToast({ title: '添加成功(本地)', icon: 'success' });
+          }
+        }
+      }
+    });
+  },
+
+  /**
+   * 所属分类选择器改变
+   */
+  onCustomCategoryChange(e) {
+    const index = e.detail.value;
+    const selectedCat = this.data.categories[index];
+    this.setData({
+      formCustomCategory: selectedCat.name
+    });
   },
 
   /**
@@ -190,7 +253,8 @@ Page({
         formId: item.id,
         formName: item.name,
         formTags: item.tags || '',
-        formCategory: item.category
+        formCategory: item.category,
+        formCustomCategory: item.custom_category || this.getDishCategory(item)
       });
     }
   },
@@ -262,7 +326,8 @@ Page({
       formId: null,
       formName: '',
       formTags: '',
-      formCategory: 'home'
+      formCategory: 'home',
+      formCustomCategory: this.data.currentCategory
     });
   },
 
@@ -273,7 +338,8 @@ Page({
       formId: null,
       formName: '',
       formTags: '',
-      formCategory: 'home'
+      formCategory: 'home',
+      formCustomCategory: ''
     });
   },
 
@@ -293,7 +359,7 @@ Page({
    * 提交表单 (新增或编辑)
    */
   async submitForm() {
-    const { formName, formTags, formCategory, isEditMode, formId, foods } = this.data;
+    const { formName, formTags, formCategory, formCustomCategory, isEditMode, formId, foods } = this.data;
     if (!formName.trim()) {
       wx.showToast({ title: '请输入美食名字哦', icon: 'none' });
       return;
@@ -302,11 +368,11 @@ Page({
     const payload = {
       name: formName.trim(),
       tags: formTags.trim(),
-      category: formCategory
+      category: formCategory,
+      custom_category: formCustomCategory
     };
 
     if (isEditMode) {
-      // 编辑模式
       try {
         await request({
           url: `/food/${formId}`,
@@ -318,7 +384,6 @@ Page({
         this.hideModal();
         this.fetchFoodList();
       } catch (err) {
-        // Mock 编辑
         const updatedList = foods.map(f => {
           if (f.id === formId) {
             return { ...f, ...payload };
@@ -332,7 +397,6 @@ Page({
         wx.showToast({ title: '修改已更新(本地)', icon: 'success' });
       }
     } else {
-      // 新增模式
       try {
         await request({
           url: '/food',
@@ -344,12 +408,12 @@ Page({
         this.hideModal();
         this.fetchFoodList();
       } catch (err) {
-        // Mock 新增
         const newFood = {
           id: Date.now(),
           name: formName.trim(),
           tags: formTags.trim(),
           category: formCategory,
+          custom_category: formCustomCategory,
           image_url: ''
         };
         const newList = [newFood, ...foods];

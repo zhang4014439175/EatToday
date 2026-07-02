@@ -53,7 +53,7 @@
   <!-- 点击天数展示的 Agenda 日程抽屉 -->
   <view class="card agenda-drawer" wx:if="{{selectedDayAgenda}}">
     <view class="agenda-header flex-row flex-between">
-      <text class="agenda-title">📅 {{selectedDayAgenda.dateStr}} 的日常</text>
+      <text class="agenda-title">{{selectedDayAgenda.dateStr}} 的日常</text>
       <view class="btn-add-custom" bindtap="showAddCustomDialog">➕ 添加备忘</view>
     </view>
 

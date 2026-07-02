@@ -123,6 +123,7 @@ async function initDBOnce(canRecoverEmptyDb) {
         name TEXT NOT NULL,
         tags TEXT,
         category TEXT DEFAULT 'home',
+        custom_category TEXT,
         image_url TEXT,
         created_by INTEGER NOT NULL,
         created_at TEXT NOT NULL,
@@ -201,6 +202,7 @@ async function initDBOnce(canRecoverEmptyDb) {
       CREATE TABLE IF NOT EXISTS date_wishlist (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
+        custom_category TEXT,
         created_by INTEGER NOT NULL,
         created_at TEXT NOT NULL,
         FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
@@ -239,6 +241,17 @@ async function initDBOnce(canRecoverEmptyDb) {
       );
     `);
 
+    // 10. 创建 categories 空间自定义分类表
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        space_id INTEGER NOT NULL,
+        type TEXT NOT NULL, -- 'food' 或 'play'
+        name TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      );
+    `);
+
     // 动态升级已有的关系表，增加 space_id / current_space_id 字段
     try {
       await db.run('ALTER TABLE users ADD COLUMN current_space_id INTEGER;');
@@ -264,6 +277,12 @@ async function initDBOnce(canRecoverEmptyDb) {
     try {
       await db.run('ALTER TABLE date_wishlist ADD COLUMN space_id INTEGER;');
     } catch (e) {}
+    try {
+      await db.run('ALTER TABLE food_pool ADD COLUMN custom_category TEXT;');
+    } catch (e) {}
+    try {
+      await db.run('ALTER TABLE date_wishlist ADD COLUMN custom_category TEXT;');
+    } catch (e) {}
 
     // 创建核心字段索引，提高查询性能
     await db.exec(`
@@ -278,6 +297,7 @@ async function initDBOnce(canRecoverEmptyDb) {
       CREATE INDEX IF NOT EXISTS idx_kitchen_sessions_diner_chef_status ON kitchen_sessions(diner_id, chef_id, status);
       CREATE INDEX IF NOT EXISTS idx_calendar_custom_events_date ON calendar_custom_events(event_date);
       CREATE INDEX IF NOT EXISTS idx_spaces_code ON spaces(code);
+      CREATE INDEX IF NOT EXISTS idx_categories_space_type ON categories(space_id, type);
       CREATE INDEX IF NOT EXISTS idx_space_members_space_user ON space_members(space_id, user_id);
     `);
 

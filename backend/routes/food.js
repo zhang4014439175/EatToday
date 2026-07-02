@@ -36,6 +36,87 @@ router.get('/', authMiddleware, async (req, res, next) => {
   }
 });
 
+/**
+ * 获取该空间的美食分类
+ * GET /api/food/categories
+ */
+router.get('/categories', authMiddleware, async (req, res, next) => {
+  try {
+    const db = getDB();
+    const user = req.user;
+
+    if (!user.current_space_id) {
+      return res.status(200).json({ categories: [] });
+    }
+
+    let categories = await db.all(
+      'SELECT * FROM categories WHERE space_id = ? AND type = "food" ORDER BY id ASC',
+      [user.current_space_id]
+    );
+
+    if (categories.length === 0) {
+      // 自动预置默认分类
+      const defaultCats = ['拿手菜', '热腾腾', '靓汤水', '主食面', '随便吃'];
+      const now = new Date().toISOString();
+      for (const name of defaultCats) {
+        await db.run(
+          'INSERT INTO categories (space_id, type, name, created_at) VALUES (?, ?, ?, ?)',
+          [user.current_space_id, 'food', name, now]
+        );
+      }
+      categories = await db.all(
+        'SELECT * FROM categories WHERE space_id = ? AND type = "food" ORDER BY id ASC',
+        [user.current_space_id]
+      );
+    }
+
+    return res.status(200).json({ categories });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * 新增美食分类
+ * POST /api/food/categories
+ */
+router.post('/categories', authMiddleware, async (req, res, next) => {
+  const { name } = req.body;
+  const user = req.user;
+
+  if (!name || !name.trim()) {
+    return res.status(400).json({ error: 'ValidationError', message: '分类名称不能为空' });
+  }
+
+  if (!user.current_space_id) {
+    return res.status(400).json({ error: 'ValidationError', message: '您未关联活跃空间，无法新增分类' });
+  }
+
+  try {
+    const db = getDB();
+    const now = new Date().toISOString();
+
+    const existing = await db.get(
+      'SELECT id FROM categories WHERE space_id = ? AND type = "food" AND name = ?',
+      [user.current_space_id, name.trim()]
+    );
+
+    if (existing) {
+      return res.status(400).json({ error: 'ValidationError', message: '该分类名称已存在' });
+    }
+
+    const result = await db.run(
+      'INSERT INTO categories (space_id, type, name, created_at) VALUES (?, ?, ?, ?)',
+      [user.current_space_id, 'food', name.trim(), now]
+    );
+
+    const newCat = await db.get('SELECT * FROM categories WHERE id = ?', [result.lastID]);
+    return res.status(201).json({ success: true, category: newCat });
+  } catch (error) {
+    next(error);
+  }
+});
+
 
 
 /**
@@ -67,7 +148,7 @@ router.post('/seed-defaults', authMiddleware, async (req, res, next) => {
  * POST /api/food
  */
 router.post('/', authMiddleware, async (req, res, next) => {
-  const { name, tags, category, image_url } = req.body;
+  const { name, tags, category, custom_category, image_url } = req.body;
   const user = req.user;
  
   if (!name || !name.trim()) {
@@ -83,8 +164,8 @@ router.post('/', authMiddleware, async (req, res, next) => {
     const now = new Date().toISOString();
  
     const result = await db.run(
-      'INSERT INTO food_pool (name, tags, category, image_url, created_by, space_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [name.trim(), tags || '', category || 'home', image_url || '', user.id, user.current_space_id, now, now]
+      'INSERT INTO food_pool (name, tags, category, custom_category, image_url, created_by, space_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [name.trim(), tags || '', category || 'home', custom_category || null, image_url || '', user.id, user.current_space_id, now, now]
     );
  
     const newFood = await db.get('SELECT * FROM food_pool WHERE id = ?', [result.lastID]);
@@ -100,7 +181,7 @@ router.post('/', authMiddleware, async (req, res, next) => {
  */
 router.put('/:id', authMiddleware, async (req, res, next) => {
   const id = req.params.id;
-  const { name, tags, category, image_url } = req.body;
+  const { name, tags, category, custom_category, image_url } = req.body;
   const user = req.user;
  
   if (!name || !name.trim()) {
@@ -122,8 +203,8 @@ router.put('/:id', authMiddleware, async (req, res, next) => {
  
     const now = new Date().toISOString();
     await db.run(
-      'UPDATE food_pool SET name = ?, tags = ?, category = ?, image_url = ?, updated_at = ? WHERE id = ?',
-      [name.trim(), tags || '', category || 'home', image_url || '', now, id]
+      'UPDATE food_pool SET name = ?, tags = ?, category = ?, custom_category = ?, image_url = ?, updated_at = ? WHERE id = ?',
+      [name.trim(), tags || '', category || 'home', custom_category || null, image_url || '', now, id]
     );
  
     const updatedFood = await db.get('SELECT * FROM food_pool WHERE id = ?', [id]);
