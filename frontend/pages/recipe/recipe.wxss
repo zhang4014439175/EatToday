@@ -149,6 +149,8 @@
   font-size: 20rpx;
   font-weight: bold;
 }
+
+.empty-state {
   padding-top: 160rpx;
   text-align: center;
 }
