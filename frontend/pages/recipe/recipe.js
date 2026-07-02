@@ -4,7 +4,14 @@ Page({
   data: {
     foods: [],
     filteredFoods: [],
-    currentCategory: 'home', // 'home' (私房菜) 或 'out' (寻宝图)
+    categories: [
+      { key: 'signature', name: '拿手菜' },
+      { key: 'hot', name: '热腾腾' },
+      { key: 'soup', name: '靓汤水' },
+      { key: 'staple', name: '主食面' },
+      { key: 'others', name: '随便吃' }
+    ],
+    currentCategory: 'signature',
     isBatchMode: false,
     selectedCount: 0,
     
@@ -100,11 +107,24 @@ Page({
   },
 
   /**
+   * 自动判定菜肴所属标签分类
+   */
+  getDishCategory(dish) {
+    const name = dish.name || '';
+    const tags = ((dish.tags || '') + name).toLowerCase();
+    if (tags.includes('拿手') || tags.includes('招牌') || tags.includes('推荐') || dish.id <= 3) return 'signature';
+    if (tags.includes('汤') || tags.includes('水') || tags.includes('煲')) return 'soup';
+    if (tags.includes('面') || tags.includes('饭') || tags.includes('粉') || tags.includes('主食')) return 'staple';
+    if (tags.includes('热') || tags.includes('炒') || tags.includes('肉') || tags.includes('辣') || tags.includes('川') || tags.includes('火锅') || tags.includes('烤') || tags.includes('炸') || tags.includes('煮')) return 'hot';
+    return 'others';
+  },
+
+  /**
    * 过滤分类美食
    */
   filterFoods() {
     const { foods, currentCategory } = this.data;
-    const filteredFoods = foods.filter(item => item.category === currentCategory);
+    const filteredFoods = foods.filter(item => this.getDishCategory(item) === currentCategory);
     this.setData({ filteredFoods });
   },
 
@@ -242,7 +262,7 @@ Page({
       formId: null,
       formName: '',
       formTags: '',
-      formCategory: this.data.currentCategory
+      formCategory: 'home'
     });
   },
 

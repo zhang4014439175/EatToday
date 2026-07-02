@@ -20,19 +20,23 @@
     </view>
     
     <!-- 空间基础详情 -->
-    <view class="current-space-info" bindtap="onTapSpaceSwitcher" style="cursor: pointer;">
-      <view class="space-name-row flex-row" style="display: flex; align-items: center; justify-content: space-between;">
-        <view class="flex-row" style="display: flex; align-items: center;">
-          <text class="space-emoji">🏠</text>
+    <view class="current-space-info flex-row" bindtap="onTapSpaceSwitcher">
+      <view class="space-left-box">
+        <view class="space-name-row flex-row">
+          <view class="space-icon-wrapper">
+            <text>🏠</text>
+          </view>
           <text class="space-name">{{currentSpace.name || '默认空间'}}</text>
-          <text class="quick-arrow" style="margin-left: 10rpx; font-size: 20rpx; color: #868095;">▼</text>
         </view>
-        <text class="switch-tip-text" style="font-size: 22rpx; color: #7C69C9; font-weight: bold; background: #F3F0FA; padding: 4rpx 14rpx; border-radius: 6rpx;">切换</text>
+        <view class="space-code-row flex-row" wx:if="{{currentSpace.type !== 'solo'}}" catchtap="dummy">
+          <text class="space-code-label">邀请码：</text>
+          <text class="space-code">{{currentSpace.code}}</text>
+          <text class="copy-link" bindtap="copySpaceCode">复制</text>
+        </view>
       </view>
-      <view class="space-code-row flex-row" wx:if="{{currentSpace.type !== 'solo'}}" catchtap="dummy">
-        <text class="space-code-label">邀请码：</text>
-        <text class="space-code">{{currentSpace.code}}</text>
-        <text class="copy-link" bindtap="copySpaceCode">复制</text>
+      <view class="space-right-box flex-row">
+        <text class="switch-btn-text">切换空间</text>
+        <text class="switch-arrow">›</text>
       </view>
     </view>
  
@@ -41,8 +45,10 @@
       <view class="section-title">空间成员 ({{spaceMembers.length}}人)</view>
       <view class="members-grid flex-row">
         <view class="member-item" wx:for="{{spaceMembers}}" wx:key="id">
-          <image class="member-avatar" src="{{item.avatar_url || '/images/default_avatar.png'}}" mode="aspectFill" />
-          <view class="member-role {{item.role === 'admin' ? 'admin' : ''}}">{{item.role === 'admin' ? '管理员' : '成员'}}</view>
+          <view class="avatar-wrapper">
+            <image class="member-avatar" src="{{item.avatar_url || '/images/default_avatar.png'}}" mode="aspectFill" />
+            <view class="role-badge" wx:if="{{item.role === 'admin'}}">管理员</view>
+          </view>
           <view class="member-name">{{item.nickname || '用户'}}</view>
         </view>
       </view>
@@ -50,7 +56,7 @@
 
     <!-- 空间操作面板 (创建/加入/退出) -->
     <view class="space-actions">
-      <!-- 选项按钮，用来展开不同的输入面板 -->
+      <!-- 选项按钮，滑动 Segmented Control 设计 -->
       <view class="action-tab-header flex-row">
         <view class="action-tab {{activeTab === 'join' ? 'active' : ''}}" bindtap="switchActionTab" data-tab="join">加入群组</view>
         <view class="action-tab {{activeTab === 'create' ? 'active' : ''}}" bindtap="switchActionTab" data-tab="create">新建群组</view>
@@ -69,6 +75,14 @@
         <view class="flex-row input-btn-group">
           <input class="form-input action-input" placeholder="输入空间名称" value="{{inputSpaceName}}" bindinput="onInputSpaceName" />
           <button class="btn-action-submit" bindtap="handleCreateSpace">创建</button>
+        </view>
+      </view>
+      
+      <!-- 退出当前空间 (只限非 solo 空间) -->
+      <view class="leave-box" wx:if="{{currentSpace.type !== 'solo'}}">
+        <text class="leave-link" bindtap="handleLeaveCurrentSpace">退出当前空间</text>
+      </view>
+    </view>it" bindtap="handleCreateSpace">创建</button>
         </view>
       </view>
       

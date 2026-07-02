@@ -43,7 +43,7 @@
       cart: {},
       activeCategory: 'signature',
       showConfirmModal: false,
-      recipeCurrentCategory: 'home',
+      recipeCurrentCategory: 'signature',
       recipeBatchMode: false,
       recipeSelectedIds: [],
       showRecipeModal: false,
@@ -575,14 +575,21 @@
               <button class="btn secondary" data-action="start-vote" style="flex: 1; margin:0; min-height: 38px; height: 38px; font-size: 12px; box-shadow: none;">重新发起</button>
             </div>
           </sect  function renderRecipeBook() {
-    const currentCategory = state.recipeCurrentCategory || 'home';
+    const currentCategory = state.recipeCurrentCategory || 'signature';
     const isBatchMode = state.recipeBatchMode || false;
     const selectedIds = state.recipeSelectedIds || [];
     
     const filteredFoods = state.foods.filter(f => {
-      const cat = f.category || (f.id <= 3 ? 'home' : 'out');
-      return cat === currentCategory;
+      return getDishCategory(f) === currentCategory;
     });
+
+    const categories = [
+      { key: 'signature', name: '拿手菜' },
+      { key: 'hot', name: '热腾腾' },
+      { key: 'soup', name: '靓汤水' },
+      { key: 'staple', name: '主食面' },
+      { key: 'others', name: '随便吃' }
+    ];
 
     return html`
       <!-- 美食相册头部 -->
@@ -603,18 +610,14 @@
       <div class="meituan-container" style="display: flex; height: calc(100vh - 200px); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin-bottom: 12px; width: 100%;">
         <!-- 左栏：侧边栏分类 -->
         <div class="menu-sidebar" style="width: 90px; background-color: var(--bg); height: 100%; border-right: 1px solid var(--line); overflow-y: auto; flex-shrink: 0;">
-          <div class="sidebar-item ${currentCategory === 'home' ? 'sidebar-active' : ''}" 
-               data-action="recipe-switch-cat" 
-               data-cat="home" 
-               style="padding: 16px 8px; font-size: 12px; text-align: center; font-weight: 700; cursor: pointer; border-left: 3px solid transparent; color: ${currentCategory === 'home' ? 'var(--rose)' : 'var(--muted)'}; background-color: ${currentCategory === 'home' ? '#ffffff' : 'transparent'}; border-left-color: ${currentCategory === 'home' ? 'var(--rose)' : 'transparent'};">
-            爱心私房菜
-          </div>
-          <div class="sidebar-item ${currentCategory === 'out' ? 'sidebar-active' : ''}" 
-               data-action="recipe-switch-cat" 
-               data-cat="out" 
-               style="padding: 16px 8px; font-size: 12px; text-align: center; font-weight: 700; cursor: pointer; border-left: 3px solid transparent; color: ${currentCategory === 'out' ? 'var(--rose)' : 'var(--muted)'}; background-color: ${currentCategory === 'out' ? '#ffffff' : 'transparent'}; border-left-color: ${currentCategory === 'out' ? 'var(--rose)' : 'transparent'};">
-            风味寻宝图
-          </div>
+          ${categories.map(cat => `
+            <div class="sidebar-item ${currentCategory === cat.key ? 'sidebar-active' : ''}" 
+                 data-action="recipe-switch-cat" 
+                 data-cat="${cat.key}" 
+                 style="padding: 16px 8px; font-size: 12px; text-align: center; font-weight: 700; cursor: pointer; border-left: 3px solid transparent; color: ${currentCategory === cat.key ? 'var(--rose)' : 'var(--muted)'}; background-color: ${currentCategory === cat.key ? '#ffffff' : 'transparent'}; border-left-color: ${currentCategory === cat.key ? 'var(--rose)' : 'transparent'};">
+              ${cat.name}
+            </div>
+          `).join('')}
         </div>
 
         <!-- 右栏：菜品展示 -->
@@ -647,7 +650,12 @@
 
                   <!-- 信息区 -->
                   <div style="flex: 1; min-width: 0;">
-                    <div style="font-size: 13px; font-weight: bold; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeText(food.name)}</div>
+                    <div style="font-size: 13px; font-weight: bold; color: var(--ink); display: flex; align-items: center; gap: 6px;">
+                      <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">${escapeText(food.name)}</span>
+                      <span style="font-size: 9px; font-weight: bold; padding: 1px 4px; border-radius: 4px; background: ${food.category === 'home' ? 'var(--rose-soft)' : 'rgba(255, 123, 137, 0.1)'}; color: ${food.category === 'home' ? 'var(--rose)' : '#FF7B89'}; flex-shrink: 0;">
+                        ${food.category === 'home' ? '在家吃' : '出去吃'}
+                      </span>
+                    </div>
                     <div style="font-size: 10px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeText(food.tags || '主厨特制，极力推荐')}</div>
                   </div>
                 </div>
@@ -940,36 +948,46 @@
           <span class="pill status-accepted" style="background-color: #F3F0FA; color: #7C69C9; padding: 4px 10px; font-size: 10px; font-weight: 800; border-radius: 99rpx;">${currentSpace.type === 'solo' ? '个人空间' : '群组空间'}</span>
         </div>
         
-        <div class="current-space-info" data-action="quick-space-click" style="background: #F8F7FC; padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid rgba(124, 105, 201, 0.05); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+        <div class="current-space-info" data-action="quick-space-click" style="background: linear-gradient(135deg, #FAF8FF 0%, #F5F0FF 100%); padding: 14px 16px; border-radius: 14px; margin-bottom: 16px; border: 1px solid rgba(124, 105, 201, 0.08); cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(124, 105, 201, 0.03);">
           <div>
-            <div style="font-weight: 800; font-size: 15px; color: #2D2938; margin-bottom: 4px;">
-              <span>🏠 ${escapeText(currentSpace.name)}</span>
-              <span style="font-size: 10px; color: #868095; margin-left: 6px;">▼</span>
+            <div style="font-weight: 800; font-size: 15px; color: #2D2938; display: flex; align-items: center; gap: 8px; margin-bottom: ${currentSpace.type !== 'solo' ? '4px' : '0'};">
+              <span style="width: 28px; height: 28px; border-radius: 50%; background: #ffffff; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(124, 105, 201, 0.06);">🏠</span>
+              <span>${escapeText(currentSpace.name)}</span>
             </div>
-            ${currentSpace.type !== 'solo' ? `<p class="muted" style="margin: 0; font-size: 12px;">邀请码：<strong style="color: #2D2938; font-weight: 900; letter-spacing: 1px;">${escapeText(currentSpace.code)}</strong></p>` : ''}
+            ${currentSpace.type !== 'solo' ? `<p class="muted" style="margin: 0; font-size: 11px; display: flex; align-items: center; gap: 4px; margin-top: 4px;">邀请码：<strong style="color: #2D2938; font-weight: 900; background: #ffffff; padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(45, 41, 56, 0.04); font-size: 11px;">${escapeText(currentSpace.code)}</strong></p>` : ''}
           </div>
-          <span style="font-size: 11px; color: #7C69C9; font-weight: 800; background: #FFF; padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(124, 105, 201, 0.15);">切换</span>
+          <div style="display: flex; align-items: center; gap: 4px; color: #868095; font-size: 11px; font-weight: 800;">
+            <span>切换空间</span>
+            <span style="font-size: 14px;">›</span>
+          </div>
         </div>
 
         <!-- 空间成员 -->
-        <div class="member-section" style="margin-bottom: 16px;">
-          <div class="muted" style="font-size: 11px; font-weight: 800; margin-bottom: 8px; color: #868095;">空间成员 (${members.length}人)</div>
+        <div class="member-section" style="margin-bottom: 18px;">
+          <div class="muted" style="font-size: 11px; font-weight: 800; margin-bottom: 10px; color: #868095;">空间成员 (${members.length}人)</div>
           <div class="row" style="gap: 16px; flex-wrap: wrap; display: flex;">
             ${members.map(m => `
-              <div style="display: flex; flex-direction: column; align-items: center; width: 60px; text-align: center;">
-                <div style="width: 40px; height: 40px; border-radius: 12px; background: #F3F0FA; border: 2px solid #ffffff; box-shadow: 0 4px 10px rgba(45,41,56,0.06); display: flex; align-items: center; justify-content: center; font-size: 18px;">👤</div>
-                <span style="font-size: 9px; color: ${m.role === 'admin' ? '#ffffff' : '#868095'}; background: ${m.role === 'admin' ? '#7C69C9' : '#F3F0FA'}; padding: 1px 4px; border-radius: 4px; margin-top: 4px; font-weight: 800; display: inline-block;">${m.role === 'admin' ? '管理员' : '成员'}</span>
-                <span style="font-size: 11px; font-weight: 700; color: #2D2938; margin-top: 2px; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">${escapeText(m.nickname)}</span>
+              <div style="display: flex; flex-direction: column; align-items: center; width: 60px; text-align: center; position: relative;">
+                <div style="position: relative; width: 44px; height: 44px;">
+                  <div style="width: 100%; height: 100%; border-radius: 50%; background: #F3F0FA; border: 2px solid #ffffff; box-shadow: 0 3px 8px rgba(45,41,56,0.06); display: flex; align-items: center; justify-content: center; font-size: 18px; overflow: hidden;">
+                    ${m.avatar_url ? `<img src="${m.avatar_url}" style="width: 100%; height: 100%; object-fit: cover;" />` : '👤'}
+                  </div>
+                  ${m.role === 'admin' ? `
+                    <span style="position: absolute; bottom: -2px; right: -2px; background: #7C69C9; color: #ffffff; font-size: 7px; font-weight: 900; padding: 1px 4px; border-radius: 99rpx; border: 1.5px solid #ffffff; box-shadow: 0 2px 4px rgba(124, 105, 201, 0.3); transform: scale(0.95); line-height: 1;">主</span>
+                  ` : ''}
+                </div>
+                <span style="font-size: 11px; font-weight: 700; color: #2D2938; margin-top: 6px; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">${escapeText(m.nickname)}</span>
               </div>
             `).join('')}
           </div>
         </div>
 
         <!-- 空间操作 (新建/加入) -->
-        <div class="space-actions" style="border-top: 1px solid rgba(45, 41, 56, 0.05); padding-top: 12px;">
-          <div class="row" style="gap: 16px; margin-bottom: 10px; display: flex;">
-            <span style="font-size: 12px; font-weight: 800; color: ${activeTab === 'join' ? '#7C69C9' : '#868095'}; border-bottom: 2px solid ${activeTab === 'join' ? '#7C69C9' : 'transparent'}; padding-bottom: 4px; cursor: pointer;" data-action="space-tab-switch" data-tab="join">加入群组</span>
-            <span style="font-size: 12px; font-weight: 800; color: ${activeTab === 'create' ? '#7C69C9' : '#868095'}; border-bottom: 2px solid ${activeTab === 'create' ? '#7C69C9' : 'transparent'}; padding-bottom: 4px; cursor: pointer;" data-action="space-tab-switch" data-tab="create">新建群组</span>
+        <div class="space-actions" style="border-top: 1px solid rgba(45, 41, 56, 0.05); padding-top: 16px;">
+          <!-- 选项按钮，滑动 Segmented Control 设计 -->
+          <div style="background: #F3F0FA; border-radius: 99rpx; padding: 3px; display: flex; width: 100%; box-sizing: border-box; margin-bottom: 12px;">
+            <div style="flex: 1; text-align: center; font-size: 11px; font-weight: 800; padding: 6px 0; border-radius: 99rpx; transition: all 0.2s ease; cursor: pointer; color: ${activeTab === 'join' ? '#7C69C9' : '#868095'}; background: ${activeTab === 'join' ? '#ffffff' : 'transparent'}; box-shadow: ${activeTab === 'join' ? '0 2px 6px rgba(124, 105, 201, 0.1)' : 'none'};" data-action="space-tab-switch" data-tab="join">加入群组</div>
+            <div style="flex: 1; text-align: center; font-size: 11px; font-weight: 800; padding: 6px 0; border-radius: 99rpx; transition: all 0.2s ease; cursor: pointer; color: ${activeTab === 'create' ? '#7C69C9' : '#868095'}; background: ${activeTab === 'create' ? '#ffffff' : 'transparent'}; box-shadow: ${activeTab === 'create' ? '0 2px 6px rgba(124, 105, 201, 0.1)' : 'none'};" data-action="space-tab-switch" data-tab="create">新建群组</div>
           </div>
 
           ${activeTab === 'join' ? html`
@@ -1191,7 +1209,7 @@
       state.recipeFormId = null;
       state.recipeFormName = '';
       state.recipeFormTags = '';
-      state.recipeFormCategory = state.recipeCurrentCategory;
+      state.recipeFormCategory = 'home';
     }
     if (action === 'recipe-modal-hide') {
       state.showRecipeModal = false;
@@ -1645,7 +1663,7 @@
       const cart = state.cart || {};
       const cartCount = Object.values(cart).reduce((sum, q) => sum + q, 0);
       
-      const filteredDishes = state.foods.filter(food => getDishCategory(food) === activeCategory);
+      const filteredDishes = state.foods.filter(food => food.category === 'home' && getDishCategory(food) === activeCategory);
       
       const categories = [
         { key: 'signature', name: '拿手菜' },

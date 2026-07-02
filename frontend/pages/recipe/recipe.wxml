@@ -16,20 +16,14 @@
     <!-- 左栏：侧边栏分类 -->
     <scroll-view scroll-y class="menu-sidebar" style="width: 180rpx; background: #F6F5FA; height: 100%; border-right: 1rpx solid rgba(45, 41, 56, 0.05); flex-shrink: 0;">
       <view 
-        class="sidebar-item {{currentCategory === 'home' ? 'sidebar-active' : ''}}" 
+        wx:for="{{categories}}" 
+        wx:key="key"
+        class="sidebar-item {{currentCategory === item.key ? 'sidebar-active' : ''}}" 
         bindtap="switchCategory" 
-        data-cat="home"
-        style="padding: 32rpx 16rpx; font-size: 24rpx; text-align: center; color: {{currentCategory === 'home' ? '#7C69C9' : '#868095'}}; font-weight: 700; border-left: 6rpx solid {{currentCategory === 'home' ? '#7C69C9' : 'transparent'}}; background-color: {{currentCategory === 'home' ? '#ffffff' : 'transparent'}}; transition: all 0.2s ease;"
+        data-cat="{{item.key}}"
+        style="padding: 32rpx 16rpx; font-size: 24rpx; text-align: center; color: {{currentCategory === item.key ? '#7C69C9' : '#868095'}}; font-weight: 700; border-left: 6rpx solid {{currentCategory === item.key ? '#7C69C9' : 'transparent'}}; background-color: {{currentCategory === item.key ? '#ffffff' : 'transparent'}}; transition: all 0.2s ease;"
       >
-        爱心私房菜
-      </view>
-      <view 
-        class="sidebar-item {{currentCategory === 'out' ? 'sidebar-active' : ''}}" 
-        bindtap="switchCategory" 
-        data-cat="out"
-        style="padding: 32rpx 16rpx; font-size: 24rpx; text-align: center; color: {{currentCategory === 'out' ? '#7C69C9' : '#868095'}}; font-weight: 700; border-left: 6rpx solid {{currentCategory === 'out' ? '#7C69C9' : 'transparent'}}; background-color: {{currentCategory === 'out' ? '#ffffff' : 'transparent'}}; transition: all 0.2s ease;"
-      >
-        风味寻宝图
+        {{item.name}}
       </view>
     </scroll-view>
 
@@ -50,8 +44,13 @@
 
         <!-- 信息区 -->
         <view class="dish-info" style="flex: 1; min-width: 0;">
-          <view class="dish-name" style="font-size: 28rpx; font-weight: 800; color: #2D2938; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{item.name}}</view>
-          <view class="dish-desc" style="font-size: 22rpx; color: #868095; margin-top: 4rpx; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{item.tags || '主厨特色，极力推荐'}}</view>
+          <view style="display: flex; align-items: center; gap: 10rpx;">
+            <view class="dish-name" style="font-size: 28rpx; font-weight: 800; color: #2D2938; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">{{item.name}}</view>
+            <view class="dining-badge" style="font-size: 18rpx; font-weight: 700; padding: 2rpx 10rpx; border-radius: 6rpx; background: {{item.category === 'home' ? 'rgba(124, 105, 201, 0.1)' : 'rgba(255, 123, 137, 0.1)'}}; color: {{item.category === 'home' ? '#7C69C9' : '#FF7B89'}}; flex-shrink: 0;">
+              {{item.category === 'home' ? '在家吃' : '出去吃'}}
+            </view>
+          </view>
+          <view class="dish-desc" style="font-size: 22rpx; color: #868095; margin-top: 8rpx; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{item.tags || '主厨特色，极力推荐'}}</view>
         </view>
       </view>
 

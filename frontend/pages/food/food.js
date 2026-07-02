@@ -725,7 +725,7 @@ Page({
   refreshFilteredDishes() {
     const { foodList, activeCategory, cart } = this.data;
     const filteredDishes = foodList
-      .filter(item => this.getDishCategory(item) === activeCategory)
+      .filter(item => item.category === 'home' && this.getDishCategory(item) === activeCategory)
       .map(item => ({
         ...item,
         quantity: cart[item.id] || 0
