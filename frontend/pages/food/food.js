@@ -51,6 +51,15 @@ Page({
     });
 
     initSpaceSwitcher(this, () => {
+      this.setData({
+        kitchenSession: null,
+        activeSession: null,
+        selectedVoteIds: [],
+        cart: {},
+        cartCount: 0,
+        cartItems: [],
+        showConfirmModal: false
+      });
       this.checkPairStatus();
       this.fetchFoodList();
     });
@@ -83,6 +92,7 @@ Page({
         this.fetchKitchenSession();
       }
     } catch (err) {
+      this.setData({ kitchenSession: null });
       console.warn('[Food Page] 检查绑定状态失败:', err);
     }
   },
@@ -402,10 +412,9 @@ Page({
   async fetchKitchenSession() {
     try {
       const res = await request({ url: '/kitchen/active' });
-      if (res.session) {
-        this.setData({ kitchenSession: res.session });
-      }
+      this.setData({ kitchenSession: res.session || null });
     } catch (err) {
+      this.setData({ kitchenSession: null });
       console.log('[Food Page] 暂无活跃下厨订单/模拟环境');
     }
   },
@@ -491,7 +500,7 @@ Page({
         dinerNote: '',
         selectedMenuDishIndex: -1
       });
-      wx.showToast({ title: '爱心订单已发送！', icon: 'success' });
+      wx.showToast({ title: '订单已发送', icon: 'success' });
       this.autoSimulatePartnerCooking();
     }
   },
@@ -822,7 +831,7 @@ Page({
           diner_note: dinerNote
         },
         showLoading: true,
-        loadingMsg: '正在发送爱心点单...'
+        loadingMsg: '正在发送点单...'
       });
       this.setData({
         kitchenSession: res.session,

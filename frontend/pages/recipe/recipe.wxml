@@ -29,9 +29,9 @@
       <view 
         class="sidebar-item add-category-sidebar-btn" 
         bindtap="showAddCategoryDialog"
-        style="padding: 32rpx 16rpx; font-size: 22rpx; text-align: center; color: #7C69C9; font-weight: 700; border-top: 1rpx dashed rgba(124, 105, 201, 0.2); background-color: #FAF9FC; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4rpx;"
+        style="padding: 32rpx 16rpx; font-size: 22rpx; text-align: center; color: #FFFFFF; font-weight: 700; border-top: 0; background-color: #7C69C9; cursor: pointer; display: flex; align-items: center; justify-content: center;"
       >
-        <text style="font-size: 24rpx;">➕</text>新增分类
+        新增分类
       </view>
     </scroll-view>
 
@@ -88,18 +88,18 @@
     <view class="modal-mask" bindtap="hideModal"></view>
     <view class="modal-content">
       <view class="modal-header flex-row">
-        <text class="modal-title">{{isEditMode ? '📝 编辑美食信息' : '➕ 新增爱心美食'}}</text>
+        <text class="modal-title">{{isEditMode ? '编辑美食信息' : '新增美食'}}</text>
         <text class="modal-close" bindtap="hideModal">×</text>
       </view>
 
       <view class="form-body">
         <view class="form-item">
-          <text class="label">美食名称</text>
+          <text class="label">名称</text>
           <input class="input" placeholder="输入美味名称 (如: 咖喱鸡饭)" value="{{formName}}" bindinput="onInputFormName" />
         </view>
 
         <view class="form-item">
-          <text class="label">美食标签 (逗号分隔)</text>
+          <text class="label">标签</text>
           <input class="input" placeholder="输入美食特点 (如: 热腾腾,超辣)" value="{{formTags}}" bindinput="onInputFormTags" />
         </view>
 

@@ -58,16 +58,16 @@
     <view class="space-actions" style="margin-top: 24rpx; width: 100%;">
       <!-- 邀请按钮 (只限 solo 空间时展示，且需要登录) -->
       <button class="btn-invite-partner" open-type="share" data-type="invite-double" wx:if="{{currentSpace.type === 'solo'}}" style="margin-bottom: 20rpx; width: 100%; height: 84rpx; background: linear-gradient(135deg, #7C69C9, #9C8BE2); color: #ffffff; border-radius: 42rpx; font-size: 26rpx; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 6rpx 20rpx rgba(124, 105, 201, 0.2); border: none;">
-        💌 邀请好友建立双人共享空间
+        邀请好友建立双人共享空间
       </button>
 
       <!-- 加入/新建双人空间按钮组合 -->
       <view class="action-btn-row" style="display: flex; gap: 16rpx; width: 100%;">
         <button class="action-btn-pill" bindtap="handleJoinSpacePopup" style="flex: 1; height: 72rpx; border-radius: 36rpx; background: #FAF9FC; color: #7C69C9; border: 1rpx solid rgba(124, 105, 201, 0.25); font-size: 24rpx; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 2rpx 6rpx rgba(124, 105, 201, 0.02); padding: 0; min-height: 72rpx; line-height: 72rpx;">
-          🔑 加入已有空间
+          加入已有空间
         </button>
         <button class="action-btn-pill" bindtap="handleCreateSpacePopup" style="flex: 1; height: 72rpx; border-radius: 36rpx; background: #FAF9FC; color: #7C69C9; border: 1rpx solid rgba(124, 105, 201, 0.25); font-size: 24rpx; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 2rpx 6rpx rgba(124, 105, 201, 0.02); padding: 0; min-height: 72rpx; line-height: 72rpx;">
-          ✨ 新建双人空间
+          新建空间
         </button>
       </view>
 

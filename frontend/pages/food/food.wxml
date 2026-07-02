@@ -139,24 +139,17 @@
         </view>
         
         <!-- 底部浮动购物车条 -->
-        <view class="menu-cart-bar flex-row" wx:if="{{cartCount > 0}}" style="display: flex; justify-content: space-between; align-items: center; padding: 24rpx; background: #FAF9FC; border-radius: 0 0 24rpx 24rpx;">
-          <view class="cart-left flex-row" style="display: flex; align-items: center; gap: 16rpx;">
-            <view class="cart-icon-box" style="position: relative;">
-              <text class="cart-icon" style="font-size: 44rpx;">🛒</text>
-              <view class="cart-badge" style="position: absolute; top: -10rpx; right: -10rpx; min-width: 32rpx; height: 32rpx; border-radius: 50%; background: #E9C46A; color: #ffffff; font-size: 20rpx; font-weight: bold; display: flex; align-items: center; justify-content: center; padding: 0 4rpx; box-sizing: border-box;">{{cartCount}}</view>
-            </view>
-            <text class="cart-summary" style="font-size: 26rpx; font-weight: 800; color: #2D2938;">已选 {{cartCount}} 道菜肴</text>
-          </view>
-          <button class="btn btn-primary cart-checkout-btn" hover-class="btn-primary-hover" bindtap="showOrderModal" style="margin: 0; padding: 0 40rpx; height: 68rpx; line-height: 68rpx; font-size: 26rpx; min-height: 0; box-shadow: 0 4rpx 10rpx rgba(124, 105, 201, 0.2);">去下单</button>
+        <view class="menu-cart-bar flex-row" wx:if="{{cartCount > 0}}" style="display: flex; justify-content: center; align-items: center; padding: 24rpx; background: #FAF9FC; border-radius: 0 0 24rpx 24rpx;">
+          <button class="btn btn-primary cart-checkout-btn" hover-class="btn-primary-hover" bindtap="showOrderModal" style="margin: 0; width: 100%; padding: 0 40rpx; height: 68rpx; line-height: 68rpx; font-size: 26rpx; min-height: 0; box-shadow: 0 4rpx 10rpx rgba(124, 105, 201, 0.2);">去下单</button>
         </view>
       </view>
 
       <!-- 收银台下单确认弹窗 -->
-      <view class="order-confirm-modal" wx:if="{{showConfirmModal}}" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 1000; display: flex; align-items: flex-end; justify-content: center;">
+      <view class="order-confirm-modal" wx:if="{{showConfirmModal}}" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 32rpx; box-sizing: border-box;">
         <view class="modal-mask" bindtap="hideOrderModal" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(45, 41, 56, 0.6); backdrop-filter: blur(4px);"></view>
-        <view class="modal-content card" style="position: relative; width: 100%; max-width: 600rpx; background: #ffffff; border-radius: 36rpx 36rpx 0 0; padding: 36rpx; box-shadow: 0 -8rpx 32rpx rgba(45, 41, 56, 0.08); margin-bottom: 0;">
+        <view class="modal-content card" style="position: relative; width: 100%; max-width: 600rpx; background: #ffffff; border-radius: 32rpx; padding: 36rpx; box-shadow: 0 16rpx 48rpx rgba(45, 41, 56, 0.16); margin-bottom: 0;">
           <view class="modal-header flex-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24rpx;">
-            <text class="modal-title" style="font-size: 32rpx; font-weight: 900; color: #2D2938;">确认您的爱心餐单</text>
+            <text class="modal-title" style="font-size: 32rpx; font-weight: 900; color: #2D2938;">确认您的餐单</text>
             <text class="modal-close" bindtap="hideOrderModal" style="font-size: 40rpx; color: #868095; padding: 10rpx; line-height: 1;">×</text>
           </view>
           
@@ -172,7 +165,7 @@
             <input class="form-input" placeholder="输入点单留言偏好需求..." value="{{dinerNote}}" bindinput="onInputDinerNote" />
           </view>
 
-          <button class="btn btn-primary" hover-class="btn-primary-hover" bindtap="submitCartOrder" style="margin-top: 36rpx; width: 100%;">确认发送给大厨 🍳</button>
+          <button class="btn btn-primary" hover-class="btn-primary-hover" bindtap="submitCartOrder" style="margin-top: 36rpx; width: 100%;">确认发送给大厨</button>
         </view>
       </view>
 
@@ -181,7 +174,7 @@
         
         <!-- 状态 1: diner已下单，等待chef接单 -->
         <view class="card kitchen-state-card" wx:if="{{kitchenSession.status === 'ordered'}}">
-          <view class="card-title">💌 爱心订单已送达</view>
+          <view class="card-title">订单已送达</view>
           
           <view class="dish-detail-box" style="padding: 24rpx; background: #FAF9FC; border-radius: 20rpx; border: 1rpx solid rgba(45, 41, 56, 0.04); margin-bottom: 32rpx;">
             <view class="dish-name-tag" style="font-size: 32rpx; font-weight: 900; color: #7C69C9; margin-bottom: 10rpx;">🍜 {{kitchenSession.dish_name}}</view>
@@ -190,7 +183,6 @@
 
           <!-- Diner 视图 -->
           <view class="text-center" wx:if="{{kitchenSession.diner_id === userInfo.id}}">
-            <view class="cooking-heart-loader" style="font-size: 88rpx; margin: 36rpx 0; animation: heartBeatPulse 1s infinite alternate ease-in-out; display: inline-block;">💖</view>
             <text class="text-muted block-hint" style="display: block; margin-top: 12rpx;">订单已送达，大厨接单中 🍳...</text>
             <button class="btn btn-secondary" hover-class="btn-secondary-hover" bindtap="cancelOrder" style="margin-top:24rpx;">取消点单</button>
           </view>

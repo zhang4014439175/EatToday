@@ -313,7 +313,8 @@
   background: #FAF9FC;
   border: 1rpx solid rgba(45, 41, 56, 0.08);
   border-radius: 16rpx;
-  padding: 16rpx 24rpx;
+  min-height: 84rpx;
+  padding: 20rpx 24rpx;
   font-size: 26rpx;
   color: #2D2938;
   width: 100%;

@@ -157,7 +157,7 @@ Page({
    */
   handleCreateSpacePopup() {
     wx.showModal({
-      title: '新建双人空间',
+      title: '新建空间',
       placeholderText: '请输入空间名称 (最多2人)',
       editable: true,
       success: async (res) => {
