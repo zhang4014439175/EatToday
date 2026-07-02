@@ -23,6 +23,16 @@ Page({
     calendarExpanded: false
   },
 
+  onLoad(options) {
+    if (options && options.inviteSenderId) {
+      const app = getApp();
+      app.globalData.pendingInvite = {
+        senderId: options.inviteSenderId,
+        senderName: decodeURIComponent(options.inviteSenderName || '好友')
+      };
+    }
+  },
+
   onShow() {
     this.checkLoginStatus();
     this.initCalendar();
@@ -59,9 +69,61 @@ Page({
 
       this.calculateLoveDays(user);
       this.fetchTodayDashboard();
+      this.checkPendingInvite();
     } catch (err) {
       console.error('[Home Page] 刷新失败:', err);
     }
+  },
+
+  /**
+   * 检查并处理挂起的双人空间加入邀请
+   */
+  async checkPendingInvite() {
+    const app = getApp();
+    const pending = app.globalData?.pendingInvite;
+    if (!pending || !pending.senderId) return;
+
+    const { senderId, senderName } = pending;
+    
+    if (Number(senderId) === Number(this.data.userInfo?.id)) {
+      app.globalData.pendingInvite = null;
+      return;
+    }
+
+    app.globalData.pendingInvite = null;
+
+    wx.showModal({
+      title: '双人共享空间邀请',
+      content: `「${senderName}」邀请你一起建立双人共享空间，建立后将自动设为你们的默认工作空间，是否同意？`,
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            wx.showLoading({ title: '正在建立空间...' });
+            const result = await request({
+              url: '/spaces/accept-invite',
+              method: 'POST',
+              data: { senderId }
+            });
+            wx.hideLoading();
+            if (result.success) {
+              wx.showToast({ title: '双人空间建立成功', icon: 'success' });
+              this.checkLoginStatus();
+              
+              const pages = getCurrentPages();
+              const profilePage = pages.find(p => p.route === 'pages/profile/profile');
+              if (profilePage && typeof profilePage.loadProfileData === 'function') {
+                profilePage.loadProfileData();
+              }
+            } else {
+              wx.showToast({ title: result.message || '接受邀请失败', icon: 'none' });
+            }
+          } catch (err) {
+            wx.hideLoading();
+            wx.showToast({ title: err.message || '接受邀请失败', icon: 'none' });
+          }
+        }
+      }
+    });
   },
 
   /**

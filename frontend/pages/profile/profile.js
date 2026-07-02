@@ -152,57 +152,75 @@ Page({
     });
   },
 
-  switchActionTab(e) {
-    const tab = e.currentTarget.dataset.tab;
-    this.setData({ activeTab: tab });
-  },
-
-  onInputSpaceCode(e) {
-    this.setData({ inputSpaceCode: e.detail.value });
-  },
-
-  onInputSpaceName(e) {
-    this.setData({ inputSpaceName: e.detail.value });
+  /**
+   * 弹出式新建双人空间
+   */
+  handleCreateSpacePopup() {
+    wx.showModal({
+      title: '新建双人空间',
+      placeholderText: '请输入空间名称 (最多2人)',
+      editable: true,
+      success: async (res) => {
+        if (res.confirm && res.content) {
+          const name = res.content.trim();
+          if (!name) return;
+          try {
+            wx.showLoading({ title: '正在创建...' });
+            await createSpace(name);
+            wx.hideLoading();
+            wx.showToast({ title: '空间创建成功', icon: 'success' });
+            this.loadProfileData();
+          } catch (err) {
+            wx.hideLoading();
+            wx.showToast({ title: err.message || '创建空间失败', icon: 'none' });
+          }
+        }
+      }
+    });
   },
 
   /**
-   * 创建新空间
+   * 弹出式加入已有空间
    */
-  async handleCreateSpace() {
-    const name = this.data.inputSpaceName.trim();
-    if (!name) {
-      wx.showToast({ title: '请输入空间名称', icon: 'none' });
-      return;
-    }
-
-    try {
-      await createSpace(name);
-      wx.showToast({ title: '空间创建成功', icon: 'success' });
-      this.setData({ inputSpaceName: '' });
-      this.loadProfileData();
-    } catch (err) {
-      wx.showToast({ title: err.message || '创建空间失败', icon: 'none' });
-    }
+  handleJoinSpacePopup() {
+    wx.showModal({
+      title: '加入已有空间',
+      placeholderText: '请输入6位邀请码',
+      editable: true,
+      success: async (res) => {
+        if (res.confirm && res.content) {
+          const code = res.content.trim().toUpperCase();
+          if (!code) return;
+          try {
+            wx.showLoading({ title: '正在加入...' });
+            await joinSpace(code);
+            wx.hideLoading();
+            wx.showToast({ title: '成功加入空间', icon: 'success' });
+            this.loadProfileData();
+          } catch (err) {
+            wx.hideLoading();
+            wx.showToast({ title: err.message || '加入空间失败', icon: 'none' });
+          }
+        }
+      }
+    });
   },
 
   /**
-   * 加入已有的群组空间
+   * 用户点击分享，支持分享邀请卡片
    */
-  async handleJoinSpace() {
-    const code = this.data.inputSpaceCode.trim();
-    if (!code) {
-      wx.showToast({ title: '请输入空间邀请码', icon: 'none' });
-      return;
+  onShareAppMessage(res) {
+    if (res.from === 'button' && res.target.dataset.type === 'invite-double') {
+      const userInfo = this.data.userInfo || {};
+      return {
+        title: `${userInfo.nickname || '我'} 邀请你一起建立双人共享空间，一起规划吃什么去哪玩！`,
+        path: `/pages/home/home?inviteSenderId=${userInfo.id}&inviteSenderName=${encodeURIComponent(userInfo.nickname || '用户')}`,
+      };
     }
-
-    try {
-      await joinSpace(code);
-      wx.showToast({ title: '成功加入空间', icon: 'success' });
-      this.setData({ inputSpaceCode: '' });
-      this.loadProfileData();
-    } catch (err) {
-      wx.showToast({ title: err.message || '加入空间失败', icon: 'none' });
-    }
+    return {
+      title: '今天吃什么？去哪玩？好友共同协作决策小助手',
+      path: '/pages/home/home'
+    };
   },
 
   /**

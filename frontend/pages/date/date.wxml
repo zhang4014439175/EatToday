@@ -73,7 +73,7 @@
 
       <!-- 待确认状态下的撤销栏 (自己发起的) -->
       <view class="action-bar flex-row flex-between" wx:if="{{item.status === 'pending' && item.created_by === userInfo.id}}">
-        <text class="text-muted">等待伴侣确认中...</text>
+        <text class="text-muted">等待对方确认中...</text>
         <button class="action-btn cancel-btn" bindtap="cancelProposal" data-id="{{item.id}}">撤回</button>
       </view>
     </view>

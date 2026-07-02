@@ -122,8 +122,8 @@ router.post('/join', authMiddleware, async (req, res, next) => {
     );
     const count = memberCountRow.count;
 
-    if (count >= 5) {
-      return res.status(400).json({ error: 'LimitExceeded', message: '该好友群组已满员（限 5 人）' });
+    if (count >= 2) {
+      return res.status(400).json({ error: 'LimitExceeded', message: '该空间已满员（限 2 人）' });
     }
 
     const now = new Date().toISOString();
@@ -341,6 +341,100 @@ router.post('/leave', authMiddleware, async (req, res, next) => {
     await db.run('COMMIT');
 
     res.json({ message: '成功退出该空间' });
+  } catch (error) {
+    const db = getDB();
+    try { await db.run('ROLLBACK'); } catch (_) {}
+    next(error);
+  }
+});
+
+/**
+ * 接受好友的邀请，创建双人空间并将其设置为两人的默认空间
+ * POST /api/spaces/accept-invite
+ */
+router.post('/accept-invite', authMiddleware, async (req, res, next) => {
+  const { senderId } = req.body;
+  const inviteeId = req.user.id;
+
+  if (!senderId) {
+    return res.status(400).json({ error: 'ValidationError', message: '缺少邀请人 ID' });
+  }
+
+  if (Number(senderId) === Number(inviteeId)) {
+    return res.status(400).json({ error: 'ValidationError', message: '不能与自己建立双人空间' });
+  }
+
+  try {
+    const db = getDB();
+    const now = new Date().toISOString();
+
+    // 1. 查询邀请人
+    const sender = await db.get('SELECT id, nickname FROM users WHERE id = ?', [senderId]);
+    if (!sender) {
+      return res.status(404).json({ error: 'NotFound', message: '找不到邀请人' });
+    }
+
+    const invitee = req.user;
+
+    // 2. 检查两者是否已经在一个双人空间里
+    const commonSpace = await db.get(
+      `SELECT sm1.space_id 
+       FROM space_members sm1
+       JOIN space_members sm2 ON sm1.space_id = sm2.space_id
+       JOIN spaces s ON s.id = sm1.space_id
+       WHERE sm1.user_id = ? AND sm2.user_id = ? AND s.type = 'group'`,
+      [senderId, inviteeId]
+    );
+
+    if (commonSpace) {
+      // 已经存在共同空间，直接将其都切换为默认活跃空间即可
+      await db.run('UPDATE users SET current_space_id = ? WHERE id = ?', [commonSpace.space_id, senderId]);
+      await db.run('UPDATE users SET current_space_id = ? WHERE id = ?', [commonSpace.space_id, inviteeId]);
+      
+      return res.status(200).json({
+        success: true,
+        message: '你们已经是共同空间成员，已自动设置为默认空间',
+        spaceId: commonSpace.space_id
+      });
+    }
+
+    // 3. 创建新的双人空间 (type: 'group'，最大限制2人)
+    const code = await generateUniqueSpaceCode(db);
+    const spaceName = `${sender.nickname || '用户'} & ${invitee.nickname || '用户'} 的双人空间`;
+
+    await db.run('BEGIN TRANSACTION');
+
+    const spaceResult = await db.run(
+      'INSERT INTO spaces (name, code, type, created_by, created_at) VALUES (?, ?, ?, ?, ?)',
+      [spaceName, code, 'group', senderId, now]
+    );
+    const spaceId = spaceResult.lastID;
+
+    // 4. 将两人作为成员加入此空间
+    await db.run(
+      'INSERT INTO space_members (space_id, user_id, role, joined_at) VALUES (?, ?, ?, ?)',
+      [spaceId, senderId, 'admin', now]
+    );
+    await db.run(
+      'INSERT INTO space_members (space_id, user_id, role, joined_at) VALUES (?, ?, ?, ?)',
+      [spaceId, inviteeId, 'member', now]
+    );
+
+    // 预置默认菜品和玩乐
+    await seedDefaultFoods(db, spaceId, senderId);
+    await seedDefaultWishlist(db, spaceId, senderId);
+
+    // 5. 设置为两人的 current_space_id
+    await db.run('UPDATE users SET current_space_id = ? WHERE id = ?', [spaceId, senderId]);
+    await db.run('UPDATE users SET current_space_id = ? WHERE id = ?', [spaceId, inviteeId]);
+
+    await db.run('COMMIT');
+
+    return res.status(201).json({
+      success: true,
+      message: '双人空间创建成功！',
+      spaceId
+    });
   } catch (error) {
     const db = getDB();
     try { await db.run('ROLLBACK'); } catch (_) {}
