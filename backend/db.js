@@ -202,6 +202,7 @@ async function initDBOnce(canRecoverEmptyDb) {
       CREATE TABLE IF NOT EXISTS date_wishlist (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
+        tags TEXT,
         custom_category TEXT,
         created_by INTEGER NOT NULL,
         created_at TEXT NOT NULL,
@@ -282,6 +283,9 @@ async function initDBOnce(canRecoverEmptyDb) {
     } catch (e) {}
     try {
       await db.run('ALTER TABLE date_wishlist ADD COLUMN custom_category TEXT;');
+    } catch (e) {}
+    try {
+      await db.run('ALTER TABLE date_wishlist ADD COLUMN tags TEXT;');
     } catch (e) {}
 
     // 创建核心字段索引，提高查询性能

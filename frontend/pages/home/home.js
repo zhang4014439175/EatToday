@@ -24,12 +24,20 @@ Page({
   },
 
   onLoad(options) {
-    if (options && options.inviteSenderId) {
-      const app = getApp();
-      app.globalData.pendingInvite = {
-        senderId: options.inviteSenderId,
-        senderName: decodeURIComponent(options.inviteSenderName || '好友')
-      };
+    if (options) {
+      if (options.inviteSenderId) {
+        const app = getApp();
+        app.globalData.pendingInvite = {
+          senderId: options.inviteSenderId,
+          senderName: decodeURIComponent(options.inviteSenderName || '好友')
+        };
+      } else if (options.inviteSpaceCode) {
+        const app = getApp();
+        app.globalData.pendingSpaceJoin = {
+          code: options.inviteSpaceCode,
+          name: decodeURIComponent(options.inviteSpaceName || '共享空间')
+        };
+      }
     }
   },
 
@@ -76,10 +84,49 @@ Page({
   },
 
   /**
-   * 检查并处理挂起的双人空间加入邀请
+   * 检查并处理挂起的双人空间或共享空间加入邀请
    */
   async checkPendingInvite() {
     const app = getApp();
+    
+    // 1. 处理共享空间加入邀请
+    const pendingJoin = app.globalData?.pendingSpaceJoin;
+    if (pendingJoin && pendingJoin.code) {
+      const { code, name } = pendingJoin;
+      app.globalData.pendingSpaceJoin = null; // 清空挂起防多次弹窗
+      
+      wx.showModal({
+        title: '加入共享空间',
+        content: `是否同意加入共享空间「${name}」？加入后该空间将自动设为您的默认活跃空间。`,
+        success: async (res) => {
+          if (res.confirm) {
+            try {
+              wx.showLoading({ title: '正在加入空间...' });
+              await request({
+                url: '/spaces/join',
+                method: 'POST',
+                data: { code }
+              });
+              wx.hideLoading();
+              wx.showToast({ title: '成功加入空间', icon: 'success' });
+              this.checkLoginStatus();
+              
+              const pages = getCurrentPages();
+              const profilePage = pages.find(p => p.route === 'pages/profile/profile');
+              if (profilePage && typeof profilePage.loadProfileData === 'function') {
+                profilePage.loadProfileData();
+              }
+            } catch (err) {
+              wx.hideLoading();
+              wx.showToast({ title: err.message || '加入空间失败', icon: 'none' });
+            }
+          }
+        }
+      });
+      return;
+    }
+
+    // 2. 处理新建双人空间邀请
     const pending = app.globalData?.pendingInvite;
     if (!pending || !pending.senderId) return;
 

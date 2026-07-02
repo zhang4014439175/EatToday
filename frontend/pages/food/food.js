@@ -619,6 +619,7 @@ Page({
    * 自动模拟伴侣下厨接单行为 (Mock 演示专用)
    */
   autoSimulatePartnerCooking() {
+    if (this.data.currentSpace?.type === 'solo') return; // 个人空间无需模拟对方接单
     setTimeout(() => {
       const { kitchenSession } = this.data;
       if (kitchenSession && kitchenSession.status === 'ordered') {
@@ -626,7 +627,7 @@ Page({
         this.setData({ kitchenSession: session });
         wx.showModal({
           title: '🍳 大厨接单',
-          content: '伴侣已经看到您的点单需求，开始在厨房为您忙碌啦！',
+          content: '对方已经看到您的点单需求，开始在厨房为您忙碌啦！',
           showCancel: false
         });
       }
@@ -634,21 +635,22 @@ Page({
   },
 
   /**
-   * 自动模拟伴侣吃完好评行为 (Mock 演示专用)
+   * 自动模拟对方吃完好评行为 (Mock 演示专用)
    */
   autoSimulatePartnerEating() {
+    if (this.data.currentSpace?.type === 'solo') return; // 个人空间无需模拟对方品尝
     setTimeout(() => {
       const { kitchenSession } = this.data;
       if (kitchenSession && kitchenSession.status === 'served') {
         const session = {
           ...kitchenSession,
           status: 'eaten',
-          praise: '简直是人间美味！宝贝下厨太辛苦啦，给你一百个赞！❤️'
+          praise: '简直是人间美味！下厨辛苦啦，给你一百个赞！❤️'
         };
         this.setData({ kitchenSession: session });
         wx.showModal({
-          title: '😋 伴侣评价',
-          content: '伴侣尝过你做的饭了！发来好评：“简直是人间美味！宝贝下厨太辛苦啦，给你一百个赞！❤️”',
+          title: '😋 评价反馈',
+          content: '对方尝过你做的饭了！发来好评：“简直是人间美味！下厨辛苦啦，给你一百个赞！”',
           showCancel: false
         });
       }
@@ -842,7 +844,7 @@ Page({
         dinerNote: ''
       });
       this.refreshFilteredDishes();
-      this.autoSimulateCooking();
+      this.autoSimulatePartnerCooking();
     } catch (err) {
       // Mock 下单
       const session = {
@@ -866,7 +868,7 @@ Page({
         dinerNote: ''
       });
       this.refreshFilteredDishes();
-      this.autoSimulateCooking();
+      this.autoSimulatePartnerCooking();
     }
   }
 });

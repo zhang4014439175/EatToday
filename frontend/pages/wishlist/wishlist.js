@@ -14,6 +14,7 @@ Page({
     isEditMode: false,
     formId: null,
     formName: '',
+    formTags: '',
     formCustomCategory: ''
   },
 
@@ -162,6 +163,7 @@ Page({
         isEditMode: true,
         formId: item.id,
         formName: item.name,
+        formTags: item.tags || '',
         formCustomCategory: item.custom_category || this.getWishCategory(item)
       });
     }
@@ -176,6 +178,7 @@ Page({
       isEditMode: false,
       formId: null,
       formName: '',
+      formTags: '',
       formCustomCategory: this.data.currentCategory
     });
   },
@@ -189,12 +192,17 @@ Page({
       isEditMode: false,
       formId: null,
       formName: '',
+      formTags: '',
       formCustomCategory: ''
     });
   },
 
   onInputFormName(e) {
     this.setData({ formName: e.detail.value });
+  },
+
+  onInputFormTags(e) {
+    this.setData({ formTags: e.detail.value });
   },
 
   /**
@@ -251,7 +259,7 @@ Page({
    * 提交表单 (新增/更新)
    */
   async submitForm() {
-    const { isEditMode, formId, formName, formCustomCategory, wishlist } = this.data;
+    const { isEditMode, formId, formName, formTags, formCustomCategory, wishlist } = this.data;
     if (!formName.trim()) {
       wx.showToast({ title: '项目名称不能为空', icon: 'none' });
       return;
@@ -265,6 +273,7 @@ Page({
 
     const payload = {
       name: formName.trim(),
+      tags: formTags.trim(),
       custom_category: formCustomCategory
     };
 
@@ -304,6 +313,7 @@ Page({
         const newWish = {
           id: Date.now(),
           name: formName.trim(),
+          tags: formTags.trim(),
           custom_category: formCustomCategory
         };
         newList = [newWish, ...wishlist];

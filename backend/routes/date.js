@@ -469,7 +469,7 @@ router.post('/wishlist/categories', authMiddleware, async (req, res, next) => {
  * POST /api/date/wishlist
  */
 router.post('/wishlist', authMiddleware, async (req, res, next) => {
-  const { name, custom_category } = req.body;
+  const { name, tags, custom_category } = req.body;
   const user = req.user;
 
   if (!name || !name.trim()) {
@@ -494,8 +494,8 @@ router.post('/wishlist', authMiddleware, async (req, res, next) => {
     }
 
     const result = await db.run(
-      'INSERT INTO date_wishlist (name, custom_category, created_by, space_id, created_at) VALUES (?, ?, ?, ?, ?)',
-      [name.trim(), custom_category || null, user.id, user.current_space_id, now]
+      'INSERT INTO date_wishlist (name, tags, custom_category, created_by, space_id, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+      [name.trim(), tags || '', custom_category || null, user.id, user.current_space_id, now]
     );
 
     const newWish = await db.get('SELECT * FROM date_wishlist WHERE id = ?', [result.lastID]);
@@ -563,7 +563,7 @@ router.post('/wishlist/seed-defaults', authMiddleware, async (req, res, next) =>
  */
 router.put('/wishlist/:id', authMiddleware, async (req, res, next) => {
   const id = req.params.id;
-  const { name, custom_category } = req.body;
+  const { name, tags, custom_category } = req.body;
   const user = req.user;
 
   if (!name || !name.trim()) {
@@ -592,8 +592,8 @@ router.put('/wishlist/:id', authMiddleware, async (req, res, next) => {
     }
 
     await db.run(
-      'UPDATE date_wishlist SET name = ?, custom_category = ? WHERE id = ?',
-      [name.trim(), custom_category || null, id]
+      'UPDATE date_wishlist SET name = ?, tags = ?, custom_category = ? WHERE id = ?',
+      [name.trim(), tags || '', custom_category || null, id]
     );
 
     return res.status(200).json({ success: true, message: '愿望修改成功' });

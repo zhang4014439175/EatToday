@@ -50,12 +50,15 @@ router.post('/order', authMiddleware, async (req, res, next) => {
     const db = getDB();
     const now = new Date().toISOString();
 
-    // 如果未指定大厨且空间里只有2个人，自动选择另一个人作为大厨
+    // 如果未指定大厨
     if (!chef_id) {
       const members = await db.all('SELECT user_id FROM space_members WHERE space_id = ?', [user.current_space_id]);
       if (members.length === 2) {
         const other = members.find(m => m.user_id !== user.id);
         if (other) chef_id = other.user_id;
+      } else if (members.length === 1) {
+        // 如果是个人空间，大厨就是自己
+        chef_id = user.id;
       }
     }
 

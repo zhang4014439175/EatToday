@@ -210,12 +210,20 @@ Page({
    * 用户点击分享，支持分享邀请卡片
    */
   onShareAppMessage(res) {
-    if (res.from === 'button' && res.target.dataset.type === 'invite-double') {
+    if (res.from === 'button') {
       const userInfo = this.data.userInfo || {};
-      return {
-        title: `${userInfo.nickname || '我'} 邀请你一起建立双人共享空间，一起规划吃什么去哪玩！`,
-        path: `/pages/home/home?inviteSenderId=${userInfo.id}&inviteSenderName=${encodeURIComponent(userInfo.nickname || '用户')}`,
-      };
+      const currentSpace = this.data.currentSpace || {};
+      if (res.target.dataset.type === 'invite-double') {
+        return {
+          title: `${userInfo.nickname || '我'} 邀请你一起建立双人共享空间，一起规划吃什么去哪玩！`,
+          path: `/pages/home/home?inviteSenderId=${userInfo.id}&inviteSenderName=${encodeURIComponent(userInfo.nickname || '用户')}`,
+        };
+      } else if (res.target.dataset.type === 'invite-to-space') {
+        return {
+          title: `${userInfo.nickname || '我'} 邀请你加入共享空间「${currentSpace.name || '我们的空间'}」！`,
+          path: `/pages/home/home?inviteSpaceCode=${currentSpace.code}&inviteSpaceName=${encodeURIComponent(currentSpace.name || '空间')}`,
+        };
+      }
     }
     return {
       title: '今天吃什么？去哪玩？好友共同协作决策小助手',
