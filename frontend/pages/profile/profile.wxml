@@ -82,14 +82,6 @@
       <view class="leave-box" wx:if="{{currentSpace.type !== 'solo'}}">
         <text class="leave-link" bindtap="handleLeaveCurrentSpace">退出当前空间</text>
       </view>
-    </view>it" bindtap="handleCreateSpace">创建</button>
-        </view>
-      </view>
-      
-      <!-- 退出当前空间 (只限非 solo 空间) -->
-      <view class="leave-box" wx:if="{{currentSpace.type !== 'solo'}}">
-        <text class="leave-link" bindtap="handleLeaveCurrentSpace">退出当前空间</text>
-      </view>
     </view>
   </view>
 
