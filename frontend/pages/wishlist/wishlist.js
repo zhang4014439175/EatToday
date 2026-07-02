@@ -3,6 +3,8 @@ const { request } = require('../../utils/request');
 Page({
   data: {
     wishlist: [],
+    filteredWishlist: [],
+    currentCategory: 'outdoor',
     isBatchMode: false,
     selectedCount: 0,
     
@@ -22,6 +24,31 @@ Page({
   },
 
   /**
+   * 游玩灵感分类过滤器
+   */
+  filterWishlist(rawList, category) {
+    const outdoorKeywords = ['山', '车', '游', '步', '跑', '鱼', '野', '海', '园', '露营', '徒步', '骑行', '旅行', '爬', '骑'];
+    return rawList.filter(item => {
+      const isOut = outdoorKeywords.some(keyword => item.name.includes(keyword));
+      return category === 'outdoor' ? isOut : !isOut;
+    });
+  },
+
+  /**
+   * 切换品类分类
+   */
+  switchCategory(e) {
+    const cat = e.currentTarget.dataset.cat;
+    const filtered = this.filterWishlist(this.data.wishlist, cat);
+    this.setData({
+      currentCategory: cat,
+      filteredWishlist: filtered,
+      isBatchMode: false,
+      selectedCount: 0
+    });
+  },
+
+  /**
    * 拉取灵感清单数据
    */
   async fetchWishlist() {
@@ -34,8 +61,11 @@ Page({
         selected: false
       }));
 
+      const filtered = this.filterWishlist(processedWishes, this.data.currentCategory);
+
       this.setData({
         wishlist: processedWishes,
+        filteredWishlist: filtered,
         isBatchMode: false,
         selectedCount: 0
       });
@@ -49,8 +79,11 @@ Page({
         { id: 5, name: '唱歌' },
         { id: 6, name: '打牌' }
       ];
+      const processed = mockList.map(item => ({ ...item, selected: false }));
+      const filtered = this.filterWishlist(processed, this.data.currentCategory);
       this.setData({
-        wishlist: mockList.map(item => ({ ...item, selected: false })),
+        wishlist: processed,
+        filteredWishlist: filtered,
         isBatchMode: false,
         selectedCount: 0
       });
@@ -63,9 +96,11 @@ Page({
   toggleBatchMode() {
     const isMode = !this.data.isBatchMode;
     const resetList = this.data.wishlist.map(item => ({ ...item, selected: false }));
+    const filtered = this.filterWishlist(resetList, this.data.currentCategory);
     this.setData({
       isBatchMode: isMode,
       wishlist: resetList,
+      filteredWishlist: filtered,
       selectedCount: 0
     });
   },
@@ -75,7 +110,7 @@ Page({
    */
   onCardClick(e) {
     const item = e.currentTarget.dataset.item;
-    const { isBatchMode, wishlist } = this.data;
+    const { isBatchMode, wishlist, currentCategory } = this.data;
 
     if (isBatchMode) {
       // 批量管理模式：反选状态
@@ -85,9 +120,11 @@ Page({
         }
         return w;
       });
+      const filtered = this.filterWishlist(newList, currentCategory);
       const selectedCount = newList.filter(w => w.selected).length;
       this.setData({
         wishlist: newList,
+        filteredWishlist: filtered,
         selectedCount
       });
     } else {
@@ -172,18 +209,22 @@ Page({
     } catch (err) {
       console.error('[Wishlist Page] 保存失败:', err);
       // Fallback
+      let newList;
       if (isEditMode) {
-        const newList = wishlist.map(w => {
+        newList = wishlist.map(w => {
           if (w.id === formId) {
             w.name = formName;
           }
           return w;
         });
-        this.setData({ wishlist: newList });
       } else {
-        const newList = [...wishlist, { id: Date.now(), name: formName, selected: false }];
-        this.setData({ wishlist: newList });
+        newList = [...wishlist, { id: Date.now(), name: formName, selected: false }];
       }
+      const filtered = this.filterWishlist(newList, this.data.currentCategory);
+      this.setData({ 
+        wishlist: newList,
+        filteredWishlist: filtered
+      });
       this.hideModal();
     }
   },
@@ -198,7 +239,7 @@ Page({
 
     wx.showModal({
       title: '确认删除',
-      content: `确定要删除这 ${selectedIds.length} 个趣玩项目吗？`,
+      content: `确定要删除这 ${selectedIds.length} 个游玩项目吗？`,
       success: async (res) => {
         if (res.confirm) {
           wx.showLoading({ title: '正在删除...' });
@@ -218,8 +259,10 @@ Page({
             console.error('[Wishlist Page] 批量删除失败:', err);
             // Mock 删除
             const newList = wishlist.filter(w => !selectedIds.includes(w.id));
+            const filtered = this.filterWishlist(newList, this.data.currentCategory);
             this.setData({
               wishlist: newList,
+              filteredWishlist: filtered,
               isBatchMode: false,
               selectedCount: 0
             });
@@ -267,7 +310,11 @@ Page({
         }
       });
       
-      this.setData({ wishlist: newList });
+      const filtered = this.filterWishlist(newList, this.data.currentCategory);
+      this.setData({ 
+        wishlist: newList,
+        filteredWishlist: filtered
+      });
       wx.showToast({ title: '导入成功', icon: 'success' });
     }
   },

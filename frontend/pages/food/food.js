@@ -30,11 +30,11 @@ Page({
     praiseNote: '',
     selectedMenuDishIndex: -1,
     categories: [
-      { key: 'signature', name: '⭐ 拿手菜' },
-      { key: 'hot', name: '🍲 热腾腾' },
-      { key: 'soup', name: '🥣 靓汤水' },
-      { key: 'staple', name: '🍚 主食面' },
-      { key: 'others', name: '💡 随便吃' }
+      { key: 'signature', name: '拿手菜' },
+      { key: 'hot', name: '热腾腾' },
+      { key: 'soup', name: '靓汤水' },
+      { key: 'staple', name: '主食面' },
+      { key: 'others', name: '随便吃' }
     ],
     activeCategory: 'signature',
     cart: {},

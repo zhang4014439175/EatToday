@@ -448,23 +448,23 @@ async function migrateToMultiSpace(db) {
 export async function seedDefaultFoods(db, spaceId, userId) {
   const defaultFoods = [
     // 在家吃 (home)
-    { name: '西红柿炒鸡蛋 🍅🍳', category: 'home', tags: '快手菜,酸甜' },
-    { name: '鱼香肉丝 🥕🐖', category: 'home', tags: '川菜,下饭' },
-    { name: '红烧肉 🥩', category: 'home', tags: '本帮菜,大荤' },
-    { name: '可乐鸡翅 🍗', category: 'home', tags: '甜口,小吃' },
-    { name: '宫保鸡丁 🥜', category: 'home', tags: '川菜,微辣' },
-    { name: '酸菜鱼 🐟', category: 'home', tags: '酸辣,大菜' },
-    { name: '麻婆豆腐 🌶️', category: 'home', tags: '川菜,麻辣' },
-    { name: '清炒时蔬 🥬', category: 'home', tags: '素菜,清淡' },
+    { name: '西红柿炒鸡蛋', category: 'home', tags: '快手菜,酸甜' },
+    { name: '鱼香肉丝', category: 'home', tags: '川菜,下饭' },
+    { name: '红烧肉', category: 'home', tags: '本帮菜,大荤' },
+    { name: '可乐鸡翅', category: 'home', tags: '甜口,小吃' },
+    { name: '宫保鸡丁', category: 'home', tags: '川菜,微辣' },
+    { name: '酸菜鱼', category: 'home', tags: '酸辣,大菜' },
+    { name: '麻婆豆腐', category: 'home', tags: '川菜,麻辣' },
+    { name: '清炒时蔬', category: 'home', tags: '素菜,清淡' },
 
     // 出去吃 (out)
-    { name: '四川火锅 🍲', category: 'out', tags: '聚餐,麻辣' },
-    { name: '炭烤串串 🍢', category: 'out', tags: '夜宵,烧烤' },
-    { name: '日式拉面 🍜', category: 'out', tags: '面食,清淡' },
-    { name: '韩式炸鸡 🍗', category: 'out', tags: '高热量,炸物' },
-    { name: '经典披萨 🍕', category: 'out', tags: '西餐,聚餐' },
-    { name: '港式茶餐厅 🥟', category: 'out', tags: '粤菜,点心' },
-    { name: '多汁汉堡 🍔', category: 'out', tags: '快餐,炸物' }
+    { name: '四川火锅', category: 'out', tags: '聚餐,麻辣' },
+    { name: '炭烤串串', category: 'out', tags: '夜宵,烧烤' },
+    { name: '日式拉面', category: 'out', tags: '面食,清淡' },
+    { name: '韩式炸鸡', category: 'out', tags: '高热量,炸物' },
+    { name: '经典披萨', category: 'out', tags: '西餐,聚餐' },
+    { name: '港式茶餐厅', category: 'out', tags: '粤菜,点心' },
+    { name: '多汁汉堡', category: 'out', tags: '快餐,炸物' }
   ];
 
   const now = new Date().toISOString();

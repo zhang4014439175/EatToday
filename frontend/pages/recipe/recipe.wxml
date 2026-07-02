@@ -1,61 +1,71 @@
-<view class="container recipe-container">
-  <!-- 顶部分类 Tabs (私房菜 vs 寻宝图) -->
-  <view class="category-tabs flex-row">
-    <view class="tab-item {{currentCategory === 'home' ? 'tab-active' : ''}}" bindtap="switchCategory" data-cat="home">爱心私房菜</view>
-    <view class="tab-item {{currentCategory === 'out' ? 'tab-active' : ''}}" bindtap="switchCategory" data-cat="out">风味寻宝图</view>
-  </view>
-
+<view class="container recipe-container" style="padding: 24rpx; height: 100vh; display: flex; flex-direction: column; box-sizing: border-box;">
   <!-- 工具栏 (添加与批量管理) -->
-  <view class="toolbar flex-row">
-    <view class="tool-btn add-btn flex-row" bindtap="showAddModal">
-      <text class="icon">➕</text>
+  <view class="toolbar flex-row" style="margin-bottom: 24rpx; display: flex; gap: 20rpx; width: 100%;">
+    <view class="tool-btn add-btn flex-row" bindtap="showAddModal" style="flex: 1; background: #ffffff; border: 1rpx solid rgba(124, 105, 201, 0.15); border-radius: 20rpx; padding: 20rpx 0; display: flex; justify-content: center; align-items: center; font-size: 26rpx; font-weight: 800; color: #7C69C9; box-shadow: 0 4rpx 10rpx rgba(124, 105, 201, 0.02);">
+      <text class="icon" style="margin-right: 8rpx;">➕</text>
       <text>新增美食</text>
     </view>
-    <view class="tool-btn manage-btn flex-row {{isBatchMode ? 'active-red' : ''}}" bindtap="toggleBatchMode">
-      <text class="icon">🗑️</text>
+    <view class="tool-btn manage-btn flex-row {{isBatchMode ? 'active-red' : ''}}" bindtap="toggleBatchMode" style="flex: 1; background: #ffffff; border: 1rpx solid rgba(45, 41, 56, 0.06); border-radius: 20rpx; padding: 20rpx 0; display: flex; justify-content: center; align-items: center; font-size: 26rpx; font-weight: 800; color: #2D2938; box-shadow: 0 4rpx 10rpx rgba(45, 41, 56, 0.02);">
+      <text class="icon" style="margin-right: 8rpx;">🗑️</text>
       <text>{{isBatchMode ? '取消管理' : '批量管理'}}</text>
     </view>
   </view>
 
-  <!-- 网格美食相册墙 -->
-  <scroll-view class="grid-scroll" scroll-y="true">
-    <view class="recipe-grid">
-      <view class="recipe-card {{isBatchMode ? 'shaking' : ''}}" wx:for="{{filteredFoods}}" wx:key="id" bindtap="onCardClick" data-item="{{item}}">
-        <!-- 批量选择勾选框圈 -->
-        <view class="batch-checkbox {{item.selected ? 'checked' : ''}}" wx:if="{{isBatchMode}}">
-          <text class="checkbox-inner" wx:if="{{item.selected}}">✓</text>
+  <!-- 双栏容器 -->
+  <view class="meituan-container" style="display: flex; flex: 1; background: #ffffff; border-radius: 24rpx; border: 1rpx solid rgba(45, 41, 56, 0.05); overflow: hidden; height: calc(100vh - 200rpx); width: 100%;">
+    <!-- 左栏：侧边栏分类 -->
+    <scroll-view scroll-y class="menu-sidebar" style="width: 180rpx; background: #F6F5FA; height: 100%; border-right: 1rpx solid rgba(45, 41, 56, 0.05); flex-shrink: 0;">
+      <view 
+        class="sidebar-item {{currentCategory === 'home' ? 'sidebar-active' : ''}}" 
+        bindtap="switchCategory" 
+        data-cat="home"
+        style="padding: 32rpx 16rpx; font-size: 24rpx; text-align: center; color: {{currentCategory === 'home' ? '#7C69C9' : '#868095'}}; font-weight: 700; border-left: 6rpx solid {{currentCategory === 'home' ? '#7C69C9' : 'transparent'}}; background-color: {{currentCategory === 'home' ? '#ffffff' : 'transparent'}}; transition: all 0.2s ease;"
+      >
+        爱心私房菜
+      </view>
+      <view 
+        class="sidebar-item {{currentCategory === 'out' ? 'sidebar-active' : ''}}" 
+        bindtap="switchCategory" 
+        data-cat="out"
+        style="padding: 32rpx 16rpx; font-size: 24rpx; text-align: center; color: {{currentCategory === 'out' ? '#7C69C9' : '#868095'}}; font-weight: 700; border-left: 6rpx solid {{currentCategory === 'out' ? '#7C69C9' : 'transparent'}}; background-color: {{currentCategory === 'out' ? '#ffffff' : 'transparent'}}; transition: all 0.2s ease;"
+      >
+        风味寻宝图
+      </view>
+    </scroll-view>
+
+    <!-- 右栏：菜品展示 -->
+    <scroll-view scroll-y class="menu-content" style="flex: 1; padding: 20rpx; height: 100%; box-sizing: border-box; background: #ffffff;">
+      <view class="menu-dish-item flex-row {{isBatchMode ? 'shaking' : ''}}" wx:for="{{filteredFoods}}" wx:key="id" bindtap="onCardClick" data-item="{{item}}" style="display: flex; align-items: center; padding: 20rpx 0; border-bottom: 1rpx solid rgba(45, 41, 56, 0.04); cursor: pointer;">
+        
+        <!-- 批量选择勾选框 -->
+        <view class="batch-checkbox {{item.selected ? 'checked' : ''}}" wx:if="{{isBatchMode}}" style="margin-right: 20rpx; width: 40rpx; height: 40rpx; border-radius: 50%; border: 2rpx solid #FF4D4F; display: flex; align-items: center; justify-content: center; background: {{item.selected ? '#FF4D4F' : '#fff'}}; flex-shrink: 0;">
+          <text class="checkbox-inner" wx:if="{{item.selected}}" style="color: #fff; font-size: 20rpx; font-weight: bold;">✓</text>
         </view>
 
-        <!-- 图片展示框 (支持点击上传/修改) -->
-        <view class="card-image-box" catchtap="onUpdatePhoto" data-id="{{item.id}}">
-          <image class="card-img" src="{{item.image_url}}" mode="aspectFill" wx:if="{{item.image_url}}" />
-          <view class="card-img-placeholder" wx:else>
-            <text class="placeholder-icon">🍲</text>
-            <text class="placeholder-text">点击上传美照</text>
-          </view>
+        <!-- 菜品配图 -->
+        <image class="dish-img" src="{{item.image_url}}" mode="aspectFill" wx:if="{{item.image_url}}" style="width: 80rpx; height: 80rpx; border-radius: 12rpx; margin-right: 20rpx; background: #F8F7FC; flex-shrink: 0;" />
+        <view class="dish-img-placeholder" wx:else style="width: 80rpx; height: 80rpx; border-radius: 12rpx; margin-right: 20rpx; background: #F8F7FC; display: flex; align-items: center; justify-content: center; border: 1rpx solid rgba(45, 41, 56, 0.04); flex-shrink: 0;">
+          <span style="font-size: 32rpx; color: #868095;">🍲</span>
         </view>
 
         <!-- 信息区 -->
-        <view class="card-info">
-          <view class="dish-name">{{item.name}}</view>
-          <view class="dish-tags" wx:if="{{item.tags}}">{{item.tags}}</view>
-          <view class="dish-tags-empty" wx:else>点击添加标签</view>
+        <view class="dish-info" style="flex: 1; min-width: 0;">
+          <view class="dish-name" style="font-size: 28rpx; font-weight: 800; color: #2D2938; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{item.name}}</view>
+          <view class="dish-desc" style="font-size: 22rpx; color: #868095; margin-top: 4rpx; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{item.tags || '主厨特色，极力推荐'}}</view>
         </view>
       </view>
-    </view>
 
-    <!-- 空列表提示 -->
-    <view class="empty-state" wx:if="{{filteredFoods.length === 0}}">
-      <view class="empty-icon">📖</view>
-      <view class="empty-text">还没有添加过美食记录呢</view>
-      <view class="empty-sub">点击上方「新增美食」开启你们的美味相册吧</view>
-      <button class="btn-import-preset" bindtap="importPresetFoods" style="margin-top: 30rpx; background: #7C69C9; color: #FFFFFF; font-size: 26rpx; font-weight: bold; border-radius: 99rpx; padding: 10rpx 40rpx; min-height: 70rpx; height: 70rpx; line-height: 50rpx; display: inline-flex; align-items: center; justify-content: center; border: none; box-shadow: 0 4rpx 12rpx rgba(124, 105, 201, 0.3);">✨ 一键导入预置常见菜品</button>
-    </view>
-  </scroll-view>
+      <view class="empty-state" wx:if="{{filteredFoods.length === 0}}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 80rpx; text-align: center;">
+        <view class="empty-text" style="font-size: 28rpx; font-weight: 800; color: #2D2938; margin-bottom: 10rpx;">美食库空空如也</view>
+        <view class="empty-sub" style="font-size: 22rpx; color: #868095; margin-bottom: 24rpx;">开启你们的美食创作之旅吧</view>
+        <button class="btn-import-preset" bindtap="importPresetFoods" style="background: #7C69C9; color: #FFFFFF; font-size: 24rpx; font-weight: bold; border-radius: 99rpx; padding: 10rpx 40rpx; min-height: 64rpx; height: 64rpx; line-height: 44rpx; display: inline-flex; align-items: center; justify-content: center; border: none; box-shadow: 0 4rpx 12rpx rgba(124, 105, 201, 0.25);">一键导入预置常见菜品</button>
+      </view>
+    </scroll-view>
+  </view>
 
   <!-- 底部批量删除确认条 -->
   <view class="batch-delete-bar flex-row" wx:if="{{isBatchMode && selectedCount > 0}}">
-    <view class="batch-info">已选择 <text class="highlight-count">{{selectedCount}}</text> 道美食</view>
+    <view class="batch-info">已选择 <text class="highlight-count">{{selectedCount}}</text> 个项目</view>
     <button class="btn-delete" bindtap="deleteSelectedFoods">❌ 批量删除</button>
   </view>
 

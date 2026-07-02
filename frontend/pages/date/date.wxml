@@ -14,7 +14,7 @@
     <view class="flex-row flex-between" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1rpx solid rgba(45, 41, 56, 0.05); padding-bottom: 16rpx; margin-bottom: 20rpx; width: 100%;">
       <view class="card-title" style="margin-bottom: 0; padding: 0;">发起去哪玩提案</view>
       <view class="recipe-book-btn flex-row" bindtap="goToPlayBook" style="display: flex; align-items: center; gap: 8rpx; padding: 8rpx 20rpx; background: #FAF9FC; border-radius: 999rpx; border: 1rpx solid rgba(124, 105, 201, 0.15); cursor: pointer;">
-        <text style="font-size: 22rpx; font-weight: 700; color: #7C69C9;">趣玩库 🗺️</text>
+        <text style="font-size: 22rpx; font-weight: 700; color: #7C69C9;">游玩库</text>
       </view>
     </view>
 

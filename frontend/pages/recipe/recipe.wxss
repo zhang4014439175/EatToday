@@ -78,28 +78,44 @@
   border-color: rgba(255, 77, 79, 0.15) !important;
 }
 
-/* 网格相册区域 */
-.grid-scroll {
-  flex: 1;
-  height: calc(100vh - 280rpx);
-  width: 100%;
-}
-
-.recipe-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 24rpx;
-  padding-bottom: 40rpx;
-}
-
-.recipe-card {
+/* 网格相册及双栏布局 */
+.meituan-container {
+  display: flex;
   background: #ffffff;
-  border: 1rpx solid rgba(45, 41, 56, 0.04);
-  border-radius: 24rpx;
-  overflow: hidden;
-  box-shadow: 0 8rpx 20rpx rgba(45, 41, 56, 0.02);
-  position: relative;
-  transition: all 0.2s ease;
+}
+
+.menu-sidebar {
+  width: 180rpx;
+  background: #F6F5FA;
+  height: 100%;
+}
+
+.sidebar-item {
+  padding: 32rpx 16rpx;
+  font-size: 24rpx;
+  text-align: center;
+  color: #868095;
+  font-weight: 700;
+  border-left: 6rpx solid transparent;
+}
+
+.sidebar-active {
+  background-color: #ffffff !important;
+  color: #7C69C9 !important;
+  border-left-color: #7C69C9 !important;
+}
+
+.menu-content {
+  flex: 1;
+  padding: 20rpx;
+  background: #ffffff;
+}
+
+.menu-dish-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid rgba(45, 41, 56, 0.04);
 }
 
 /* 抖动状态，示意管理模式 */
@@ -108,25 +124,20 @@
 }
 
 @keyframes cardWiggle {
-  0% { transform: rotate(-1deg); }
-  100% { transform: rotate(1deg); }
+  0% { transform: rotate(-0.5deg); }
+  100% { transform: rotate(0.5deg); }
 }
 
 /* 勾选框 */
 .batch-checkbox {
-  position: absolute;
-  top: 16rpx;
-  left: 16rpx;
-  width: 44rpx;
-  height: 44rpx;
+  width: 40rpx;
+  height: 40rpx;
   border-radius: 50%;
-  border: 4rpx solid #ffffff;
-  background: rgba(45, 41, 56, 0.4);
-  box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.15);
+  border: 2rpx solid #FF4D4F;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 5;
+  background: #fff;
 }
 
 .batch-checkbox.checked {
@@ -135,84 +146,9 @@
 
 .checkbox-inner {
   color: #ffffff;
-  font-size: 24rpx;
-  font-weight: 900;
-}
-
-/* 照片展示区 */
-.card-image-box {
-  width: 100%;
-  height: 220rpx;
-  position: relative;
-  background-color: #FAF9FC;
-  overflow: hidden;
-}
-
-.card-img {
-  width: 100%;
-  height: 100%;
-}
-
-.card-img-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border-bottom: 1rpx solid rgba(45, 41, 56, 0.03);
-}
-
-.placeholder-icon {
-  font-size: 48rpx;
-  margin-bottom: 8rpx;
-}
-
-.placeholder-text {
   font-size: 20rpx;
-  color: #868095;
+  font-weight: bold;
 }
-
-/* 信息卡 */
-.card-info {
-  padding: 16rpx 20rpx 20rpx;
-}
-
-.dish-name {
-  font-size: 26rpx;
-  font-weight: 800;
-  color: #2D2938;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-bottom: 6rpx;
-}
-
-.dish-tags {
-  font-size: 20rpx;
-  color: #7C69C9;
-  background: #F3F0FA;
-  padding: 2rpx 10rpx;
-  border-radius: 6rpx;
-  display: inline-block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-
-.dish-tags-empty {
-  font-size: 20rpx;
-  color: #868095;
-  font-style: italic;
-}
-
-/* 空白看板 */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   padding-top: 160rpx;
   text-align: center;
 }
