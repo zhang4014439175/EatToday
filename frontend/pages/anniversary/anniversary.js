@@ -1,4 +1,5 @@
 import { request } from '../../utils/request.js';
+import { getMySpaces } from '../../utils/space.js';
 
 Page({
   data: {
@@ -29,8 +30,7 @@ Page({
       wx.showLoading({ title: '加载中...' });
 
       // 1. 获取加入的所有物理空间
-      const spacesRes = await request({ url: '/space/my' });
-      const spaces = spacesRes.spaces || [];
+      const spaces = await getMySpaces();
 
       // 2. 获取所有的纪念日
       const annRes = await request({ url: '/anniversary' });
