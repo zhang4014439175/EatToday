@@ -107,8 +107,8 @@
     </view>
   </view>
 
-  <!-- 今日提醒看板 -->
-  <view class="card-title">今日看板</view>
+  <!-- 近期聚焦看板 -->
+  <view class="card-title">近期聚焦</view>
 
   <!-- 看板 1: 今天吃什么 -->
   <view class="card flex-row flex-between today-card" bindtap="goToFood">

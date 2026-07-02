@@ -263,8 +263,19 @@ router.get('/today', authMiddleware, async (req, res, next) => {
 
     const placeholders = spaceIds.map(() => '?').join(',');
     
-    // SQLite 查询这些空间中今天已锁定的投票会话或轮盘结果
-    const sessions = await db.all(
+    // 1. 查询今天的厨房下厨记录
+    const kitchen = await db.get(
+      `SELECT ks.*, s.name as space_name FROM kitchen_sessions ks
+       JOIN spaces s ON ks.space_id = s.id
+       WHERE ks.space_id IN (${placeholders})
+         AND ks.created_at >= ?
+         AND ks.created_at < ?
+       ORDER BY ks.created_at DESC LIMIT 1`,
+      [...spaceIds, start, end]
+    );
+
+    // 2. 查询今天的外出选菜锁定记录
+    const session = await db.get(
       `SELECT fs.*, fp.name as food_name, s.name as space_name 
        FROM food_sessions fs
        JOIN spaces s ON fs.space_id = s.id
@@ -273,22 +284,47 @@ router.get('/today', authMiddleware, async (req, res, next) => {
          AND fs.space_id IN (${placeholders})
          AND fs.created_at >= ?
          AND fs.created_at < ?
-       ORDER BY fs.updated_at DESC`,
+       ORDER BY fs.updated_at DESC LIMIT 1`,
       [...spaceIds, start, end]
     );
- 
-    if (sessions.length > 0) {
-      const showSpaceTag = spaceIds.length > 1;
-      const combinedName = sessions
-        .map(s => showSpaceTag ? `${s.space_name}: ${s.food_name}` : s.food_name)
-        .join(' | ');
 
+    const getBeijingTimeStr = (isoStr) => {
+      const utcTime = new Date(isoStr).getTime();
+      if (isNaN(utcTime)) return '';
+      const bjDate = new Date(utcTime + 8 * 60 * 60 * 1000);
+      const hh = String(bjDate.getUTCHours()).padStart(2, '0');
+      const mm = String(bjDate.getUTCMinutes()).padStart(2, '0');
+      return `${hh}:${mm}`;
+    };
+
+    const showSpaceTag = spaceIds.length > 1;
+
+    if (kitchen && session) {
+      // 比较时间，展示最近更新的那个
+      if (new Date(kitchen.created_at) > new Date(session.created_at)) {
+        const timeStr = getBeijingTimeStr(kitchen.created_at);
+        const displayName = showSpaceTag ? `[${kitchen.space_name}] ${kitchen.dish_name}` : kitchen.dish_name;
+        return res.status(200).json({
+          food: { name: `${displayName} (${timeStr})`, reason: '今天下厨烹饪' }
+        });
+      } else {
+        const timeStr = getBeijingTimeStr(session.created_at);
+        const displayName = showSpaceTag ? `[${session.space_name}] ${session.food_name}` : session.food_name;
+        return res.status(200).json({
+          food: { name: `${displayName} (${timeStr})`, reason: session.result_reason || '出去吃' }
+        });
+      }
+    } else if (kitchen) {
+      const timeStr = getBeijingTimeStr(kitchen.created_at);
+      const displayName = showSpaceTag ? `[${kitchen.space_name}] ${kitchen.dish_name}` : kitchen.dish_name;
       return res.status(200).json({
-        food: {
-          id: sessions[0].selected_food_id,
-          name: combinedName,
-          reason: sessions.map(s => s.result_reason).filter(Boolean).join('; ') || '今天的美食选择'
-        }
+        food: { name: `${displayName} (${timeStr})`, reason: '今天下厨烹饪' }
+      });
+    } else if (session) {
+      const timeStr = getBeijingTimeStr(session.created_at);
+      const displayName = showSpaceTag ? `[${session.space_name}] ${session.food_name}` : session.food_name;
+      return res.status(200).json({
+        food: { name: `${displayName} (${timeStr})`, reason: session.result_reason || '出去吃' }
       });
     }
  

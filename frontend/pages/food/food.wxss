@@ -534,3 +534,18 @@
   border-radius: 8rpx;
   font-weight: 800;
 }
+
+.modern-spinner {
+  width: 72rpx;
+  height: 72rpx;
+  border: 6rpx solid rgba(124, 105, 201, 0.12);
+  border-top-color: #7C69C9;
+  border-radius: 50%;
+  animation: spin 1s infinite linear;
+  margin: 48rpx auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

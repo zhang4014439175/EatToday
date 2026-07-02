@@ -109,8 +109,7 @@ Page({
         spaceMembers
       });
 
-      // 4. 加载纪念日列表
-      this.fetchAnniversaries();
+
     } catch (err) {
       console.warn('[Profile Page] 拉取线上空间数据失败，启用本地 Mock');
       const mockUser = {
@@ -247,6 +246,13 @@ Page({
     }
   },
 
+  // --- 纪念日簿跳转 ---
+  goToAnniversaryBook() {
+    wx.navigateTo({
+      url: '/pages/anniversary/anniversary'
+    });
+  },
+
   /**
    * 退出当前所选空间
    */
@@ -272,99 +278,7 @@ Page({
     });
   },
 
-  // --- 纪念日管理 ---
 
-  /**
-   * 拉取纪念日列表
-   */
-  async fetchAnniversaries() {
-    try {
-      const res = await request({ url: '/anniversary' });
-      this.setData({ anniversaries: res.anniversaries || [] });
-    } catch (err) {
-      console.warn('[Profile Page] 获取纪念日列表失败，加载本地 Mock');
-      const mockAnniversaries = [
-        { id: 1, title: '我们第一次相遇 🌸', date: '2025-05-20', is_yearly: 1 },
-        { id: 2, title: '去影院看第一场电影 🍿', date: '2025-06-01', is_yearly: 0 }
-      ];
-      this.setData({ anniversaries: mockAnniversaries });
-    }
-  },
-
-  showAddAnniversaryForm() {
-    const todayStr = new Date().toISOString().split('T')[0];
-    this.setData({
-      showAddAnniversary: !this.data.showAddAnniversary,
-      'newAnniversary.title': '',
-      'newAnniversary.date': todayStr,
-      'newAnniversary.is_yearly': true
-    });
-  },
-
-  onInputAnnTitle(e) { this.setData({ 'newAnniversary.title': e.detail.value }); },
-  onAnnDateChange(e) { this.setData({ 'newAnniversary.date': e.detail.value }); },
-  onAnnYearlyChange(e) { this.setData({ 'newAnniversary.is_yearly': e.detail.value }); },
-
-  /**
-   * 新增并保存纪念日
-   */
-  async submitAnniversary() {
-    const { title, date, is_yearly } = this.data.newAnniversary;
-
-    if (!title.trim()) {
-      wx.showToast({ title: '请输入纪念日名称', icon: 'none' });
-      return;
-    }
-
-    try {
-      await request({
-        url: '/anniversary',
-        method: 'POST',
-        data: {
-          title,
-          date,
-          isYearly: is_yearly ? 1 : 0
-        },
-        showLoading: true
-      });
-      wx.showToast({ title: '添加纪念日成功', icon: 'success' });
-      this.setData({ showAddAnniversary: false });
-      this.fetchAnniversaries();
-    } catch (err) {
-      // Mock 添加纪念日
-      const newAnn = {
-        id: Date.now(),
-        title,
-        date,
-        is_yearly: is_yearly ? 1 : 0
-      };
-      this.setData({
-        anniversaries: [newAnn, ...this.data.anniversaries],
-        showAddAnniversary: false
-      });
-      wx.showToast({ title: '已保存到本地模拟列表', icon: 'success' });
-    }
-  },
-
-  /**
-   * 删除纪念日
-   */
-  async deleteAnniversary(e) {
-    const id = e.currentTarget.dataset.id;
-    try {
-      await request({
-        url: `/anniversary/${id}`,
-        method: 'DELETE',
-        showLoading: true
-      });
-      this.fetchAnniversaries();
-    } catch (err) {
-      // Mock 删除纪念日
-      const filtered = this.data.anniversaries.filter(item => item.id !== id);
-      this.setData({ anniversaries: filtered });
-      wx.showToast({ title: '纪念日已删除', icon: 'success' });
-    }
-  },
 
   // --- 设置开关触发器 ---
 

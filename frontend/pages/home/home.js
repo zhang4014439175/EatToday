@@ -199,8 +199,33 @@ Page({
       ]);
 
       const todayFood = dbRes[0].status === 'fulfilled' && dbRes[0].value.food ? dbRes[0].value.food.name : '';
-      const todayDate = dbRes[1].status === 'fulfilled' && dbRes[1].value.plan ? `${dbRes[1].value.plan.title} (${dbRes[1].value.plan.meeting_time})` : '';
-      const nearestAnniversary = dbRes[2].status === 'fulfilled' ? dbRes[2].value.anniversary : null;
+      
+      let todayDate = '';
+      if (dbRes[1].status === 'fulfilled' && dbRes[1].value.plan) {
+        const plan = dbRes[1].value.plan;
+        const timePart = plan.meeting_time.includes(' ') ? plan.meeting_time.split(' ')[1] : plan.meeting_time;
+        
+        try {
+          const timeStrClean = plan.meeting_time.replace(/-/g, '/'); // 跨平台 iOS/Android 日期兼容
+          const meetingDate = new Date(timeStrClean);
+          const diffMs = meetingDate.getTime() - Date.now();
+          const diffMin = Math.ceil(diffMs / (60 * 1000));
+          
+          if (diffMin > 0 && diffMin <= 60) {
+            todayDate = `${plan.title} (${timePart}) ⚠️ 剩余不到1小时，别错过！`;
+          } else {
+            todayDate = `${plan.title} (${timePart})`;
+          }
+        } catch (e) {
+          todayDate = `${plan.title} (${timePart})`;
+        }
+      }
+
+      let nearestAnniversary = dbRes[2].status === 'fulfilled' ? dbRes[2].value.anniversary : null;
+      // 限制倒计时在 30 天以内才在首页近期聚焦看板展示
+      if (nearestAnniversary && nearestAnniversary.daysLeft > 30) {
+        nearestAnniversary = null;
+      }
 
       this.setData({
         todayFood,

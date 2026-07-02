@@ -1,0 +1,368 @@
+page {
+  height: 100%;
+  background-color: #FAF9FC;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 24rpx;
+  box-sizing: border-box;
+  padding-bottom: 180rpx; /* 为固定悬浮底栏留空 */
+}
+
+/* 1. 顶部聚焦看板 */
+.focus-header {
+  position: relative;
+  background: linear-gradient(135deg, #7C69C9 0%, #5E4DB0 100%);
+  border-radius: 36rpx;
+  padding: 48rpx 36rpx;
+  color: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 16rpx 40rpx rgba(94, 77, 176, 0.22);
+  margin-bottom: 32rpx;
+}
+
+.focus-bg-glow {
+  position: absolute;
+  top: -100rpx;
+  right: -100rpx;
+  width: 320rpx;
+  height: 320rpx;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+  pointer-events: none;
+}
+
+.focus-content {
+  position: relative;
+  z-index: 1;
+}
+
+.focus-label {
+  font-size: 22rpx;
+  text-transform: uppercase;
+  letter-spacing: 2rpx;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 800;
+  display: block;
+  margin-bottom: 12rpx;
+}
+
+.focus-title {
+  font-size: 40rpx;
+  font-weight: 900;
+  line-height: 1.3;
+  margin-bottom: 24rpx;
+}
+
+.focus-days {
+  align-items: baseline;
+  margin-bottom: 20rpx;
+}
+
+.days-num {
+  font-size: 96rpx;
+  font-weight: 950;
+  line-height: 1;
+  color: #ffffff;
+  text-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.1);
+  margin-right: 12rpx;
+}
+
+.days-unit {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.focus-date {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 700;
+}
+
+/* 2. 主体卡片与 Tab */
+.main-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-radius: 36rpx;
+  padding: 32rpx 24rpx;
+  box-shadow: 0 8rpx 32rpx rgba(45, 41, 56, 0.02);
+  border: 1rpx solid rgba(45, 41, 56, 0.03);
+  min-height: 600rpx;
+}
+
+.tab-container {
+  padding: 8rpx;
+  background-color: #FAF9FC;
+  border-radius: 999rpx;
+  margin-bottom: 28rpx;
+  display: flex;
+  align-items: center;
+  border: 1rpx solid rgba(45, 41, 56, 0.03);
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  font-size: 26rpx;
+  padding: 16rpx 0;
+  border-radius: 999rpx;
+  color: #868095;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.tab-active {
+  background-color: #ffffff;
+  color: #7C69C9;
+  font-weight: 800;
+  box-shadow: 0 4rpx 16rpx rgba(45, 41, 56, 0.05);
+}
+
+.list-scroll {
+  flex: 1;
+  height: 0; /* 必须，以便 flex 容器内 scroll-view 可以正确伸缩 */
+}
+
+/* 3. 纪念日列表卡片 */
+.ann-list {
+  padding-bottom: 30rpx;
+}
+
+.ann-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 20rpx;
+  background: #ffffff;
+  border-radius: 24rpx;
+  margin-bottom: 20rpx;
+  border: 1rpx solid rgba(45, 41, 56, 0.04);
+  box-shadow: 0 4rpx 12rpx rgba(45, 41, 56, 0.01);
+  transition: all 0.25s ease;
+}
+
+.ann-item:active {
+  background-color: #FAF9FC;
+}
+
+.ann-info-box {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.ann-status-dot {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-countdown {
+  background-color: #7C69C9;
+  box-shadow: 0 0 10rpx rgba(124, 105, 201, 0.4);
+}
+
+.dot-countup {
+  background-color: #3E8E75;
+  box-shadow: 0 0 10rpx rgba(62, 142, 117, 0.4);
+}
+
+.ann-text-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.ann-title-text {
+  font-size: 28rpx;
+  font-weight: 800;
+  color: #2D2938;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.space-badge {
+  font-size: 18rpx;
+  color: #7C69C9;
+  background-color: #F3F0FA;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+  font-weight: 800;
+  flex-shrink: 0;
+  max-width: 160rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ann-sub-info {
+  font-size: 22rpx;
+  color: #868095;
+  margin-top: 6rpx;
+  font-weight: 500;
+}
+
+.ann-right-box {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  flex-shrink: 0;
+}
+
+.days-badge {
+  display: flex;
+  align-items: baseline;
+  padding: 6rpx 18rpx;
+  border-radius: 999rpx;
+  font-weight: 800;
+}
+
+.badge-countdown {
+  color: #7C69C9;
+  background-color: #F3F0FA;
+}
+
+.badge-countup {
+  color: #3E8E75;
+  background-color: #F0F7F5;
+}
+
+.badge-num {
+  font-size: 32rpx;
+  font-weight: 900;
+  margin-right: 2rpx;
+}
+
+.badge-unit {
+  font-size: 20rpx;
+}
+
+.delete-action-btn {
+  font-size: 32rpx;
+  color: rgba(45, 41, 56, 0.25);
+  padding: 10rpx 14rpx;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.delete-action-btn:active {
+  color: #FF4D4F;
+}
+
+.empty-hint {
+  font-size: 24rpx;
+  color: #868095;
+  padding: 120rpx 0;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* 4. 固定悬浮底栏 */
+.fixed-bottom-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 24rpx 36rpx 48rpx;
+  background: linear-gradient(to top, #FAF9FC 80%, rgba(250, 249, 252, 0));
+  z-index: 10;
+}
+
+.add-big-btn {
+  width: 100%;
+  height: 96rpx;
+  line-height: 96rpx;
+  border-radius: 48rpx;
+  font-size: 30rpx;
+  font-weight: 800;
+  box-shadow: 0 10rpx 28rpx rgba(124, 105, 201, 0.35);
+}
+
+/* 5. 半屏弹窗 Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(45, 41, 56, 0.65);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+}
+
+.modal-bottom-sheet {
+  width: 100%;
+  background: #ffffff;
+  border-top-left-radius: 48rpx;
+  border-top-right-radius: 48rpx;
+  padding: 40rpx 36rpx 64rpx;
+  box-sizing: border-box;
+  box-shadow: 0 -16rpx 48rpx rgba(45, 41, 56, 0.15);
+  animation: slideUp 0.3s cubic-bezier(0.1, 0.8, 0.1, 1);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1rpx solid rgba(45, 41, 56, 0.05);
+  padding-bottom: 24rpx;
+  margin-bottom: 32rpx;
+}
+
+.modal-title-text {
+  font-size: 32rpx;
+  font-weight: 900;
+  color: #2D2938;
+}
+
+.modal-close-icon {
+  font-size: 48rpx;
+  color: #868095;
+  padding: 0 10rpx;
+  line-height: 1;
+}
+
+.modal-body-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label-text {
+  font-size: 24rpx;
+  font-weight: 800;
+  color: #2D2938;
+  margin-bottom: 16rpx;
+  display: block;
+}
+
+.form-picker-box {
+  width: 100%;
+  height: 84rpx;
+  line-height: 84rpx;
+  background-color: #FAF9FC;
+  border-radius: 20rpx;
+  padding: 0 24rpx;
+  box-sizing: border-box;
+  font-size: 26rpx;
+  color: #2D2938;
+  font-weight: 700;
+  border: 1rpx solid rgba(45, 41, 56, 0.04);
+}

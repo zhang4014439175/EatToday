@@ -112,8 +112,17 @@ router.get('/month', authMiddleware, async (req, res, next) => {
     const kitchenSessions = await db.all(kitchenQuery, [...spaceIds, prefix]);
 
     kitchenSessions.forEach(session => {
-      const datePart = session.created_at.substring(0, 10);
-      const timePart = session.created_at.substring(11, 16);
+      const utcTime = new Date(session.created_at).getTime();
+      if (isNaN(utcTime)) return;
+      const bjDate = new Date(utcTime + 8 * 60 * 60 * 1000);
+      const y = bjDate.getUTCFullYear();
+      const m = String(bjDate.getUTCMonth() + 1).padStart(2, '0');
+      const d = String(bjDate.getUTCDate()).padStart(2, '0');
+      const hh = String(bjDate.getUTCHours()).padStart(2, '0');
+      const mm = String(bjDate.getUTCMinutes()).padStart(2, '0');
+      const datePart = `${y}-${m}-${d}`;
+      const timePart = `${hh}:${mm}`;
+
       const displayTitle = showSpaceTag ? `[${session.space_name}] 爱心厨：${session.dish_name}` : `爱心厨：${session.dish_name}`;
       addEvent(datePart, {
         id: session.id,
@@ -142,8 +151,17 @@ router.get('/month', authMiddleware, async (req, res, next) => {
     const foodSessions = await db.all(foodQuery, [...spaceIds, prefix]);
 
     foodSessions.forEach(session => {
-      const datePart = session.created_at.substring(0, 10);
-      const timePart = session.created_at.substring(11, 16);
+      const utcTime = new Date(session.created_at).getTime();
+      if (isNaN(utcTime)) return;
+      const bjDate = new Date(utcTime + 8 * 60 * 60 * 1000);
+      const y = bjDate.getUTCFullYear();
+      const m = String(bjDate.getUTCMonth() + 1).padStart(2, '0');
+      const d = String(bjDate.getUTCDate()).padStart(2, '0');
+      const hh = String(bjDate.getUTCHours()).padStart(2, '0');
+      const mm = String(bjDate.getUTCMinutes()).padStart(2, '0');
+      const datePart = `${y}-${m}-${d}`;
+      const timePart = `${hh}:${mm}`;
+
       const displayTitle = showSpaceTag ? `[${session.space_name}] 出去吃：${session.food_name || '锁定菜品'}` : `出去吃：${session.food_name || '锁定菜品'}`;
       addEvent(datePart, {
         id: session.id,

@@ -1,7 +1,8 @@
 {
   "description": "EatToday 情侣专属规划小程序客户端",
   "packOptions": {
-    "ignore": []
+    "ignore": [],
+    "include": []
   },
   "setting": {
     "urlCheck": false,
@@ -25,11 +26,25 @@
     "useCompilerPlugins": [],
     "minifyWXML": true,
     "minifyWXSS": true,
-    "useStaticResourceService": true
+    "useStaticResourceService": true,
+    "compileWorklet": false,
+    "uglifyFileName": false,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "condition": true,
+    "swc": false,
+    "disableSWC": true
   },
   "compileType": "miniprogram",
   "libVersion": "latest",
-  "appid": "touristappid",
+  "appid": "wx42516df7934e0588",
   "projectname": "EatToday",
-  "condition": {}
+  "condition": {},
+  "simulatorPluginLibVersion": {
+    "wxext14566970e7e9f62": "2.27.3"
+  },
+  "editorSetting": {},
+  "projectArchitecture": "multiPlatform"
 }

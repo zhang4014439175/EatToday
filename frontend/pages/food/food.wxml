@@ -208,7 +208,7 @@
 
           <!-- Diner 视图 -->
           <view class="text-center" wx:if="{{kitchenSession.diner_id === userInfo.id && currentSpace.type !== 'solo'}}">
-            <view class="cooking-icon-loader" style="font-size: 88rpx; margin: 36rpx 0; animation: heartBeatPulse 1.4s infinite alternate ease-in-out; display: inline-block;">🍳</view>
+            <view class="modern-spinner"></view>
             <text class="text-muted block-hint" style="font-weight:700; color:#7C69C9; display: block;">对方正在厨房为您忙碌烹饪，静候起锅装盘...</text>
           </view>
 
@@ -261,8 +261,8 @@
 
           <!-- Chef 视图 -->
           <view class="text-center" wx:else>
-            <view class="eating-loader" style="font-size: 88rpx; margin: 36rpx 0; animation: heartBeatPulse 1.4s infinite alternate ease-in-out; display: inline-block;">😋</view>
-            <text class="text-muted block-hint" style="display: block;">美味已上桌！对方正在品尝，静候好评... ❤️</text>
+            <view class="modern-spinner"></view>
+            <text class="text-muted block-hint" style="display: block;">美味已上桌！对方正在品尝，静候评价...</text>
           </view>
         </view>
 
