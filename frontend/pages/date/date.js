@@ -39,12 +39,10 @@ Page({
     initSpaceSwitcher(this, () => {
       this.loadUserInfos();
       this.fetchDatePlans();
-      this.fetchWishlist();
     });
 
     this.loadUserInfos();
     this.fetchDatePlans();
-    this.fetchWishlist();
   },
 
   /**
@@ -117,47 +115,7 @@ Page({
     }
   },
 
-  /**
-   * 获取灵感池清单
-   */
-  async fetchWishlist() {
-    try {
-      const res = await request({ url: '/date/wishlist' });
-      this.setData({ wishlist: res.wishlist || [] });
-    } catch (err) {
-      console.warn('[Date Page] 获取愿望单失败，启用 Mock 兜底');
-      const mockWishlist = [
-        { id: 1, name: '一起去抓娃娃' },
-        { id: 2, name: '去海洋馆看水母' },
-        { id: 3, name: '看一次海边日出' }
-      ];
-      this.setData({ wishlist: mockWishlist });
-    }
-  },
-
-  /**
-   * 一键导入预置约会好玩愿望
-   */
-  async importPresetWishes() {
-    wx.showLoading({ title: '正在导入...' });
-    try {
-      const res = await request({
-        url: '/date/wishlist/seed-defaults',
-        method: 'POST'
-      });
-      wx.hideLoading();
-      if (res.success) {
-        wx.showToast({ title: '导入成功', icon: 'success' });
-        this.fetchWishlist(); // 重新拉取
-      } else {
-        wx.showToast({ title: res.message || '导入失败', icon: 'none' });
-      }
-    } catch (err) {
-      wx.hideLoading();
-      console.error('[Date Page] 导入预置游玩愿望失败:', err);
-      wx.showToast({ title: '网络请求错误，请重试', icon: 'none' });
-    }
-  },
+  // (游玩灵感清单已整合至右上角“趣玩库”独立页面)
 
   /**
    * 折叠/展开新增表单
@@ -372,75 +330,11 @@ Page({
   },
 
   /**
-   * 添加愿望灵感
+   * 跳转到趣玩库独立页面
    */
-  async addWish() {
-    const { newWishName } = this.data;
-    if (!newWishName.trim()) return;
-
-    const isDup = this.data.wishlist.some(w => w.name.trim() === newWishName.trim());
-    if (isDup) {
-      wx.showToast({ title: '该地方已经在清单中啦', icon: 'none' });
-      return;
-    }
-
-    try {
-      await request({
-        url: '/date/wishlist',
-        method: 'POST',
-        data: { name: newWishName },
-        showLoading: true
-      });
-      this.setData({ newWishName: '' });
-      this.fetchWishlist();
-    } catch (err) {
-      // Mock 添加
-      const newList = [...this.data.wishlist, { id: Date.now(), name: newWishName.trim() }];
-      this.setData({
-        wishlist: newList,
-        newWishName: ''
-      });
-      wx.showToast({ title: '已加入愿望单', icon: 'success' });
-    }
-  },
-
-  /**
-   * 删除愿望
-   */
-  async deleteWish(e) {
-    const id = e.currentTarget.dataset.id;
-    try {
-      await request({
-        url: `/date/wishlist/${id}`,
-        method: 'DELETE',
-        showLoading: true
-      });
-      this.fetchWishlist();
-    } catch (err) {
-      // Mock 删除
-      const newList = this.data.wishlist.filter(item => item.id !== id);
-      this.setData({ wishlist: newList });
-      wx.showToast({ title: '已移除该愿望', icon: 'success' });
-    }
-  },
-
-  /**
-   * 一键将愿望“提为正式去哪玩行程”
-   */
-  wishToProposal(e) {
-    const name = e.currentTarget.dataset.name;
-    const todayStr = new Date().toISOString().split('T')[0];
-
-    this.setData({
-      showForm: true,
-      'newProposal.title': `去打卡「${name}」✨`,
-      'newProposal.date': todayStr,
-      'newProposal.time': '18:00'
-    });
-
-    wx.showToast({
-      title: '已将愿望载入提案表单',
-      icon: 'none'
+  goToPlayBook() {
+    wx.navigateTo({
+      url: '/pages/wishlist/wishlist'
     });
   }
 });

@@ -4,7 +4,8 @@
     "pages/food/food",
     "pages/date/date",
     "pages/profile/profile",
-    "pages/recipe/recipe"
+    "pages/recipe/recipe",
+    "pages/wishlist/wishlist"
   ],
   "window": {
     "backgroundTextStyle": "light",

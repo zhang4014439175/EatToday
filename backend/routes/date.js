@@ -476,4 +476,49 @@ router.post('/wishlist/seed-defaults', authMiddleware, async (req, res, next) =>
   }
 });
 
+/**
+ * 修改愿望
+ * PUT /api/date/wishlist/:id
+ */
+router.put('/wishlist/:id', authMiddleware, async (req, res, next) => {
+  const id = req.params.id;
+  const { name } = req.body;
+  const user = req.user;
+
+  if (!name || !name.trim()) {
+    return res.status(400).json({ error: 'ValidationError', message: '愿望内容不能为空' });
+  }
+
+  try {
+    const db = getDB();
+    const wish = await db.get('SELECT id, space_id FROM date_wishlist WHERE id = ?', [id]);
+
+    if (!wish) {
+      return res.status(404).json({ error: 'NotFoundError', message: '未找到该约会愿望项目' });
+    }
+
+    if (wish.space_id !== user.current_space_id) {
+      return res.status(403).json({ error: 'ForbiddenError', message: '您无权修改此空间下的愿望项目' });
+    }
+
+    // 重名检查
+    const existing = await db.get(
+      'SELECT id FROM date_wishlist WHERE name = ? AND space_id = ? AND id != ?',
+      [name.trim(), user.current_space_id, id]
+    );
+    if (existing) {
+      return res.status(400).json({ error: 'ValidationError', message: '该好玩的地方已在清单中啦' });
+    }
+
+    await db.run(
+      'UPDATE date_wishlist SET name = ? WHERE id = ?',
+      [name.trim(), id]
+    );
+
+    return res.status(200).json({ success: true, message: '愿望修改成功' });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

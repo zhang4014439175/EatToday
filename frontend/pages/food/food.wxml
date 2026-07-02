@@ -12,8 +12,8 @@
 
   <!-- 就餐模式选择 (在家吃 vs 出去吃) -->
   <view class="eat-mode-switcher card flex-row" style="margin-bottom: 24rpx;">
-    <view class="eat-mode-item {{eatMode === 'home' ? 'eat-mode-active' : ''}}" bindtap="switchEatMode" data-mode="home">🏡 在家吃</view>
-    <view class="eat-mode-item {{eatMode === 'out' ? 'eat-mode-active' : ''}}" bindtap="switchEatMode" data-mode="out">🚗 出去吃</view>
+    <view class="eat-mode-item {{eatMode === 'home' ? 'eat-mode-active' : ''}}" bindtap="switchEatMode" data-mode="home">在家吃</view>
+    <view class="eat-mode-item {{eatMode === 'out' ? 'eat-mode-active' : ''}}" bindtap="switchEatMode" data-mode="out">出去吃</view>
   </view>
 
   <view wx:if="{{eatMode === 'out'}}" class="tab-content">

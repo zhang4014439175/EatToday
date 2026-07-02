@@ -1,8 +1,8 @@
 <view class="container recipe-container">
   <!-- 顶部分类 Tabs (私房菜 vs 寻宝图) -->
   <view class="category-tabs flex-row">
-    <view class="tab-item {{currentCategory === 'home' ? 'tab-active' : ''}}" bindtap="switchCategory" data-cat="home">🍳 爱心私房菜</view>
-    <view class="tab-item {{currentCategory === 'out' ? 'tab-active' : ''}}" bindtap="switchCategory" data-cat="out">🗺️ 风味寻宝图</view>
+    <view class="tab-item {{currentCategory === 'home' ? 'tab-active' : ''}}" bindtap="switchCategory" data-cat="home">爱心私房菜</view>
+    <view class="tab-item {{currentCategory === 'out' ? 'tab-active' : ''}}" bindtap="switchCategory" data-cat="out">风味寻宝图</view>
   </view>
 
   <!-- 工具栏 (添加与批量管理) -->
@@ -84,11 +84,11 @@
           <radio-group class="radio-group" bindchange="onCategoryChange">
             <label class="radio-label">
               <radio value="home" checked="{{formCategory === 'home'}}" color="#7C69C9" />
-              🏡 爱心私房菜 (在家吃)
+              爱心私房菜 (在家吃)
             </label>
             <label class="radio-label">
               <radio value="out" checked="{{formCategory === 'out'}}" color="#7C69C9" />
-              🚗 风味寻宝图 (出去吃)
+              风味寻宝图 (出去吃)
             </label>
           </radio-group>
         </view>

@@ -11,7 +11,12 @@
 
   <!-- 1. 新增提案表单（常驻展开且高度优化） -->
   <view class="card proposal-form-card" style="padding: 24rpx; margin-bottom: 24rpx;">
-    <view class="card-title" style="margin-bottom: 20rpx; padding: 0;">发起去哪玩提案</view>
+    <view class="flex-row flex-between" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1rpx solid rgba(45, 41, 56, 0.05); padding-bottom: 16rpx; margin-bottom: 20rpx; width: 100%;">
+      <view class="card-title" style="margin-bottom: 0; padding: 0;">发起去哪玩提案</view>
+      <view class="recipe-book-btn flex-row" bindtap="goToPlayBook" style="display: flex; align-items: center; gap: 8rpx; padding: 8rpx 20rpx; background: #FAF9FC; border-radius: 999rpx; border: 1rpx solid rgba(124, 105, 201, 0.15); cursor: pointer;">
+        <text style="font-size: 22rpx; font-weight: 700; color: #7C69C9;">趣玩库 🗺️</text>
+      </view>
+    </view>
 
     <view class="proposal-form">
       <view class="form-group" style="margin-bottom: 16rpx;">
@@ -90,31 +95,5 @@
     </view>
   </view>
 
-  <!-- 4. 约会灵感池 (愿望单) -->
-  <view class="card wishlist-card">
-    <view class="card-title">想去的地方清单 ({{wishlist.length}})</view>
-    
-    <!-- 输入栏 -->
-    <view class="flex-row add-wish-box">
-      <input class="form-input add-input" placeholder="输入想跟 TA 一起去的地方" value="{{newWishName}}" bindinput="onInputWishName" />
-      <view class="btn-add" bindtap="addWish">
-        <text class="btn-add-text">添加</text>
-      </view>
-    </view>
-
-    <!-- 愿望清单 -->
-    <view class="wish-list">
-      <view class="wish-item flex-row flex-between" wx:for="{{wishlist}}" wx:key="id">
-        <text class="wish-item-name">⭐ {{item.name}}</text>
-        <view class="wish-actions flex-row">
-          <view class="wish-to-proposal" bindtap="wishToProposal" data-name="{{item.name}}">提为行程</view>
-          <view class="food-delete-btn" bindtap="deleteWish" data-id="{{item.id}}" style="margin-left: 20rpx;">✕</view>
-        </view>
-      </view>
-      <view class="empty-list" wx:if="{{wishlist.length === 0}}" style="text-align: center;">
-        <text style="display: block; margin-bottom: 20rpx;">还没有记录游玩愿望，在这里写下你们想去打卡的地方吧！</text>
-        <button class="btn-import-preset" bindtap="importPresetWishes" style="background: #7C69C9; color: #FFFFFF; font-size: 24rpx; font-weight: bold; border-radius: 99rpx; padding: 6rpx 30rpx; min-height: 60rpx; height: 60rpx; line-height: 48rpx; display: inline-flex; align-items: center; justify-content: center; border: none; box-shadow: 0 4rpx 10rpx rgba(124, 105, 201, 0.25);">✨ 一键导入常见好玩项目</button>
-      </view>
-    </view>
-  </view>
+  <!-- (游玩灵感清单已整合至右上角“趣玩库”独立页面) -->
 </view>

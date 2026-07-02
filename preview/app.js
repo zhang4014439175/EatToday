@@ -754,7 +754,10 @@
     return html`
       ${renderSpaceQuickBar()}
       <section class="card stack" style="gap: 10px;">
-        <h2 style="font-size: 15px; margin: 0 0 4px;">发起去哪玩提案</h2>
+        <div class="row" style="justify-content: space-between; align-items: center; margin-bottom: 4px; width: 100%;">
+          <h2 style="font-size: 15px; margin: 0;">发起去哪玩提案</h2>
+          <button class="btn ghost" data-action="go-to-playbook" style="font-size: 11px; font-weight: 700; color: #7C69C9; background: #FAF9FC; border: 1px solid rgba(124, 105, 201, 0.15); border-radius: 999px; padding: 4px 12px; margin: 0; min-height: 0; height: auto;">趣玩库 🗺️</button>
+        </div>
         <input id="dateTitle" class="input" placeholder="主题：想去干嘛 (如看电影/吃火锅)" />
         <div class="form-grid">
           <input id="dateDay" class="input" type="date" value="${today()}" />
@@ -771,22 +774,104 @@
           ${state.datePlans.map(plan => renderPlan(plan)).join('') || '<div class="empty">还没有去哪玩记录</div>'}
         </div>
       </section>
+    `;
+  }
 
-      <section class="card">
-        <h2>想去的地方</h2>
-        <div class="row">
-          <input id="wishName" class="input" placeholder="输入愿望地点" />
-          <button class="btn" data-action="add-wish">添加</button>
+  function renderPlaybook() {
+    const isBatchMode = state.playbookBatchMode || false;
+    const selectedIds = state.playbookSelectedIds || [];
+
+    return html`
+      <!-- 趣玩库头部 -->
+      <div class="row" style="margin-bottom: 14px; width: 100%;">
+        <div class="row" style="gap: 8px;">
+          <button class="btn secondary" data-action="go-back-to-date" style="min-height: 28px; height: 28px; padding: 0 10px; font-size: 11px; margin: 0; box-shadow: none; border-radius: 99rpx;">← 返回</button>
+          <h2 style="margin: 0; font-size: 18px; font-weight: 900;">🗺️ 趣玩库</h2>
         </div>
-        <div class="list" style="margin-top: 12px;">
-          ${state.wishlist.map(wish => `<div class="list-item row"><strong>${escapeText(wish.name)}</strong><button class="btn ghost" data-action="wish-to-date" data-name="${escapeText(wish.name)}">提为行程</button></div>`).join('') || `
-            <div style="text-align: center; padding: 16px 0;">
-              <p class="muted" style="font-size: 11px; margin-bottom: 10px;">还没有记录游玩愿望，写下你们想去打卡的地方吧！</p>
-              <button class="btn secondary" data-action="wish-seed-defaults" style="display: inline-flex; min-height: 28px; height: 28px; font-size: 10px; padding: 0 14px; margin: 0 auto; border-radius: 99rpx; background: #7C69C9; color: #FFF; border: none; font-weight: 800; cursor: pointer; box-shadow: 0 2px 8px rgba(124, 105, 201, 0.2);">✨ 一键导入常见好玩项目</button>
+      </div>
+
+      <!-- 工具栏 -->
+      <div class="row" style="gap: 10px; margin-bottom: 16px; width: 100%;">
+        <button class="btn ghost" data-action="playbook-modal-show-add" style="flex: 1; min-height: 36px; height: 36px; font-size: 12px; box-shadow: none; border-radius: 10px; border-color: rgba(124, 105, 201, 0.2); color: var(--rose);">➕ 新增玩乐</button>
+        <button class="btn ghost ${isBatchMode ? 'active-red' : ''}" data-action="playbook-toggle-batch" style="flex: 1; min-height: 36px; height: 36px; font-size: 12px; box-shadow: none; border-radius: 10px; ${isBatchMode ? 'background:#FFF5F5; color:#FF4D4F; border-color:#FF4D4F;' : ''}">🗑️ ${isBatchMode ? '取消管理' : '批量管理'}</button>
+      </div>
+
+      <!-- 网格相册区域 -->
+      <div style="height: calc(100vh - 230px); overflow-y: auto; width: 100%; padding-bottom: 80px; box-sizing: border-box;">
+        <div class="h5-recipe-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%;">
+          ${state.wishlist.map(wish => {
+            const isSelected = selectedIds.includes(wish.id);
+            return `
+              <div class="h5-recipe-card ${isBatchMode ? 'shaking' : ''}" 
+                   data-action="playbook-card-click" 
+                   data-id="${wish.id}" 
+                   style="background: #ffffff; border: 1px solid rgba(45,41,56,0.04); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); position: relative; cursor: pointer;">
+                
+                <!-- 批量管理选框 -->
+                ${isBatchMode ? `
+                  <div class="h5-batch-checkbox ${isSelected ? 'checked' : ''}" 
+                       style="position: absolute; top: 8px; left: 8px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid #ffffff; background: ${isSelected ? '#FF4D4F' : 'rgba(45, 41, 56, 0.4)'}; display: flex; align-items: center; justify-content: center; z-index: 5; color: #fff; font-size: 12px; font-weight: bold;">
+                    ${isSelected ? '✓' : ''}
+                  </div>
+                ` : ''}
+
+                <!-- 图标框 -->
+                <div class="h5-card-image-box" style="width: 100%; height: 100px; background-color: var(--rose-soft); display: flex; flex-direction: column; align-items: center; justify-content: center; border-bottom: 1px solid rgba(45,41,56,0.03);">
+                  <span style="font-size: 32px;">🗺️</span>
+                  <span style="font-size: 10px; color: var(--muted); margin-top: 4px; font-weight: 700;">想去打卡</span>
+                </div>
+
+                <!-- 信息区 -->
+                <div style="padding: 8px 10px;">
+                  <div style="font-size: 13px; font-weight: 800; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px;">${escapeText(wish.name)}</div>
+                  <div style="font-size: 10px; color: var(--rose); background: var(--rose-soft); padding: 1px 6px; border-radius: 4px; display: inline-block;">⭐ 趣玩项目</div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+
+        ${state.wishlist.length === 0 ? `
+          <div style="text-align: center; padding: 40px 0;">
+            <span style="font-size: 48px;">🗺️</span>
+            <p style="font-size: 13px; font-weight: 800; color: var(--ink); margin: 10px 0 6px;">趣玩库空空如也</p>
+            <p style="font-size: 11px; color: var(--muted); margin-bottom: 16px;">添加一些游玩想法开启行程灵感吧</p>
+            <button class="btn" data-action="wish-seed-defaults" style="display: inline-flex; min-height: 32px; height: 32px; font-size: 11px; padding: 0 16px; margin: 0 auto; border-radius: 99rpx; background: #7C69C9; color: #FFF; border: none; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(124, 105, 201, 0.25);">✨ 一键导入常见好玩项目</button>
+          </div>
+        ` : ''}
+      </div>
+
+      <!-- 底部批量删除确认条 -->
+      ${isBatchMode && selectedIds.length > 0 ? html`
+        <div class="row" style="position: fixed; left: 16px; right: 16px; bottom: 16px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 77, 79, 0.15); box-shadow: 0 8px 24px rgba(255, 77, 79, 0.08); border-radius: 999px; padding: 8px 12px 8px 20px; justify-content: space-between; align-items: center; z-index: 100; box-sizing: border-box;">
+          <div style="font-size: 12px; font-weight: 800; color: var(--ink);">已选择 <span style="color: #FF4D4F; font-size: 14px;">${selectedIds.length}</span> 个项目</div>
+          <button class="btn" data-action="playbook-delete-selected" style="background: #FF4D4F; color: #ffffff; font-size: 11px; font-weight: 800; border-radius: 999px; padding: 6px 16px; border: 0; min-height: 0; height: 30px; line-height: 30px; margin: 0;">❌ 批量删除</button>
+        </div>
+      ` : ''}
+
+      <!-- 新增/编辑弹窗 -->
+      ${state.showPlaybookModal ? html`
+        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 1000; display: flex; align-items: center; justify-content: center;">
+          <div class="modal-mask" data-action="playbook-modal-hide" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(45, 41, 56, 0.5); backdrop-filter: blur(4px);"></div>
+          <div class="modal-content card" style="position: relative; width: 85vw; background: #ffffff; border-radius: 20px; padding: 20px; box-shadow: 0 12px 32px rgba(45, 41, 56, 0.15); margin: 0; box-sizing: border-box;">
+            <div class="row" style="justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgba(45,41,56,0.05); padding-bottom: 10px;">
+              <h3 style="font-size: 15px; font-weight: 900; color: var(--ink); margin: 0;">${state.playbookEditMode ? '📝 编辑趣玩项目' : '➕ 新增趣玩项目'}</h3>
+              <span data-action="playbook-modal-hide" style="font-size: 24px; color: var(--muted); cursor: pointer; padding: 4px; line-height: 1;">×</span>
             </div>
-          `}
+            <div class="stack" style="gap: 12px; margin-bottom: 20px;">
+              <div>
+                <label style="font-size: 11px; font-weight: 700; color: var(--ink); display: block; margin-bottom: 4px;">项目名称</label>
+                <input id="playbookFormName" class="input" placeholder="输入打卡项目名称 (如: 逛公园/看话剧)" value="${escapeText(state.playbookFormName || '')}" style="width: 100%; box-sizing: border-box;" />
+              </div>
+            </div>
+            <div class="row" style="gap: 8px; width: 100%;">
+              <button class="btn secondary" data-action="playbook-modal-hide" style="flex: 1; margin:0; min-height: 38px; height: 38px; font-size: 12px; box-shadow: none;">取消</button>
+              ${state.playbookEditMode ? `<button class="btn secondary" data-action="playbook-wish-to-date" style="flex: 1; margin:0; min-height: 38px; height: 38px; font-size: 12px; color: #7C69C9; background: #FAF9FC; border-color: rgba(124,105,201,0.15);">📌 提为行程</button>` : ''}
+              <button class="btn" data-action="playbook-modal-submit" style="flex: 1; margin:0; min-height: 38px; height: 38px; font-size: 12px;">确认保存</button>
+            </div>
+          </div>
         </div>
-      </section>
+      ` : ''}
     `;
   }
 
@@ -963,6 +1048,96 @@
     }
     if (action === 'go-back-to-food') {
       setView('food');
+    }
+    if (action === 'go-to-playbook') {
+      state.playbookBatchMode = false;
+      state.playbookSelectedIds = [];
+      setView('playbook');
+    }
+    if (action === 'go-back-to-date') {
+      setView('date');
+    }
+    if (action === 'playbook-toggle-batch') {
+      state.playbookBatchMode = !state.playbookBatchMode;
+      state.playbookSelectedIds = [];
+    }
+    if (action === 'playbook-card-click') {
+      const id = Number(target.closest('[data-id]').dataset.id);
+      if (state.playbookBatchMode) {
+        const idx = state.playbookSelectedIds.indexOf(id);
+        if (idx > -1) {
+          state.playbookSelectedIds.splice(idx, 1);
+        } else {
+          state.playbookSelectedIds.push(id);
+        }
+      } else {
+        const wish = state.wishlist.find(w => w.id === id);
+        if (wish) {
+          state.showPlaybookModal = true;
+          state.playbookEditMode = true;
+          state.playbookFormId = id;
+          state.playbookFormName = wish.name;
+        }
+      }
+    }
+    if (action === 'playbook-modal-show-add') {
+      state.showPlaybookModal = true;
+      state.playbookEditMode = false;
+      state.playbookFormId = null;
+      state.playbookFormName = '';
+    }
+    if (action === 'playbook-modal-hide') {
+      state.showPlaybookModal = false;
+    }
+    if (action === 'playbook-modal-submit') {
+      const nameInput = document.querySelector('#playbookFormName');
+      const name = nameInput ? nameInput.value.trim() : '';
+      if (!name) return;
+
+      const isDup = state.wishlist.some(w => w.id !== state.playbookFormId && w.name.trim() === name);
+      if (isDup) {
+        toast('该好玩的地方已在清单中啦');
+        return;
+      }
+
+      if (state.playbookEditMode) {
+        const item = state.wishlist.find(x => x.id === state.playbookFormId);
+        if (item) {
+          item.name = name;
+        }
+      } else {
+        state.wishlist.unshift({ id: nextId(state.wishlist), name });
+      }
+      state.showPlaybookModal = false;
+      saveState();
+    }
+    if (action === 'playbook-delete-selected') {
+      if (confirm(`确定要批量删除这 ${state.playbookSelectedIds.length} 个趣玩项目吗？`)) {
+        state.wishlist = state.wishlist.filter(w => !state.playbookSelectedIds.includes(w.id));
+        state.playbookBatchMode = false;
+        state.playbookSelectedIds = [];
+        saveState();
+      }
+    }
+    if (action === 'playbook-wish-to-date') {
+      const nameInput = document.querySelector('#playbookFormName');
+      const name = nameInput ? nameInput.value.trim() : state.playbookFormName;
+      if (name) {
+        state.datePlans.unshift({
+          id: nextId(state.datePlans),
+          title: `去打卡「${name}」`,
+          time: `${today()} 18:00`,
+          location: '',
+          notes: '由愿望单生成',
+          status: 'pending',
+          revision: '',
+          createdBy: state.user.id
+        });
+        state.showPlaybookModal = false;
+        setView('date');
+        toast('已自动填入新行程提案');
+        saveState();
+      }
     }
     if (action === 'recipe-switch-cat') {
       state.recipeCurrentCategory = target.dataset.cat;
