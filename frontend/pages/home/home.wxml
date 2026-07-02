@@ -65,9 +65,9 @@
           <view class="agenda-line" wx:if="{{index < selectedDayAgenda.events.length - 1}}"></view>
         </view>
         <view class="agenda-body flex-1">
-          <view class="agenda-time" wx:if="{{item.time}}">{{item.time}}</view>
           <view class="agenda-content">
             <text class="agenda-type-tag tag-{{item.type}}">[{{item.typeText}}]</text>
+            <text class="agenda-time-inline" wx:if="{{item.time}}" style="font-size: 24rpx; font-weight: 800; color: #7C69C9; margin-right: 12rpx;">{{item.time}}</text>
             <text class="agenda-text">{{item.title}}</text>
             <text class="agenda-subtext" wx:if="{{item.location}}"> 📍{{item.location}}</text>
           </view>

@@ -108,7 +108,6 @@ router.get('/month', authMiddleware, async (req, res, next) => {
       JOIN spaces s ON ks.space_id = s.id
       WHERE ks.space_id IN (${placeholders})
         AND ks.created_at LIKE ?
-        AND ks.status != 'archived'
     `;
     const kitchenSessions = await db.all(kitchenQuery, [...spaceIds, prefix]);
 
@@ -144,12 +143,13 @@ router.get('/month', authMiddleware, async (req, res, next) => {
 
     foodSessions.forEach(session => {
       const datePart = session.created_at.substring(0, 10);
+      const timePart = session.created_at.substring(11, 16);
       const displayTitle = showSpaceTag ? `[${session.space_name}] 出去吃：${session.food_name || '锁定菜品'}` : `出去吃：${session.food_name || '锁定菜品'}`;
       addEvent(datePart, {
         id: session.id,
         type: 'food',
         title: displayTitle,
-        time: null,
+        time: timePart || null,
         reason: session.result_reason
       });
     });
