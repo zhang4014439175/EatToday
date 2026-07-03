@@ -31,6 +31,19 @@ function today() {
   return new Date().toISOString().split('T')[0];
 }
 
+function shiftDateStr(dateStr, days) {
+  const date = new Date(`${dateStr}T00:00:00`);
+  date.setDate(date.getDate() + days);
+  return formatDate(date);
+}
+
+function formatDate(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 function withState(handler) {
   const state = loadState();
   const result = handler(state);
@@ -57,6 +70,31 @@ function getCurrentContext(state) {
 
 function sortDesc(list, field = 'created_at') {
   return [...list].sort((a, b) => String(b[field] || '').localeCompare(String(a[field] || '')));
+}
+
+function sortByEventTimeAsc(list) {
+  return [...list].sort((a, b) => {
+    const aKey = `${a.event_date || ''} ${a.event_time || '23:59'}`;
+    const bKey = `${b.event_date || ''} ${b.event_time || '23:59'}`;
+    return aKey.localeCompare(bKey);
+  });
+}
+
+function pickNearestTimedItem(list, dateField, timeField) {
+  const now = new Date();
+  const timed = list.map(item => {
+    const date = item[dateField];
+    const time = item[timeField] || '23:59';
+    const when = new Date(`${date}T${time}:00`);
+    return { ...item, _diffMs: when.getTime() - now.getTime() };
+  }).filter(item => !Number.isNaN(item._diffMs));
+
+  const upcoming = timed.filter(item => item._diffMs >= 0).sort((a, b) => a._diffMs - b._diffMs);
+  if (upcoming.length) return upcoming[0];
+
+  return timed
+    .filter(item => item._diffMs < 0 && item._diffMs >= -60 * 60 * 1000)
+    .sort((a, b) => b._diffMs - a._diffMs)[0] || null;
 }
 
 function handleAuth(path, method, options) {
@@ -451,11 +489,142 @@ function handleDate(path, method, options) {
   });
 }
 
+function handleCalendar(path, method, options) {
+  return withState(state => {
+    const { user } = getCurrentContext(state);
+
+    if (!Array.isArray(state.customEvents)) {
+      state.customEvents = [];
+    }
+    if (!state.nextIds.customEvent) {
+      const maxId = state.customEvents.reduce((max, item) => Math.max(max, Number(item.id) || 0), 0);
+      state.nextIds.customEvent = maxId + 1;
+    }
+
+    if (path === '/calendar/month' && method === 'GET') {
+      const query = (options.url.split('?')[1] || '').split('&').reduce((acc, pair) => {
+        const [key, value] = pair.split('=');
+        if (key) acc[key] = decodeURIComponent(value || '');
+        return acc;
+      }, {});
+      const year = Number(query.year || new Date().getFullYear());
+      const month = Number(query.month || new Date().getMonth() + 1);
+      const prefix = `${year}-${String(month).padStart(2, '0')}`;
+      const events = {};
+
+      const addEvent = (dateStr, event) => {
+        if (!dateStr || !dateStr.startsWith(prefix)) return;
+        if (!events[dateStr]) events[dateStr] = [];
+        events[dateStr].push(event);
+      };
+
+      state.anniversaries
+        .filter(item => sameCouple(item, user))
+        .forEach(item => {
+          const dateStr = Number(item.is_yearly) ? `${year}-${item.date.substring(5, 10)}` : item.date;
+          addEvent(dateStr, { id: item.id, type: 'anniversary', title: item.title, time: null });
+        });
+
+      state.datePlans
+        .filter(item => item.status !== 'rejected' && (item.created_by === user.id || item.partner_id === user.id))
+        .forEach(item => {
+          const dateStr = String(item.meeting_time || '').substring(0, 10);
+          const time = String(item.meeting_time || '').substring(11, 16);
+          addEvent(dateStr, {
+            id: item.id,
+            type: 'date',
+            title: item.title,
+            time: time || null,
+            location: item.meeting_location,
+            status: item.status
+          });
+        });
+
+      state.foodSessions
+        .filter(item => item.status === 'locked' && isFoodSessionVisible(item, user))
+        .forEach(item => {
+          const dateStr = formatDate(new Date(item.created_at));
+          const time = new Date(item.created_at).toTimeString().substring(0, 5);
+          addEvent(dateStr, {
+            id: item.id,
+            type: 'food',
+            title: item.selected_food_name || '锁定菜品',
+            time,
+            reason: item.result_reason
+          });
+        });
+
+      state.customEvents
+        .filter(item => sameCouple(item, user))
+        .forEach(item => {
+          addEvent(item.event_date, {
+            id: item.id,
+            type: 'custom',
+            title: item.title,
+            time: item.event_time || null,
+            creator_name: state.users.find(u => u.id === item.created_by)?.nickname || '',
+            created_by: item.created_by
+          });
+        });
+
+      Object.keys(events).forEach(day => {
+        events[day].sort((a, b) => String(a.time || '').localeCompare(String(b.time || '')));
+      });
+
+      return ok({ success: true, year, month, events });
+    }
+
+    if (path === '/calendar/custom-events' && method === 'GET') {
+      const events = sortDesc(
+        state.customEvents.filter(item => sameCouple(item, user)).map(item => ({
+          ...item,
+          creator_name: state.users.find(u => u.id === item.created_by)?.nickname || ''
+        })),
+        'event_date'
+      );
+      return ok({ success: true, events });
+    }
+
+    if (path === '/calendar/custom-events/nearest' && method === 'GET') {
+      const since = shiftDateStr(today(), -1);
+      const candidates = sortByEventTimeAsc(state.customEvents.filter(item => sameCouple(item, user) && item.event_date >= since));
+      return ok({ success: true, event: pickNearestTimedItem(candidates, 'event_date', 'event_time') });
+    }
+
+    if (path === '/calendar/custom-event' && method === 'POST') {
+      const { title, event_date, event_time } = getBody(options);
+      if (!title || !String(title).trim()) return fail('事件备忘描述不能为空');
+      if (!event_date) return fail('事件日期不能为空');
+      const event = {
+        id: nextId(state, 'customEvent'),
+        title: String(title).trim(),
+        event_date,
+        event_time: event_time || null,
+        created_by: user.id,
+        created_at: nowIso()
+      };
+      state.customEvents.push(event);
+      return ok({ success: true, event });
+    }
+
+    const deleteMatch = path.match(/^\/calendar\/custom-event\/(\d+)$/);
+    if (deleteMatch && method === 'DELETE') {
+      const id = Number(deleteMatch[1]);
+      const index = state.customEvents.findIndex(item => item.id === id && sameCouple(item, user));
+      if (index < 0) return fail('未找到该自定义备忘事件', 404, 'NotFoundError');
+      state.customEvents.splice(index, 1);
+      return ok({ success: true, message: '删除成功' });
+    }
+
+    return null;
+  });
+}
+
 export function mockRequest(options) {
   const path = parseUrl(options.url || '');
   const method = (options.method || 'GET').toUpperCase();
 
-  const handlers = [handleAuth, handleAnniversary, handleFood, handleDate];
+  const handlers = [handleAuth, handleAnniversary, handleFood, handleDate, handleCalendar];
   for (const handler of handlers) {
     const result = handler(path, method, options);
     if (result) return result;

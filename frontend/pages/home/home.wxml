@@ -58,7 +58,7 @@
     </view>
 
     <!-- 日程事项列表 -->
-    <view class="agenda-list">
+    <scroll-view class="agenda-list agenda-scroll" scroll-y="true" enhanced="true" show-scrollbar="true">
       <view class="agenda-item flex-row" wx:for="{{selectedDayAgenda.events}}" wx:key="uniqueId">
         <view class="agenda-dot-line">
           <view class="agenda-dot dot-{{item.type}}"></view>
@@ -80,7 +80,7 @@
       <view class="empty-agenda" wx:if="{{selectedDayAgenda.events.length === 0}}">
         这天平平淡淡，没有记录备忘，点击上方「添加备忘」记一笔吧！
       </view>
-    </view>
+    </scroll-view>
   </view>
 
   <!-- 添加自定义事件弹窗 -->
@@ -107,39 +107,57 @@
     </view>
   </view>
 
-  <!-- 近期聚焦看板 -->
-  <view class="card-title">近期聚焦</view>
-
-  <!-- 看板 1: 今天吃什么 -->
-  <view class="card flex-row flex-between today-card" bindtap="goToFood">
-    <view class="today-left">
-      <view class="today-label" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-        <text>🍕 今天吃什么</text>
-        <text class="today-time-tag" wx:if="{{todayFoodTime}}" style="font-size: 22rpx; font-weight: 800; color: #7C69C9; background: #F3F0FA; padding: 4rpx 14rpx; border-radius: 6rpx; line-height: 1;">{{todayFoodTime}}</text>
+  <view class="focus-grid">
+    <view
+      class="card focus-card {{item.urgent ? 'urgent-card' : ''}}"
+      wx:for="{{focusCards}}"
+      wx:key="key"
+      bindtap="onFocusCardTap"
+      data-key="{{item.key}}"
+    >
+      <view class="focus-card-head">
+        <text class="focus-icon">{{item.icon}}</text>
+        <text class="focus-label">{{item.label}}</text>
       </view>
-      <view class="today-value" style="margin-top: 8rpx;">{{todayFood || '还在纠结？点击抽个签吧！'}}</view>
+      <view class="focus-title">{{item.title}}</view>
+      <view class="focus-meta">{{item.meta}}</view>
     </view>
-    <view class="today-arrow">➔</view>
   </view>
 
-  <!-- 看板 2: 今日去哪玩 -->
-  <view class="card flex-row flex-between today-card" bindtap="goToDate">
-    <view class="today-left">
-      <view class="today-label" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-        <text>📍 今日去哪玩</text>
-        <text class="today-time-tag" wx:if="{{todayDateTime}}" style="font-size: 22rpx; font-weight: 800; color: #7C69C9; background: #F3F0FA; padding: 4rpx 14rpx; border-radius: 6rpx; line-height: 1;">{{todayDateTime}}</text>
+  <view class="memo-modal-overlay" wx:if="{{showMemoModal}}">
+    <view class="memo-modal-mask" bindtap="closeMemoManager"></view>
+    <view class="memo-modal card">
+      <view class="memo-modal-header flex-row flex-between">
+        <view>
+          <view class="memo-modal-title">备忘录管理</view>
+          <view class="memo-modal-subtitle">管理当前空间的日常提醒</view>
+        </view>
+        <view class="memo-close" bindtap="closeMemoManager">✕</view>
       </view>
-      <view class="today-value" style="margin-top: 8rpx;">{{todayDate || '今天暂无确认的游玩计划'}}</view>
-    </view>
-    <view class="today-arrow">➔</view>
-  </view>
 
-  <!-- 纪念日倒计时快捷入口 -->
-  <view class="card anniversary-shortcut" wx:if="{{nearestAnniversary}}">
-    <view class="anniversary-label">📅 最近纪念日</view>
-    <view class="anniversary-content">
-      <text class="anniversary-name">距离「{{nearestAnniversary.title}}」还有</text>
-      <text class="anniversary-countdown">{{nearestAnniversary.daysLeft}}</text> 天
+      <scroll-view class="memo-list" scroll-y="true" enhanced="true" show-scrollbar="true">
+        <view class="memo-item flex-row" wx:for="{{memoList}}" wx:key="id">
+          <view class="memo-item-main">
+            <view class="memo-item-title">{{item.title}}</view>
+            <view class="memo-item-meta">{{item.displayDate}} {{item.displayTime}} · {{item.creatorName}}</view>
+          </view>
+          <view class="memo-delete" bindtap="deleteMemoFromManager" data-id="{{item.id}}">✕</view>
+        </view>
+        <view class="memo-empty" wx:if="{{memoList.length === 0}}">还没有备忘，下面添加一条吧。</view>
+      </scroll-view>
+
+      <view class="memo-form">
+        <input class="form-input memo-input" placeholder="输入备忘内容" value="{{memoDialogText}}" bindinput="onMemoTextInput" />
+        <view class="memo-picker-row">
+          <picker mode="date" value="{{memoDialogDate}}" bindchange="onMemoDateChange">
+            <view class="memo-picker">{{memoDialogDate}}</view>
+          </picker>
+          <picker mode="time" value="{{memoDialogTime}}" bindchange="onMemoTimeChange">
+            <view class="memo-picker">{{memoDialogTime || '选择时间'}}</view>
+          </picker>
+        </view>
+        <button class="btn btn-primary memo-add-btn" bindtap="addMemoFromManager">添加备忘</button>
+      </view>
     </view>
   </view>
 </view>

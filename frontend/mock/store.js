@@ -23,7 +23,8 @@ function createDefaultState() {
       food: 7,
       foodSession: 2,
       datePlan: 4,
-      wishlist: 4
+      wishlist: 4,
+      customEvent: 3
     },
     users: [
       {
@@ -61,6 +62,10 @@ function createDefaultState() {
     ],
     foodSessions: [],
     foodVotes: [],
+    customEvents: [
+      { id: 1, title: '买明天早餐', event_date: today(), event_time: '09:30', created_by: 1, created_at: now },
+      { id: 2, title: '记得确认周末安排', event_date: today(), event_time: '20:00', created_by: 1, created_at: now }
+    ],
     datePlans: [
       {
         id: 1,

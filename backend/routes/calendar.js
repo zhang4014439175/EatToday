@@ -209,6 +209,118 @@ router.get('/month', authMiddleware, async (req, res, next) => {
   }
 });
 
+async function getUserSpaceIds(db, userId) {
+  const memberSpaces = await db.all('SELECT space_id FROM space_members WHERE user_id = ?', [userId]);
+  return memberSpaces.map(item => item.space_id);
+}
+
+function getTodayDateStr() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function shiftDateStr(dateStr, days) {
+  const date = new Date(`${dateStr}T00:00:00`);
+  date.setDate(date.getDate() + days);
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function pickNearestMemo(events) {
+  const now = new Date();
+  const timed = events.map(item => {
+    const time = item.event_time || '23:59';
+    const when = new Date(`${item.event_date}T${time}:00`);
+    return {
+      ...item,
+      _diffMs: when.getTime() - now.getTime()
+    };
+  }).filter(item => !Number.isNaN(item._diffMs));
+
+  const upcoming = timed
+    .filter(item => item._diffMs >= 0)
+    .sort((a, b) => a._diffMs - b._diffMs);
+
+  if (upcoming.length) return upcoming[0];
+
+  const recentlyPassed = timed
+    .filter(item => item._diffMs < 0 && item._diffMs >= -60 * 60 * 1000)
+    .sort((a, b) => b._diffMs - a._diffMs);
+
+  return recentlyPassed[0] || null;
+}
+
+/**
+ * 获取当前用户可见的全部自定义备忘
+ * GET /api/calendar/custom-events
+ */
+router.get('/custom-events', authMiddleware, async (req, res, next) => {
+  const user = req.user;
+
+  try {
+    const db = getDB();
+    const spaceIds = await getUserSpaceIds(db, user.id);
+    if (spaceIds.length === 0) {
+      return res.status(200).json({ success: true, events: [] });
+    }
+
+    const placeholders = spaceIds.map(() => '?').join(',');
+    const events = await db.all(
+      `SELECT ce.*, u.nickname AS creator_name, s.name AS space_name
+       FROM calendar_custom_events ce
+       JOIN spaces s ON ce.space_id = s.id
+       LEFT JOIN users u ON ce.created_by = u.id
+       WHERE ce.space_id IN (${placeholders})
+       ORDER BY ce.event_date DESC, COALESCE(ce.event_time, '23:59') DESC, ce.created_at DESC`,
+      spaceIds
+    );
+
+    return res.status(200).json({ success: true, events });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * 获取首页展示用的最近备忘
+ * GET /api/calendar/custom-events/nearest
+ */
+router.get('/custom-events/nearest', authMiddleware, async (req, res, next) => {
+  const user = req.user;
+
+  try {
+    const db = getDB();
+    const spaceIds = await getUserSpaceIds(db, user.id);
+    if (spaceIds.length === 0) {
+      return res.status(200).json({ success: true, event: null });
+    }
+
+    const today = getTodayDateStr();
+    const since = shiftDateStr(today, -1);
+    const placeholders = spaceIds.map(() => '?').join(',');
+    const events = await db.all(
+      `SELECT ce.*, u.nickname AS creator_name, s.name AS space_name
+       FROM calendar_custom_events ce
+       JOIN spaces s ON ce.space_id = s.id
+       LEFT JOIN users u ON ce.created_by = u.id
+       WHERE ce.space_id IN (${placeholders})
+         AND ce.event_date >= ?
+       ORDER BY ce.event_date ASC, COALESCE(ce.event_time, '23:59') ASC, ce.created_at DESC
+       LIMIT 20`,
+      [...spaceIds, since]
+    );
+
+    return res.status(200).json({ success: true, event: pickNearestMemo(events) });
+  } catch (error) {
+    next(error);
+  }
+});
+
 /**
  * 添加自定义琐事
  * POST /api/calendar/custom-event
