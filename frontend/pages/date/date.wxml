@@ -61,7 +61,10 @@
       <!-- 修改建议展示 -->
       <view class="revision-note-box" wx:if="{{item.status === 'revision_requested'}}">
         <text class="revision-label">💡 对方修改建议：</text>
-        <text class="revision-content">{{item.revision_note || '暂无详细要求'}}</text>
+        <text class="revision-content" wx:if="{{item.revision_note}}">{{item.revision_note}}</text>
+        <view class="revision-content">时间：{{item.revision_meeting_time || item.meeting_time}}</view>
+        <view class="revision-content" wx:if="{{item.revision_meeting_location || item.meeting_location}}">地点：{{item.revision_meeting_location || item.meeting_location}}</view>
+        <view class="revision-content" wx:if="{{item.revision_notes || item.notes}}">备注：{{item.revision_notes || item.notes}}</view>
       </view>
 
       <!-- 待确认状态下的审批流转操作栏 (如果是对方发起的) -->
@@ -76,6 +79,18 @@
         <text class="text-muted">等待对方确认中...</text>
         <button class="action-btn cancel-btn" bindtap="cancelProposal" data-id="{{item.id}}">撤回</button>
       </view>
+
+      <!-- 修改建议状态下，发起人处理对方的新方案 -->
+      <view class="action-bar flex-row flex-between" wx:if="{{item.status === 'revision_requested' && item.created_by === userInfo.id}}">
+        <button class="action-btn accept-btn" bindtap="acceptProposal" data-id="{{item.id}}">接收修改</button>
+        <button class="action-btn revise-btn" bindtap="showReviseDialog" data-id="{{item.id}}">继续修改</button>
+        <button class="action-btn cancel-btn" bindtap="cancelProposal" data-id="{{item.id}}">取消提案</button>
+      </view>
+
+      <!-- 修改建议状态下，修改方等待发起人处理 -->
+      <view class="action-bar flex-row flex-between" wx:if="{{item.status === 'revision_requested' && item.created_by !== userInfo.id}}">
+        <text class="text-muted">已发送修改建议，等待发起人确认...</text>
+      </view>
     </view>
 
     <view class="empty-list" wx:if="{{datePlans.length === 0}}">
@@ -87,7 +102,17 @@
   <view class="dialog-mask" wx:if="{{reviseDialogVisible}}">
     <view class="dialog-box card">
       <view class="card-title">提出修改建议</view>
-      <textarea class="form-input dialog-textarea" placeholder="在此输入您的修改意见，比如：要不推迟一小时？或者换到大悦城？" value="{{tempRevisionNote}}" bindinput="onInputRevisionNote" />
+      <view class="form-group flex-row flex-between" style="display: flex; gap: 20rpx; margin-bottom: 16rpx; width: 100%; box-sizing: border-box;">
+        <picker mode="date" value="{{tempRevision.date}}" bindchange="onRevisionDateChange" style="flex: 1;">
+          <view class="picker-box">📅 {{tempRevision.date || '选择日期'}}</view>
+        </picker>
+        <picker mode="time" value="{{tempRevision.time}}" bindchange="onRevisionTimeChange" style="flex: 1;">
+          <view class="picker-box">⏰ {{tempRevision.time || '选择时间'}}</view>
+        </picker>
+      </view>
+      <input class="form-input" placeholder="地点：想改到哪里？" value="{{tempRevision.meeting_location}}" bindinput="onInputRevisionLocation" />
+      <input class="form-input" placeholder="备注：补充说明" value="{{tempRevision.notes}}" bindinput="onInputRevisionNotes" style="margin-top: 16rpx;" />
+      <textarea class="form-input dialog-textarea" placeholder="修改说明，比如：这家更近，或者时间更合适" value="{{tempRevision.revision_note}}" bindinput="onInputRevisionNote" />
       <view class="dialog-btns flex-row">
         <button class="btn btn-secondary flex-1" hover-class="btn-secondary-hover" bindtap="hideReviseDialog">取消</button>
         <button class="btn btn-primary flex-1" hover-class="btn-primary-hover" bindtap="submitRevision" style="margin-left: 20rpx;">确认提出</button>

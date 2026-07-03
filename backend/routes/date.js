@@ -162,7 +162,6 @@ router.post('/:id/accept', authMiddleware, async (req, res, next) => {
     const db = getDB();
     const now = new Date().toISOString();
 
-    // 校验提案是否存在，且接收方是当前用户，且处于 pending 状态
     const plan = await db.get('SELECT * FROM date_plans WHERE id = ?', [id]);
     if (!plan) {
       return res.status(404).json({ error: 'NotFoundError', message: '未找到该约会提案' });
@@ -172,30 +171,52 @@ router.post('/:id/accept', authMiddleware, async (req, res, next) => {
       return res.status(403).json({ error: 'ForbiddenError', message: '您无权处理该空间的约会提案' });
     }
 
-    if (plan.created_by === user.id) {
-      return res.status(403).json({ error: 'ForbiddenError', message: '您不能处理自己发起的提案' });
-    }
-
     if (plan.status !== 'pending' && plan.status !== 'revision_requested') {
       return res.status(400).json({ error: 'ValidationError', message: '提案状态不可流转，该提案已处理' });
     }
 
-    await db.run(
-      "UPDATE date_plans SET status = 'accepted', updated_at = ? WHERE id = ?",
-      [now, id]
-    );
+    if (plan.status === 'pending' && plan.created_by === user.id) {
+      return res.status(403).json({ error: 'ForbiddenError', message: '您不能处理自己发起的提案' });
+    }
+
+    if (plan.status === 'revision_requested' && plan.created_by !== user.id) {
+      return res.status(403).json({ error: 'ForbiddenError', message: '只有提案发起人可以接收修改建议' });
+    }
+
+    if (plan.status === 'revision_requested') {
+      await db.run(
+        `UPDATE date_plans
+         SET status = 'accepted',
+             meeting_time = COALESCE(revision_meeting_time, meeting_time),
+             meeting_location = COALESCE(revision_meeting_location, meeting_location),
+             notes = COALESCE(revision_notes, notes),
+             revision_note = NULL,
+             revision_meeting_time = NULL,
+             revision_meeting_location = NULL,
+             revision_notes = NULL,
+             updated_at = ?
+         WHERE id = ?`,
+        [now, id]
+      );
+    } else {
+      await db.run(
+        "UPDATE date_plans SET status = 'accepted', updated_at = ? WHERE id = ?",
+        [now, id]
+      );
+    }
 
     // 异步发送微信通知给发起者
-    const creator = await db.get('SELECT openid FROM users WHERE id = ?', [plan.created_by]);
-    if (creator && creator.openid) {
+    const notifyUserId = plan.status === 'revision_requested' ? plan.partner_id : plan.created_by;
+    const notifyUser = await db.get('SELECT openid FROM users WHERE id = ?', [notifyUserId]);
+    if (notifyUser && notifyUser.openid) {
       sendSubscribeMessage(
-        creator.openid,
+        notifyUser.openid,
         'MOCK_TEMPLATE_ACCEPT_ID',
         'pages/date/date',
         {
           thing1: { value: '约会提案已接受' },
           thing2: { value: `${user.nickname} 同意了约会提案：${plan.title.substring(0, 15)}` },
-          time3: { value: plan.meeting_time }
+          time3: { value: plan.revision_meeting_time || plan.meeting_time }
         }
       ).catch(e => console.error('[Notification Error] 发送接受通知异常:', e));
     }
@@ -267,11 +288,11 @@ router.post('/:id/reject', authMiddleware, async (req, res, next) => {
  */
 router.post('/:id/revision', authMiddleware, async (req, res, next) => {
   const id = req.params.id;
-  const { revisionNote } = req.body;
+  const { revisionNote, meetingTime, meetingLocation, notes } = req.body;
   const user = req.user;
 
-  if (!revisionNote || !revisionNote.trim()) {
-    return res.status(400).json({ error: 'ValidationError', message: '修改建议说明不能为空' });
+  if (!meetingTime) {
+    return res.status(400).json({ error: 'ValidationError', message: '修改后的见面时间不能为空' });
   }
 
   try {
@@ -287,30 +308,59 @@ router.post('/:id/revision', authMiddleware, async (req, res, next) => {
       return res.status(403).json({ error: 'ForbiddenError', message: '您无权处理该空间的约会提案' });
     }
 
-    if (plan.created_by === user.id) {
-      return res.status(403).json({ error: 'ForbiddenError', message: '您不能处理自己发起的提案' });
-    }
-
-    if (plan.status !== 'pending') {
+    if (plan.status !== 'pending' && plan.status !== 'revision_requested') {
       return res.status(400).json({ error: 'ValidationError', message: '该提案当前不可提出修改意见' });
     }
 
-    await db.run(
-      "UPDATE date_plans SET status = 'revision_requested', revision_note = ?, updated_at = ? WHERE id = ?",
-      [revisionNote.trim(), now, id]
-    );
+    const isCreator = plan.created_by === user.id;
+    if (plan.status === 'pending' && isCreator) {
+      return res.status(403).json({ error: 'ForbiddenError', message: '您不能修改自己刚发起且待确认的提案' });
+    }
+    if (plan.status === 'revision_requested' && !isCreator) {
+      return res.status(403).json({ error: 'ForbiddenError', message: '请等待发起人处理当前修改建议' });
+    }
 
-    // 异步发送微信通知给发起者
-    const creator = await db.get('SELECT openid FROM users WHERE id = ?', [plan.created_by]);
-    if (creator && creator.openid) {
+    if (isCreator) {
+      await db.run(
+        `UPDATE date_plans
+         SET status = 'pending',
+             meeting_time = ?,
+             meeting_location = ?,
+             notes = ?,
+             revision_note = NULL,
+             revision_meeting_time = NULL,
+             revision_meeting_location = NULL,
+             revision_notes = NULL,
+             updated_at = ?
+         WHERE id = ?`,
+        [meetingTime, meetingLocation || '', notes || '', now, id]
+      );
+    } else {
+      await db.run(
+        `UPDATE date_plans
+         SET status = 'revision_requested',
+             revision_note = ?,
+             revision_meeting_time = ?,
+             revision_meeting_location = ?,
+             revision_notes = ?,
+             updated_at = ?
+         WHERE id = ?`,
+        [revisionNote || '', meetingTime, meetingLocation || '', notes || '', now, id]
+      );
+    }
+
+    // 异步发送微信通知给下一位需要处理的人
+    const nextHandlerId = isCreator ? plan.partner_id : plan.created_by;
+    const nextHandler = await db.get('SELECT openid FROM users WHERE id = ?', [nextHandlerId]);
+    if (nextHandler && nextHandler.openid) {
       sendSubscribeMessage(
-        creator.openid,
+        nextHandler.openid,
         'MOCK_TEMPLATE_REVISION_ID',
         'pages/date/date',
         {
           thing1: { value: '约会修改建议' },
-          thing2: { value: `${user.nickname} 提出了修改意见：${revisionNote.substring(0, 15)}` },
-          time3: { value: plan.meeting_time }
+          thing2: { value: `${user.nickname} 提出了修改意见：${(revisionNote || meetingTime).substring(0, 15)}` },
+          time3: { value: meetingTime }
         }
       ).catch(e => console.error('[Notification Error] 发送修改意见通知异常:', e));
     }

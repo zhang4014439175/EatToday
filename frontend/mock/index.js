@@ -447,6 +447,9 @@ function handleDate(path, method, options) {
         notes: notes || '',
         status: 'pending',
         revision_note: '',
+        revision_meeting_time: '',
+        revision_meeting_location: '',
+        revision_notes: '',
         created_by: user.id,
         partner_id: user.partner_id,
         created_at: now,
@@ -462,15 +465,46 @@ function handleDate(path, method, options) {
       const action = actionMatch[2];
       const plan = state.datePlans.find(item => item.id === id);
       if (!plan) return fail('未找到该去哪玩提案', 404, 'NotFoundError');
-      if (plan.partner_id !== user.id) return fail('您无权处理该去哪玩提案', 403, 'ForbiddenError');
+      const isCreator = plan.created_by === user.id;
+      const isReceiver = plan.partner_id === user.id;
+      if (!isCreator && !isReceiver) return fail('您无权处理该去哪玩提案', 403, 'ForbiddenError');
 
-      if (action === 'accept') plan.status = 'accepted';
+      if (action === 'accept') {
+        if (plan.status === 'revision_requested' && !isCreator) return fail('只有发起人可以接收修改建议', 403, 'ForbiddenError');
+        if (plan.status === 'pending' && !isReceiver) return fail('只有接收方可以接受提案', 403, 'ForbiddenError');
+        if (plan.status === 'revision_requested') {
+          plan.meeting_time = plan.revision_meeting_time || plan.meeting_time;
+          plan.meeting_location = plan.revision_meeting_location || plan.meeting_location;
+          plan.notes = plan.revision_notes || plan.notes;
+          plan.revision_note = '';
+          plan.revision_meeting_time = '';
+          plan.revision_meeting_location = '';
+          plan.revision_notes = '';
+        }
+        plan.status = 'accepted';
+      }
       if (action === 'reject') plan.status = 'rejected';
       if (action === 'revision') {
-        const { revisionNote } = getBody(options);
-        if (!revisionNote || !String(revisionNote).trim()) return fail('修改建议说明不能为空');
-        plan.status = 'revision_requested';
-        plan.revision_note = String(revisionNote).trim();
+        const { revisionNote, meetingTime, meetingLocation, notes } = getBody(options);
+        if (!meetingTime) return fail('修改后的见面时间不能为空');
+        if (isCreator && plan.status === 'revision_requested') {
+          plan.status = 'pending';
+          plan.meeting_time = meetingTime;
+          plan.meeting_location = meetingLocation || '';
+          plan.notes = notes || '';
+          plan.revision_note = '';
+          plan.revision_meeting_time = '';
+          plan.revision_meeting_location = '';
+          plan.revision_notes = '';
+        } else if (isReceiver && plan.status === 'pending') {
+          plan.status = 'revision_requested';
+          plan.revision_note = String(revisionNote || '');
+          plan.revision_meeting_time = meetingTime;
+          plan.revision_meeting_location = meetingLocation || '';
+          plan.revision_notes = notes || '';
+        } else {
+          return fail('该提案当前不可提出修改意见');
+        }
       }
       plan.updated_at = nowIso();
       return ok({ success: true, message: '操作成功', plan });

@@ -188,6 +188,9 @@ async function initDBOnce(canRecoverEmptyDb) {
         notes TEXT,
         status TEXT NOT NULL,
         revision_note TEXT,
+        revision_meeting_time TEXT,
+        revision_meeting_location TEXT,
+        revision_notes TEXT,
         created_by INTEGER NOT NULL,
         partner_id INTEGER NOT NULL,
         created_at TEXT NOT NULL,
@@ -268,6 +271,15 @@ async function initDBOnce(canRecoverEmptyDb) {
     } catch (e) {}
     try {
       await db.run('ALTER TABLE date_plans ADD COLUMN space_id INTEGER;');
+    } catch (e) {}
+    try {
+      await db.run('ALTER TABLE date_plans ADD COLUMN revision_meeting_time TEXT;');
+    } catch (e) {}
+    try {
+      await db.run('ALTER TABLE date_plans ADD COLUMN revision_meeting_location TEXT;');
+    } catch (e) {}
+    try {
+      await db.run('ALTER TABLE date_plans ADD COLUMN revision_notes TEXT;');
     } catch (e) {}
     try {
       await db.run('ALTER TABLE kitchen_sessions ADD COLUMN space_id INTEGER;');

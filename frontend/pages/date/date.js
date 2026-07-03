@@ -26,7 +26,13 @@ Page({
     
     // 修改建议弹窗状态
     reviseDialogVisible: false,
-    tempRevisionNote: '',
+    tempRevision: {
+      date: '',
+      time: '',
+      meeting_location: '',
+      notes: '',
+      revision_note: ''
+    },
     currentRevisePlanId: null
   },
 
@@ -217,10 +223,19 @@ Page({
    */
   showReviseDialog(e) {
     const id = e.currentTarget.dataset.id;
+    const plan = this.data.datePlans.find(item => Number(item.id) === Number(id)) || {};
+    const sourceTime = plan.revision_meeting_time || plan.meeting_time || '';
+    const [datePart, timePart] = String(sourceTime).split(' ');
     this.setData({
       reviseDialogVisible: true,
       currentRevisePlanId: id,
-      tempRevisionNote: ''
+      tempRevision: {
+        date: datePart || this.getDefaultProposalTime().date,
+        time: timePart || this.getDefaultProposalTime().time,
+        meeting_location: plan.revision_meeting_location || plan.meeting_location || '',
+        notes: plan.revision_notes || plan.notes || '',
+        revision_note: plan.revision_note || ''
+      }
     });
   },
 
@@ -229,24 +244,35 @@ Page({
   },
 
   onInputRevisionNote(e) {
-    this.setData({ tempRevisionNote: e.detail.value });
+    this.setData({ 'tempRevision.revision_note': e.detail.value });
   },
+
+  onRevisionDateChange(e) { this.setData({ 'tempRevision.date': e.detail.value }); },
+  onRevisionTimeChange(e) { this.setData({ 'tempRevision.time': e.detail.value }); },
+  onInputRevisionLocation(e) { this.setData({ 'tempRevision.meeting_location': e.detail.value }); },
+  onInputRevisionNotes(e) { this.setData({ 'tempRevision.notes': e.detail.value }); },
 
   /**
    * 确认提交修改建议
    */
   async submitRevision() {
-    const { currentRevisePlanId, tempRevisionNote } = this.data;
-    if (!tempRevisionNote.trim()) {
-      wx.showToast({ title: '请输入修改建议内容', icon: 'none' });
+    const { currentRevisePlanId, tempRevision } = this.data;
+    if (!tempRevision.date || !tempRevision.time) {
+      wx.showToast({ title: '请选择修改后的日期和时间', icon: 'none' });
       return;
     }
 
+    const meetingTime = `${tempRevision.date} ${tempRevision.time}`;
     try {
       await request({
         url: `/date/${currentRevisePlanId}/revision`,
         method: 'POST',
-        data: { revisionNote: tempRevisionNote },
+        data: {
+          revisionNote: tempRevision.revision_note,
+          meetingTime,
+          meetingLocation: tempRevision.meeting_location,
+          notes: tempRevision.notes
+        },
         showLoading: true
       });
       wx.showToast({ title: '已成功发送修改意见', icon: 'success' });
