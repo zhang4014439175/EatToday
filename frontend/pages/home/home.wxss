@@ -414,15 +414,23 @@
   font-size: 26rpx;
   color: #2D2938;
   font-weight: 500;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
+  display: block;
+  line-height: 1.6;
 }
 
 .agenda-type-tag {
   font-size: 22rpx;
   font-weight: 700;
   margin-right: 8rpx;
+  display: inline-block;
+}
+
+.agenda-time-inline {
+  font-size: 24rpx;
+  font-weight: 800;
+  color: #7C69C9;
+  margin-right: 12rpx;
+  display: inline-block;
 }
 
 .tag-anniversary { color: #FF6B6B; }
@@ -433,11 +441,13 @@
 
 .agenda-text {
   font-weight: 700;
+  display: inline;
 }
 
 .agenda-subtext {
   color: #868095;
   margin-left: 6rpx;
+  display: inline;
 }
 
 .agenda-action {

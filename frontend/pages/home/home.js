@@ -7,7 +7,9 @@ Page({
     partnerInfo: null,
     loveDays: 0,
     todayFood: '',
+    todayFoodTime: '',
     todayDate: '',
+    todayDateTime: '',
     nearestAnniversary: null,
 
     // 日历状态
@@ -198,9 +200,28 @@ Page({
         request({ url: '/anniversary/nearest' })
       ]);
 
-      const todayFood = dbRes[0].status === 'fulfilled' && dbRes[0].value.food ? dbRes[0].value.food.name : '';
+      let todayFood = '';
+      let todayFoodTime = '';
+      if (dbRes[0].status === 'fulfilled' && dbRes[0].value.food) {
+        const food = dbRes[0].value.food;
+        if (food.time) {
+          todayFood = food.name;
+          todayFoodTime = food.time;
+        } else {
+          // 兼容后端直接以 "名称 (时分)" 返回的旧情况，进行防御性正则提取
+          const match = food.name.match(/^(.*)\s*\(([0-2][0-9]:[0-5][0-9])\)$/);
+          if (match) {
+            todayFood = match[1];
+            todayFoodTime = match[2];
+          } else {
+            todayFood = food.name;
+            todayFoodTime = '';
+          }
+        }
+      }
       
       let todayDate = '';
+      let todayDateTime = '';
       if (dbRes[1].status === 'fulfilled' && dbRes[1].value.plan) {
         const plan = dbRes[1].value.plan;
         const timePart = plan.meeting_time.includes(' ') ? plan.meeting_time.split(' ')[1] : plan.meeting_time;
@@ -212,13 +233,14 @@ Page({
           const diffMin = Math.ceil(diffMs / (60 * 1000));
           
           if (diffMin > 0 && diffMin <= 60) {
-            todayDate = `${plan.title} (${timePart}) ⚠️ 剩余不到1小时，别错过！`;
+            todayDateTime = `⚠️ ${timePart} 别错过`;
           } else {
-            todayDate = `${plan.title} (${timePart})`;
+            todayDateTime = timePart;
           }
         } catch (e) {
-          todayDate = `${plan.title} (${timePart})`;
+          todayDateTime = timePart;
         }
+        todayDate = plan.title;
       }
 
       let nearestAnniversary = dbRes[2].status === 'fulfilled' ? dbRes[2].value.anniversary : null;
@@ -229,7 +251,9 @@ Page({
 
       this.setData({
         todayFood,
+        todayFoodTime,
         todayDate,
+        todayDateTime,
         nearestAnniversary
       });
     } catch (err) {

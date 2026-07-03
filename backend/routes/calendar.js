@@ -123,7 +123,7 @@ router.get('/month', authMiddleware, async (req, res, next) => {
       const datePart = `${y}-${m}-${d}`;
       const timePart = `${hh}:${mm}`;
 
-      const displayTitle = showSpaceTag ? `[${session.space_name}] 爱心厨：${session.dish_name}` : `爱心厨：${session.dish_name}`;
+      const displayTitle = showSpaceTag ? `[${session.space_name}] ${session.dish_name}` : session.dish_name;
       addEvent(datePart, {
         id: session.id,
         type: 'kitchen',
@@ -162,7 +162,7 @@ router.get('/month', authMiddleware, async (req, res, next) => {
       const datePart = `${y}-${m}-${d}`;
       const timePart = `${hh}:${mm}`;
 
-      const displayTitle = showSpaceTag ? `[${session.space_name}] 出去吃：${session.food_name || '锁定菜品'}` : `出去吃：${session.food_name || '锁定菜品'}`;
+      const displayTitle = showSpaceTag ? `[${session.space_name}] ${session.food_name || '锁定菜品'}` : (session.food_name || '锁定菜品');
       addEvent(datePart, {
         id: session.id,
         type: 'food',

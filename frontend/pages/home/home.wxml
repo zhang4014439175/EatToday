@@ -113,8 +113,11 @@
   <!-- 看板 1: 今天吃什么 -->
   <view class="card flex-row flex-between today-card" bindtap="goToFood">
     <view class="today-left">
-      <view class="today-label">🍕 今天吃什么</view>
-      <view class="today-value">{{todayFood || '还在纠结？点击抽个签吧！'}}</view>
+      <view class="today-label" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <text>🍕 今天吃什么</text>
+        <text class="today-time-tag" wx:if="{{todayFoodTime}}" style="font-size: 22rpx; font-weight: 800; color: #7C69C9; background: #F3F0FA; padding: 4rpx 14rpx; border-radius: 6rpx; line-height: 1;">{{todayFoodTime}}</text>
+      </view>
+      <view class="today-value" style="margin-top: 8rpx;">{{todayFood || '还在纠结？点击抽个签吧！'}}</view>
     </view>
     <view class="today-arrow">➔</view>
   </view>
@@ -122,8 +125,11 @@
   <!-- 看板 2: 今日去哪玩 -->
   <view class="card flex-row flex-between today-card" bindtap="goToDate">
     <view class="today-left">
-      <view class="today-label">📍 今日去哪玩</view>
-      <view class="today-value">{{todayDate || '今天暂无确认的游玩计划'}}</view>
+      <view class="today-label" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <text>📍 今日去哪玩</text>
+        <text class="today-time-tag" wx:if="{{todayDateTime}}" style="font-size: 22rpx; font-weight: 800; color: #7C69C9; background: #F3F0FA; padding: 4rpx 14rpx; border-radius: 6rpx; line-height: 1;">{{todayDateTime}}</text>
+      </view>
+      <view class="today-value" style="margin-top: 8rpx;">{{todayDate || '今天暂无确认的游玩计划'}}</view>
     </view>
     <view class="today-arrow">➔</view>
   </view>
