@@ -63,8 +63,8 @@ function createDefaultState() {
     foodSessions: [],
     foodVotes: [],
     customEvents: [
-      { id: 1, title: '买明天早餐', event_date: today(), event_time: '09:30', created_by: 1, created_at: now },
-      { id: 2, title: '记得确认周末安排', event_date: today(), event_time: '20:00', created_by: 1, created_at: now }
+      { id: 1, title: '买明天早餐', event_date: today(), event_time: '09:30', created_by: 1, space_id: 1, space_name: '本地模拟空间', created_at: now },
+      { id: 2, title: '记得确认周末安排', event_date: today(), event_time: '20:00', created_by: 1, space_id: 1, space_name: '本地模拟空间', created_at: now }
     ],
     datePlans: [
       {

@@ -8,8 +8,10 @@ Page({
     loveDays: 0,
     todayFood: '',
     todayFoodTime: '',
+    todayFoodSpace: '',
     todayDate: '',
     todayDateTime: '',
+    todayDateSpace: '',
     nearestAnniversary: null,
     recentMemo: null,
     focusCards: [],
@@ -24,12 +26,7 @@ Page({
     showCustomDialog: false,
     customDialogText: '',
     customDialogTime: '',
-    calendarExpanded: false,
-    showMemoModal: false,
-    memoList: [],
-    memoDialogText: '',
-    memoDialogDate: '',
-    memoDialogTime: ''
+    calendarExpanded: false
   },
 
   onLoad(options) {
@@ -68,8 +65,10 @@ Page({
         loveDays: 0,
         todayFood: '请先登录',
         todayFoodTime: '',
+        todayFoodSpace: '',
         todayDate: '请先登录',
         todayDateTime: '',
+        todayDateSpace: '',
         nearestAnniversary: null,
         recentMemo: null
       }, () => this.refreshFocusCards());
@@ -199,6 +198,31 @@ Page({
     });
   },
 
+  getSpaceDisplayName(spaceName, spaceId) {
+    const name = String(spaceName || '').trim();
+    if (name === '我的个人空间' || name === '个人空间') {
+      return '个人';
+    }
+
+    return name;
+  },
+
+  formatAgendaTitle(title, spaceName, spaceId) {
+    const rawTitle = String(title || '').trim();
+    const spaceLabel = this.getSpaceDisplayName(spaceName, spaceId);
+    if (!spaceLabel) return rawTitle;
+
+    const match = rawTitle.match(/^\[([^\]]+)\]\s*(.*)$/);
+    if (match) {
+      const prefixLabel = this.getSpaceDisplayName(match[1], spaceId);
+      if (prefixLabel === spaceLabel) {
+        return `[${spaceLabel}] ${match[2] || ''}`.trim();
+      }
+    }
+
+    return `[${spaceLabel}] ${rawTitle}`.trim();
+  },
+
   /**
    * 拉取今日吃什么、去哪约会、最近纪念日以及备忘概览
    */
@@ -213,8 +237,10 @@ Page({
 
       let todayFood = '';
       let todayFoodTime = '';
+      let todayFoodSpace = '';
       if (dbRes[0].status === 'fulfilled' && dbRes[0].value.food) {
         const food = dbRes[0].value.food;
+        todayFoodSpace = this.getSpaceDisplayName(food.space_name, food.space_id);
         if (food.time) {
           todayFood = food.name;
           todayFoodTime = food.time;
@@ -233,8 +259,10 @@ Page({
       
       let todayDate = '';
       let todayDateTime = '';
+      let todayDateSpace = '';
       if (dbRes[1].status === 'fulfilled' && dbRes[1].value.plan) {
         const plan = dbRes[1].value.plan;
+        todayDateSpace = this.getSpaceDisplayName(plan.space_name, plan.space_id);
         const timePart = plan.meeting_time.includes(' ') ? plan.meeting_time.split(' ')[1] : plan.meeting_time;
         
         try {
@@ -260,8 +288,10 @@ Page({
       this.setData({
         todayFood,
         todayFoodTime,
+        todayFoodSpace,
         todayDate,
         todayDateTime,
+        todayDateSpace,
         nearestAnniversary,
         recentMemo
       }, () => this.refreshFocusCards());
@@ -333,7 +363,6 @@ Page({
     const focusCards = [
       {
         key: 'memo',
-        icon: '📝',
         label: '最近备忘录',
         title: state.loggedIn ? (memo?.title || state.emptyText) : state.loginText,
         meta: state.loggedIn ? this.formatMemoMeta(memo) : '点击去登录',
@@ -342,7 +371,6 @@ Page({
       },
       {
         key: 'anniversary',
-        icon: '💗',
         label: '最近纪念日',
         title: state.loggedIn ? (anniversary?.title || state.emptyText) : state.loginText,
         meta: state.loggedIn ? this.formatAnniversaryMeta(anniversary) : '点击去登录',
@@ -351,7 +379,6 @@ Page({
       },
       {
         key: 'food',
-        icon: '🍽',
         label: '今日吃什么',
         title: state.loggedIn ? (foodTitle || state.emptyText) : state.loginText,
         meta: state.loggedIn ? (foodTime || '今天待定') : '点击去登录',
@@ -360,7 +387,6 @@ Page({
       },
       {
         key: 'date',
-        icon: '📍',
         label: '今日去哪玩',
         title: state.loggedIn ? (dateTitle || state.emptyText) : state.loginText,
         meta: state.loggedIn ? (dateTime || '今天待定') : '点击去登录',
@@ -453,8 +479,8 @@ Page({
       const todayStr = this.formatDate(new Date());
       const mockEvents = {};
       mockEvents[todayStr] = [
-        { id: 101, type: 'anniversary', title: '宝贝相恋纪念日 💖', time: null },
-        { id: 102, type: 'kitchen', title: '大厨烹饪了：麻辣香锅 🍳', time: '18:30' }
+        { id: 101, type: 'anniversary', title: '相恋纪念日', time: null },
+        { id: 102, type: 'kitchen', title: '大厨烹饪了：麻辣香锅', time: '18:30' }
       ];
       this.setData({
         monthlyEvents: mockEvents
@@ -560,11 +586,15 @@ Page({
       custom: '备忘'
     };
 
-    const formattedEvents = dayEvents.map(e => ({
-      ...e,
-      typeText: typeTextMap[e.type] || '日程',
-      uniqueId: `${e.type}-${e.id}`
-    }));
+    const formattedEvents = dayEvents.map(e => {
+      const spaceName = e.space_name || '';
+      return {
+        ...e,
+        displayTitle: this.formatAgendaTitle(e.title, spaceName, e.space_id),
+        typeText: typeTextMap[e.type] || '日程',
+        uniqueId: `${e.type}-${e.id}`
+      };
+    });
 
     this.setData({
       selectedDayAgenda: {
@@ -647,11 +677,11 @@ Page({
    * 显示/隐藏添加琐事弹窗
    */
   showAddCustomDialog() {
-    this.setData({
-      showCustomDialog: true,
-      customDialogText: '',
-      customDialogTime: ''
-    });
+    if (!wx.getStorageSync('token')) {
+      this.goToProfile();
+      return;
+    }
+    this.goToMemoManager();
   },
 
   hideAddCustomDialog() {
@@ -753,7 +783,7 @@ Page({
     });
   },
 
-  onFocusCardTap(e) {
+  onCardTap(e) {
     const key = e.currentTarget.dataset.key;
     const token = wx.getStorageSync('token');
     if (!token) {
@@ -761,11 +791,7 @@ Page({
       return;
     }
 
-    if (key === 'memo') {
-      this.openMemoManager();
-    } else if (key === 'anniversary') {
-      this.goToAnniversary();
-    } else if (key === 'food') {
+    if (key === 'food') {
       this.goToFood();
     } else if (key === 'date') {
       this.goToDate();
@@ -784,113 +810,9 @@ Page({
     });
   },
 
-  async openMemoManager() {
-    const todayStr = this.formatDate(new Date());
-    this.setData({
-      showMemoModal: true,
-      memoDialogText: '',
-      memoDialogDate: this.data.selectedDateStr || todayStr,
-      memoDialogTime: ''
-    });
-    this.loadAllMemos();
-  },
-
-  closeMemoManager() {
-    this.setData({ showMemoModal: false });
-  },
-
-  async loadAllMemos() {
-    try {
-      const res = await request({ url: '/calendar/custom-events' });
-      const memoList = (res.events || []).map(item => ({
-        ...item,
-        displayDate: item.event_date,
-        displayTime: item.event_time || '全天',
-        creatorName: item.creator_name || '我'
-      }));
-      this.setData({ memoList });
-    } catch (err) {
-      console.warn('[Memo] 获取备忘列表失败:', err);
-      const memoList = [];
-      Object.keys(this.data.monthlyEvents).forEach(dateStr => {
-        (this.data.monthlyEvents[dateStr] || []).forEach(item => {
-          if (item.type === 'custom') {
-            memoList.push({
-              ...item,
-              event_date: dateStr,
-              event_time: item.time,
-              displayDate: dateStr,
-              displayTime: item.time || '全天',
-              creatorName: item.creator_name || '我'
-            });
-          }
-        });
-      });
-      this.setData({ memoList });
-    }
-  },
-
-  onMemoTextInput(e) {
-    this.setData({ memoDialogText: e.detail.value });
-  },
-
-  onMemoDateChange(e) {
-    this.setData({ memoDialogDate: e.detail.value });
-  },
-
-  onMemoTimeChange(e) {
-    this.setData({ memoDialogTime: e.detail.value });
-  },
-
-  async addMemoFromManager() {
-    const { memoDialogText, memoDialogDate, memoDialogTime } = this.data;
-    if (!memoDialogText.trim()) {
-      wx.showToast({ title: '请输入备忘内容', icon: 'none' });
-      return;
-    }
-
-    try {
-      await request({
-        url: '/calendar/custom-event',
-        method: 'POST',
-        data: {
-          title: memoDialogText.trim(),
-          event_date: memoDialogDate,
-          event_time: memoDialogTime || null
-        },
-        showLoading: true
-      });
-      wx.showToast({ title: '已添加备忘', icon: 'success' });
-      this.setData({ memoDialogText: '', memoDialogTime: '' });
-      this.loadAllMemos();
-      this.fetchMonthlyEvents();
-      this.fetchTodayDashboard();
-    } catch (err) {
-      wx.showToast({ title: err.message || '添加失败', icon: 'none' });
-    }
-  },
-
-  deleteMemoFromManager(e) {
-    const id = e.currentTarget.dataset.id;
-    wx.showModal({
-      title: '删除提示',
-      content: '确定要删除这条备忘吗？',
-      success: async (res) => {
-        if (!res.confirm) return;
-        try {
-          await request({
-            url: `/calendar/custom-event/${id}`,
-            method: 'DELETE',
-            showLoading: true
-          });
-          wx.showToast({ title: '删除成功', icon: 'success' });
-          this.loadAllMemos();
-          this.fetchMonthlyEvents();
-          this.fetchTodayDashboard();
-        } catch (err) {
-          wx.showToast({ title: err.message || '删除失败', icon: 'none' });
-        }
-      }
+  goToMemoManager() {
+    wx.navigateTo({
+      url: `/pages/memo/memo?date=${this.data.selectedDateStr || this.formatDate(new Date())}`
     });
   },
 

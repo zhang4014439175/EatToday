@@ -6,7 +6,8 @@
     "pages/profile/profile",
     "pages/recipe/recipe",
     "pages/wishlist/wishlist",
-    "pages/anniversary/anniversary"
+    "pages/anniversary/anniversary",
+    "pages/memo/memo"
   ],
   "window": {
     "backgroundTextStyle": "light",

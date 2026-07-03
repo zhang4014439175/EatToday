@@ -1,6 +1,6 @@
 {
-  "navigationBarTitleText": "纪念日簿",
-  "navigationBarBackgroundColor": "#7C69C9",
-  "navigationBarTextStyle": "white",
+  "navigationBarTitleText": "纪念日管理",
+  "navigationBarBackgroundColor": "#FFFFFF",
+  "navigationBarTextStyle": "black",
   "backgroundColor": "#FAF9FC"
 }

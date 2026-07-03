@@ -66,6 +66,31 @@ Page({
 
     this.checkPairStatus();
     this.fetchFoodList();
+    this.startRealtimeRefresh();
+  },
+
+  onHide() {
+    this.stopRealtimeRefresh();
+  },
+
+  onUnload() {
+    this.stopRealtimeRefresh();
+  },
+
+  startRealtimeRefresh() {
+    this.stopRealtimeRefresh();
+    this.realtimeTimer = setInterval(() => {
+      if (!wx.getStorageSync('token') || !this.data.currentSpace) return;
+      this.fetchKitchenSession();
+      this.fetchActiveSession();
+    }, 3000);
+  },
+
+  stopRealtimeRefresh() {
+    if (this.realtimeTimer) {
+      clearInterval(this.realtimeTimer);
+      this.realtimeTimer = null;
+    }
   },
 
   /**
@@ -501,7 +526,6 @@ Page({
         selectedMenuDishIndex: -1
       });
       wx.showToast({ title: '订单已发送', icon: 'success' });
-      this.autoSimulatePartnerCooking();
     }
   },
 
@@ -572,7 +596,6 @@ Page({
         cookedDishPhoto: ''
       });
       wx.showToast({ title: '已起锅装盘！', icon: 'success' });
-      this.autoSimulatePartnerEating();
     }
   },
 
@@ -844,7 +867,6 @@ Page({
         dinerNote: ''
       });
       this.refreshFilteredDishes();
-      this.autoSimulatePartnerCooking();
     } catch (err) {
       // Mock 下单
       const session = {

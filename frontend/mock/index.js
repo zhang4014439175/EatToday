@@ -563,7 +563,9 @@ function handleCalendar(path, method, options) {
             title: item.title,
             time: item.event_time || null,
             creator_name: state.users.find(u => u.id === item.created_by)?.nickname || '',
-            created_by: item.created_by
+            created_by: item.created_by,
+            space_id: item.space_id || 1,
+            space_name: item.space_name || '本地模拟空间'
           });
         });
 
@@ -578,7 +580,9 @@ function handleCalendar(path, method, options) {
       const events = sortDesc(
         state.customEvents.filter(item => sameCouple(item, user)).map(item => ({
           ...item,
-          creator_name: state.users.find(u => u.id === item.created_by)?.nickname || ''
+          creator_name: state.users.find(u => u.id === item.created_by)?.nickname || '',
+          space_id: item.space_id || 1,
+          space_name: item.space_name || '本地模拟空间'
         })),
         'event_date'
       );
@@ -592,7 +596,7 @@ function handleCalendar(path, method, options) {
     }
 
     if (path === '/calendar/custom-event' && method === 'POST') {
-      const { title, event_date, event_time } = getBody(options);
+      const { title, event_date, event_time, spaceId } = getBody(options);
       if (!title || !String(title).trim()) return fail('事件备忘描述不能为空');
       if (!event_date) return fail('事件日期不能为空');
       const event = {
@@ -600,6 +604,8 @@ function handleCalendar(path, method, options) {
         title: String(title).trim(),
         event_date,
         event_time: event_time || null,
+        space_id: Number(spaceId || 1),
+        space_name: '本地模拟空间',
         created_by: user.id,
         created_at: nowIso()
       };

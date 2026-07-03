@@ -1,4 +1,6 @@
-<view class="container">
+<view class="container {{calendarExpanded ? 'container-expanded' : ''}}">
+
+
 
   <!-- 首页情侣互动日历 -->
   <view class="card calendar-card">
@@ -53,12 +55,18 @@
   <!-- 点击天数展示的 Agenda 日程抽屉 -->
   <view class="card agenda-drawer" wx:if="{{selectedDayAgenda}}">
     <view class="agenda-header flex-row flex-between">
-      <text class="agenda-title">{{selectedDayAgenda.dateStr}} 的日常</text>
-      <view class="btn-add-custom" bindtap="showAddCustomDialog">➕ 添加备忘</view>
+      <view class="agenda-title-wrap">
+        <text class="agenda-title">{{selectedDayAgenda.dateStr}} 的日常</text>
+        <text class="agenda-count">（{{selectedDayAgenda.events.length}}项）</text>
+      </view>
+      <view style="display: flex; gap: 12rpx; align-items: center;">
+        <view class="btn-add-custom btn-manage-anniversary" bindtap="goToAnniversary">纪念日</view>
+        <view class="btn-add-custom" bindtap="showAddCustomDialog">备忘录</view>
+      </view>
     </view>
 
     <!-- 日程事项列表 -->
-    <scroll-view class="agenda-list agenda-scroll" scroll-y="true" enhanced="true" show-scrollbar="true">
+    <scroll-view class="agenda-list" scroll-y="true" enhanced="true" show-scrollbar="true">
       <view class="agenda-item flex-row" wx:for="{{selectedDayAgenda.events}}" wx:key="uniqueId">
         <view class="agenda-dot-line">
           <view class="agenda-dot dot-{{item.type}}"></view>
@@ -68,96 +76,52 @@
           <view class="agenda-content">
             <text class="agenda-type-tag tag-{{item.type}}">[{{item.typeText}}]</text>
             <text class="agenda-time-inline" wx:if="{{item.time}}" style="font-size: 24rpx; font-weight: 800; color: #7C69C9; margin-right: 12rpx;">{{item.time}}</text>
-            <text class="agenda-text">{{item.title}}</text>
-            <text class="agenda-subtext" wx:if="{{item.location}}"> 📍{{item.location}}</text>
+            <text class="agenda-text">{{item.displayTitle}}</text>
+            <text class="agenda-subtext" wx:if="{{item.location}}"> {{item.location}}</text>
           </view>
-        </view>
-        <view class="agenda-action" wx:if="{{item.type === 'custom'}}">
-          <text class="agenda-delete-btn" bindtap="deleteCustomEvent" data-id="{{item.id}}">✕</text>
         </view>
       </view>
 
       <view class="empty-agenda" wx:if="{{selectedDayAgenda.events.length === 0}}">
-        这天平平淡淡，没有记录备忘，点击上方「添加备忘」记一笔吧！
+        这天还没有记录，点击右上角「备忘录」添加或管理备忘。
       </view>
     </scroll-view>
   </view>
-
-  <!-- 添加自定义事件弹窗 -->
-  <view class="dialog-overlay" wx:if="{{showCustomDialog}}">
-    <view class="dialog-mask" bindtap="hideAddCustomDialog"></view>
-    <view class="dialog-box card">
-      <view class="card-title">📝 添加一日备忘</view>
-      <view class="dialog-form">
-        <view class="form-group">
-          <text class="form-label">备忘内容</text>
-          <input class="form-input" placeholder="输入要做的琐事或提醒" value="{{customDialogText}}" bindinput="onInputCustomText" style="height: 80rpx;" />
-        </view>
-        <view class="form-group">
-          <text class="form-label">具体时间 (选填)</text>
-          <picker mode="time" value="{{customDialogTime}}" bindchange="onCustomTimeChange">
-            <view class="picker-box" style="height: 80rpx; line-height: 80rpx; padding: 0 20rpx; border: 1rpx solid rgba(45,41,56,0.12); border-radius: 10rpx; background: #fff;">{{customDialogTime || '选择时间 (点击更改)'}}</view>
-          </picker>
-        </view>
-      </view>
-      <view class="dialog-btns flex-row" style="margin-top: 30rpx;">
-        <button class="btn btn-secondary flex-1" bindtap="hideAddCustomDialog">取消</button>
-        <button class="btn btn-primary flex-1" bindtap="submitCustomEvent" style="margin-left: 20rpx;">确认保存</button>
-      </view>
-    </view>
-  </view>
-
   <view class="focus-grid">
-    <view
-      class="card focus-card {{item.urgent ? 'urgent-card' : ''}}"
-      wx:for="{{focusCards}}"
-      wx:key="key"
-      bindtap="onFocusCardTap"
-      data-key="{{item.key}}"
-    >
-      <view class="focus-card-head">
-        <text class="focus-icon">{{item.icon}}</text>
-        <text class="focus-label">{{item.label}}</text>
-      </view>
-      <view class="focus-title">{{item.title}}</view>
-      <view class="focus-meta">{{item.meta}}</view>
-    </view>
-  </view>
-
-  <view class="memo-modal-overlay" wx:if="{{showMemoModal}}">
-    <view class="memo-modal-mask" bindtap="closeMemoManager"></view>
-    <view class="memo-modal card">
-      <view class="memo-modal-header flex-row flex-between">
-        <view>
-          <view class="memo-modal-title">备忘录管理</view>
-          <view class="memo-modal-subtitle">管理当前空间的日常提醒</view>
-        </view>
-        <view class="memo-close" bindtap="closeMemoManager">✕</view>
-      </view>
-
-      <scroll-view class="memo-list" scroll-y="true" enhanced="true" show-scrollbar="true">
-        <view class="memo-item flex-row" wx:for="{{memoList}}" wx:key="id">
-          <view class="memo-item-main">
-            <view class="memo-item-title">{{item.title}}</view>
-            <view class="memo-item-meta">{{item.displayDate}} {{item.displayTime}} · {{item.creatorName}}</view>
+    <!-- 看板 1: 今天吃什么 -->
+    <view class="card flex-row flex-between today-card today-food" bindtap="onCardTap" data-key="food">
+      <view class="today-left">
+        <view class="today-label" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+          <text>🍕 今天吃什么</text>
+          <view style="display: flex; gap: 8rpx; align-items: center;">
+            <text class="today-space-tag" wx:if="{{todayFoodSpace}}" style="font-size: 18rpx; font-weight: 800; color: #7C69C9; background: #F3F0FA; padding: 3rpx 10rpx; border-radius: 6rpx; line-height: 1;">{{todayFoodSpace}}</text>
+            <text class="today-time-tag" wx:if="{{todayFoodTime}}" style="font-size: 20rpx; font-weight: 800; color: #E9C46A; background: #FFFDF6; padding: 3rpx 10rpx; border-radius: 6rpx; line-height: 1;">{{todayFoodTime}}</text>
           </view>
-          <view class="memo-delete" bindtap="deleteMemoFromManager" data-id="{{item.id}}">✕</view>
         </view>
-        <view class="memo-empty" wx:if="{{memoList.length === 0}}">还没有备忘，下面添加一条吧。</view>
-      </scroll-view>
-
-      <view class="memo-form">
-        <input class="form-input memo-input" placeholder="输入备忘内容" value="{{memoDialogText}}" bindinput="onMemoTextInput" />
-        <view class="memo-picker-row">
-          <picker mode="date" value="{{memoDialogDate}}" bindchange="onMemoDateChange">
-            <view class="memo-picker">{{memoDialogDate}}</view>
-          </picker>
-          <picker mode="time" value="{{memoDialogTime}}" bindchange="onMemoTimeChange">
-            <view class="memo-picker">{{memoDialogTime || '选择时间'}}</view>
-          </picker>
+        <!-- 如果未登录显示“请先登录”，已登录且有内容显示具体食物，没有则显示推荐文案 -->
+        <view class="today-value" style="margin-top: 4rpx; color: {{todayFood === '请先登录' ? '#B5B2C0' : '#2D2938'}}; font-size: {{todayFood === '请先登录' ? '24rpx' : '28rpx'}}; font-weight: {{todayFood === '请先登录' ? '700' : '800'}};">
+          {{todayFood || '还在纠结？点击抽个签吧！'}}
         </view>
-        <button class="btn btn-primary memo-add-btn" bindtap="addMemoFromManager">添加备忘</button>
       </view>
+      <view class="today-arrow">➔</view>
+    </view>
+
+    <!-- 看板 2: 今日去哪玩 -->
+    <view class="card flex-row flex-between today-card today-date" bindtap="onCardTap" data-key="date">
+      <view class="today-left">
+        <view class="today-label" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+          <text>📍 今日去哪玩</text>
+          <view style="display: flex; gap: 8rpx; align-items: center;">
+            <text class="today-space-tag" wx:if="{{todayDateSpace}}" style="font-size: 18rpx; font-weight: 800; color: #7C69C9; background: #F3F0FA; padding: 3rpx 10rpx; border-radius: 6rpx; line-height: 1;">{{todayDateSpace}}</text>
+            <text class="today-time-tag" wx:if="{{todayDateTime}}" style="font-size: 20rpx; font-weight: 800; color: #2A9D8F; background: #F4FAF9; padding: 3rpx 10rpx; border-radius: 6rpx; line-height: 1;">{{todayDateTime}}</text>
+          </view>
+        </view>
+        <!-- 如果未登录显示“请先登录”，已登录且有内容显示具体行程，没有则显示推荐文案 -->
+        <view class="today-value" style="margin-top: 4rpx; color: {{todayDate === '请先登录' ? '#B5B2C0' : '#2D2938'}}; font-size: {{todayDate === '请先登录' ? '24rpx' : '28rpx'}}; font-weight: {{todayDate === '请先登录' ? '700' : '800'}};">
+          {{todayDate || '今天暂无确认的游玩计划'}}
+        </view>
+      </view>
+      <view class="today-arrow">➔</view>
     </view>
   </view>
 </view>

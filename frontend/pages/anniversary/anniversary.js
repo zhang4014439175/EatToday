@@ -45,10 +45,10 @@ Page({
         { id: 2, name: '我们俩的空间' }
       ];
       const mockAnniversaries = [
-        { id: 101, title: '恋爱纪念日 🌸', date: '2025-05-20', is_yearly: 1, space_name: '我们俩的空间', space_id: 2 },
-        { id: 102, title: '去影院看第一场电影 🍿', date: '2025-06-01', is_yearly: 0, space_name: '个人空间', space_id: 1 },
-        { id: 103, title: '毕业一周年 🎓', date: '2025-07-02', is_yearly: 0, space_name: '个人空间', space_id: 1 },
-        { id: 104, title: '跨年钟声倒计时 🔔', date: '2026-12-31', is_yearly: 0, space_name: '我们俩的空间', space_id: 2 }
+        { id: 101, title: '恋爱纪念日', date: '2025-05-20', is_yearly: 1, space_name: '我们俩的空间', space_id: 2 },
+        { id: 102, title: '去影院看第一场电影', date: '2025-06-01', is_yearly: 0, space_name: '个人空间', space_id: 1 },
+        { id: 103, title: '毕业一周年', date: '2025-07-02', is_yearly: 0, space_name: '个人空间', space_id: 1 },
+        { id: 104, title: '跨年钟声倒计时', date: '2026-12-31', is_yearly: 0, space_name: '我们俩的空间', space_id: 2 }
       ];
       this.processAnniversaries(mockAnniversaries, mockSpaces);
     } finally {

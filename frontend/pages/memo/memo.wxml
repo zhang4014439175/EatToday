@@ -1,0 +1,61 @@
+<view class="container">
+  <view class="card memo-header-card">
+    <view class="page-kicker">今日管理</view>
+    <view class="page-title">备忘录管理</view>
+    <view class="page-subtitle">记录当前空间内的日常提醒与临时事项</view>
+  </view>
+
+  <view class="card form-card">
+    <view class="section-title">新增备忘</view>
+    <view class="form-group">
+      <text class="form-label-text">备忘内容</text>
+      <input class="form-input" placeholder="输入要记录的事项" value="{{newMemo.title}}" bindinput="onInputTitle" />
+    </view>
+
+    <view class="form-grid">
+      <view class="form-group">
+        <text class="form-label-text">日期</text>
+        <picker mode="date" value="{{newMemo.date}}" bindchange="onDateChange">
+          <view class="form-picker-box">{{newMemo.date}}</view>
+        </picker>
+      </view>
+      <view class="form-group">
+        <text class="form-label-text">时间</text>
+        <picker mode="time" value="{{newMemo.time}}" bindchange="onTimeChange">
+          <view class="form-picker-box">{{newMemo.time || '不设置'}}</view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label-text">所属空间</text>
+      <picker mode="selector" range="{{spaces}}" range-key="name" bindchange="onSpaceChange">
+        <view class="form-picker-box">{{selectedSpaceName || '选择备忘录所属空间'}}</view>
+      </picker>
+    </view>
+
+    <button class="btn btn-primary submit-btn" bindtap="submitMemo">添加备忘</button>
+  </view>
+
+  <view class="card list-card">
+    <view class="card-header flex-row flex-between">
+      <view class="section-title">全部备忘</view>
+      <view class="count-badge">{{memoList.length}} 条</view>
+    </view>
+
+    <view class="memo-list">
+      <view class="memo-item flex-row" wx:for="{{memoList}}" wx:key="id">
+        <view class="memo-status"></view>
+        <view class="memo-main">
+          <view class="memo-title">{{item.title}}</view>
+          <view class="memo-meta">{{item.displayDate}} {{item.displayTime}} · {{item.spaceName}} · {{item.creatorName}}</view>
+        </view>
+        <view class="memo-delete" bindtap="deleteMemo" data-id="{{item.id}}" data-title="{{item.title}}">删除</view>
+      </view>
+
+      <view class="empty-state" wx:if="{{memoList.length === 0}}">
+        还没有备忘，先添加一条吧。
+      </view>
+    </view>
+  </view>
+</view>

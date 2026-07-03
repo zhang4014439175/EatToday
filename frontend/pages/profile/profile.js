@@ -257,6 +257,12 @@ Page({
     });
   },
 
+  goToMemoManager() {
+    wx.navigateTo({
+      url: '/pages/memo/memo'
+    });
+  },
+
   /**
    * 退出当前所选空间
    */

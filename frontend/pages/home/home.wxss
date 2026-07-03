@@ -1,3 +1,18 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 24rpx;
+  overflow: hidden;
+}
+
+.container-expanded {
+  height: auto;
+  min-height: 100vh;
+  overflow: visible;
+}
+
 .love-header {
   background-color: #F3F0FA;
   border: 1rpx solid rgba(124, 105, 201, 0.08);
@@ -87,19 +102,21 @@
 
 /* 今日看板卡片 */
 .today-card {
-  padding: 38rpx 36rpx;
+  min-height: 118rpx;
+  padding: 24rpx 28rpx;
   align-items: center;
-  margin-bottom: 24rpx;
+  margin-bottom: 16rpx;
   background: #ffffff;
   border: 1rpx solid rgba(45, 41, 56, 0.04);
+  box-sizing: border-box;
 }
 
 .today-card::before {
   content: "";
   position: absolute;
   left: 0;
-  top: 36rpx;
-  bottom: 36rpx;
+  top: 26rpx;
+  bottom: 26rpx;
   width: 6rpx;
   border-radius: 0 999rpx 999rpx 0;
   background: #7C69C9;
@@ -114,34 +131,34 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-  padding-right: 20rpx;
+  padding-right: 16rpx;
 }
 
 .today-label {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: #868095;
-  margin-bottom: 12rpx;
+  margin-bottom: 6rpx;
   font-weight: 700;
-  letter-spacing: 0.5rpx;
+  letter-spacing: 0;
 }
 
 .today-value {
-  font-size: 32rpx;
+  font-size: 28rpx;
   font-weight: 800;
   color: #2D2938;
-  line-height: 1.4;
+  line-height: 1.24;
 }
 
 .today-arrow {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 56rpx;
-  height: 56rpx;
+  width: 46rpx;
+  height: 46rpx;
   border-radius: 50%;
   background-color: #F3F0FA;
   color: #7C69C9;
-  font-size: 28rpx;
+  font-size: 24rpx;
   transition: all 0.2s ease;
 }
 
@@ -197,7 +214,8 @@
 /* 日历主卡片 */
 .calendar-card {
   padding: 30rpx 20rpx;
-  margin-bottom: 24rpx;
+  margin-bottom: 16rpx;
+  flex-shrink: 0;
 }
 
 .calendar-header {
@@ -328,8 +346,20 @@
 /* 日程小抽屉 */
 .agenda-drawer {
   padding: 30rpx 36rpx;
-  margin-bottom: 24rpx;
+  margin-bottom: 12rpx;
   animation: slideDownAgenda 0.3s ease-out;
+  flex: 1;
+  height: auto;
+  min-height: 220rpx;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.container-expanded .agenda-drawer {
+  flex: none;
+  height: 320rpx;
+  min-height: 320rpx;
 }
 
 @keyframes slideDownAgenda {
@@ -349,48 +379,40 @@
   color: #2D2938;
 }
 
+.agenda-title-wrap {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  flex: 1;
+}
+
+.agenda-count {
+  font-size: 22rpx;
+  font-weight: 700;
+  color: #9A95A8;
+  margin-left: 4rpx;
+  white-space: nowrap;
+}
+
 .btn-add-custom {
-  font-size: 24rpx;
+  font-size: 23rpx;
   font-weight: 700;
   color: #7C69C9;
   background-color: #F3F0FA;
-  padding: 8rpx 20rpx;
+  padding: 8rpx 18rpx;
   border-radius: 999rpx;
 }
 
 /* 事项列表 */
 .agenda-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.agenda-scroll {
-  height: 380rpx;
-  max-height: 380rpx;
-  padding-right: 10rpx;
+  flex: 1;
+  height: 0;
+  min-height: 0;
   box-sizing: border-box;
 }
 
-.agenda-scroll ::-webkit-scrollbar,
-.memo-list ::-webkit-scrollbar {
-  width: 8rpx;
-  height: 8rpx;
-}
-
-.agenda-scroll ::-webkit-scrollbar-thumb,
-.memo-list ::-webkit-scrollbar-thumb {
-  border-radius: 999rpx;
-  background-color: rgba(124, 105, 201, 0.28);
-}
-
-.agenda-scroll ::-webkit-scrollbar-track,
-.memo-list ::-webkit-scrollbar-track {
-  border-radius: 999rpx;
-  background-color: rgba(45, 41, 56, 0.04);
-}
-
 .agenda-item {
-  margin-bottom: 20rpx;
+  margin-bottom: 10rpx;
   align-items: flex-start;
 }
 
@@ -400,7 +422,7 @@
   align-items: center;
   width: 24rpx;
   margin-right: 16rpx;
-  margin-top: 10rpx;
+  margin-top: 8rpx;
 }
 
 .agenda-dot {
@@ -418,7 +440,7 @@
 
 .agenda-line {
   width: 2rpx;
-  height: 48rpx;
+  height: 26rpx;
   background-color: rgba(45, 41, 56, 0.08);
   margin-top: 4rpx;
 }
@@ -440,7 +462,7 @@
   color: #2D2938;
   font-weight: 500;
   display: block;
-  line-height: 1.6;
+  line-height: 1.35;
 }
 
 .agenda-type-tag {
@@ -473,22 +495,6 @@
   color: #868095;
   margin-left: 6rpx;
   display: inline;
-}
-
-.agenda-action {
-  padding-left: 20rpx;
-}
-
-.agenda-delete-btn {
-  font-size: 28rpx;
-  color: #C2BFCA;
-  font-weight: 300;
-  padding: 4rpx 10rpx;
-  cursor: pointer;
-}
-
-.agenda-delete-btn:active {
-  color: #FF6B6B;
 }
 
 .empty-agenda {
@@ -546,21 +552,46 @@
 }
 
 .focus-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20rpx;
-  margin-bottom: 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;          /* 上下行卡片之间的垂直行距 */
+  margin-top: 12rpx;   /* 与上方日程部分的间距 */
+  margin-bottom: 0rpx;
+  flex-shrink: 0;      /* 防止底部卡片被压缩 */
+  width: 100%;
 }
 
+.container-expanded .focus-grid {
+  padding-bottom: 24rpx;
+}
+
+.focus-grid .today-card {
+  margin-bottom: 0rpx; /* 让 flex 容器的 gap 控制间距 */
+}
+
+/* 根据版块个性化定制左侧指示条颜色 */
+.today-food::before {
+  background: #E9C46A !important; /* 🍕 吃什么指示条采用明亮黄色 */
+}
+
+.today-date::before {
+  background: #2A9D8F !important; /* 📍 去哪玩指示条采用自然绿色 */
+}
+
+
 .focus-card {
-  min-height: 188rpx;
-  padding: 26rpx 24rpx;
+  min-height: 136rpx;
+  padding: 18rpx 20rpx;
   background: #ffffff;
-  border: 1rpx solid rgba(45, 41, 56, 0.05);
+  border: 1rpx solid rgba(124, 105, 201, 0.08);
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(124, 105, 201, 0.02);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  position: relative;
+  overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
@@ -574,18 +605,26 @@
   min-width: 0;
 }
 
-.focus-icon {
-  font-size: 30rpx;
-  margin-right: 10rpx;
-  line-height: 1;
+.focus-mark {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  margin-right: 8rpx;
+  background: #7C69C9;
+  flex-shrink: 0;
 }
+
+.focus-memo .focus-mark { background: #4A90E2; }
+.focus-anniversary .focus-mark { background: #FF6B6B; }
+.focus-food .focus-mark { background: #E9C46A; }
+.focus-date .focus-mark { background: #2A9D8F; }
 
 .focus-label {
   min-width: 0;
   flex: 1;
-  font-size: 23rpx;
+  font-size: 21rpx;
   font-weight: 800;
-  color: #868095;
+  color: #9A95A8;
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
@@ -593,25 +632,31 @@
 }
 
 .focus-title {
-  margin-top: 18rpx;
-  min-height: 68rpx;
-  font-size: 29rpx;
-  font-weight: 900;
+  margin-top: 10rpx;
+  min-height: 38rpx;
+  font-size: 25rpx;
+  font-weight: 800;
   color: #2D2938;
   line-height: 1.25;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: break-word;
 }
 
+.focus-title-empty {
+  font-size: 22rpx !important;
+  font-weight: 700 !important;
+  color: #B5B2C0 !important;
+}
+
 .focus-meta {
-  margin-top: 14rpx;
-  font-size: 22rpx;
+  margin-top: 6rpx;
+  font-size: 21rpx;
   font-weight: 800;
   color: #7C69C9;
-  line-height: 1.25;
+  line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -632,166 +677,6 @@
 @keyframes urgentPulse {
   0%, 100% { box-shadow: 0 10rpx 28rpx rgba(255, 77, 79, 0.12); }
   50% { box-shadow: 0 12rpx 34rpx rgba(255, 77, 79, 0.24); }
-}
-
-.memo-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40rpx;
-  box-sizing: border-box;
-}
-
-.memo-modal-mask {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(45, 41, 56, 0.42);
-  backdrop-filter: blur(4rpx);
-}
-
-.memo-modal {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  max-height: 86vh;
-  padding: 36rpx;
-  background: #ffffff;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-}
-
-.memo-modal-header {
-  align-items: flex-start;
-  padding-bottom: 22rpx;
-  border-bottom: 1rpx solid rgba(45, 41, 56, 0.06);
-}
-
-.memo-modal-title {
-  font-size: 34rpx;
-  font-weight: 900;
-  color: #2D2938;
-}
-
-.memo-modal-subtitle {
-  margin-top: 6rpx;
-  font-size: 23rpx;
-  font-weight: 700;
-  color: #868095;
-}
-
-.memo-close {
-  width: 56rpx;
-  height: 56rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: #F3F0FA;
-  color: #7C69C9;
-  font-size: 26rpx;
-  font-weight: 800;
-}
-
-.memo-list {
-  height: 440rpx;
-  margin: 24rpx 0;
-  padding-right: 8rpx;
-  box-sizing: border-box;
-}
-
-.memo-item {
-  align-items: center;
-  padding: 22rpx 0;
-  border-bottom: 1rpx solid rgba(45, 41, 56, 0.06);
-}
-
-.memo-item-main {
-  min-width: 0;
-  flex: 1;
-}
-
-.memo-item-title {
-  font-size: 28rpx;
-  font-weight: 850;
-  color: #2D2938;
-  line-height: 1.35;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.memo-item-meta {
-  margin-top: 8rpx;
-  font-size: 22rpx;
-  font-weight: 700;
-  color: #868095;
-  line-height: 1.25;
-}
-
-.memo-delete {
-  width: 56rpx;
-  height: 56rpx;
-  margin-left: 18rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #FF6B6B;
-  background: #FFF2F0;
-  border-radius: 50%;
-  font-size: 24rpx;
-  font-weight: 900;
-}
-
-.memo-empty {
-  padding: 70rpx 0;
-  text-align: center;
-  font-size: 24rpx;
-  color: #868095;
-}
-
-.memo-form {
-  padding-top: 22rpx;
-  border-top: 1rpx solid rgba(45, 41, 56, 0.06);
-}
-
-.memo-input {
-  height: 78rpx;
-  box-sizing: border-box;
-}
-
-.memo-picker-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16rpx;
-  margin-top: 16rpx;
-}
-
-.memo-picker {
-  height: 76rpx;
-  line-height: 76rpx;
-  padding: 0 20rpx;
-  border: 1rpx solid rgba(45, 41, 56, 0.1);
-  border-radius: 10rpx;
-  background: #ffffff;
-  font-size: 25rpx;
-  color: #2D2938;
-  font-weight: 700;
-  box-sizing: border-box;
-}
-
-.memo-add-btn {
-  margin-top: 18rpx;
-  width: 100%;
 }
 
 /* 空间快速切换栏 */

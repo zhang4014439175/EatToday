@@ -1,36 +1,35 @@
 <view class="container">
-  <!-- 1. 顶部聚焦头图看板 -->
-  <view class="focus-header">
-    <view class="focus-bg-glow"></view>
-    <view class="focus-content" wx:if="{{nearestAnn}}">
-      <text class="focus-label">最近焦点倒计时</text>
-      <view class="focus-title">{{nearestAnn.title}}</view>
-      <view class="focus-days flex-row">
-        <text class="days-num">{{nearestAnn.daysLeft}}</text>
-        <text class="days-unit">天</text>
+  <view class="card page-header-card">
+    <view class="page-kicker">今日管理</view>
+    <view class="page-title">纪念日管理</view>
+    <view class="page-subtitle">管理当前空间内的重要日期、倒计时和累计日</view>
+    <view class="nearest-panel" wx:if="{{nearestAnn}}">
+      <view class="nearest-main">
+        <view class="nearest-label">最近纪念日</view>
+        <view class="nearest-title">{{nearestAnn.title}}</view>
+        <view class="nearest-date">{{nearestAnn.date}} {{nearestAnn.is_yearly ? '每年重复' : '单次'}}</view>
       </view>
-      <text class="focus-date">📅 日期: {{nearestAnn.date}} {{nearestAnn.is_yearly ? '(每年重复)' : '(单次)'}}</text>
+      <view class="nearest-days">
+        <text class="nearest-num">{{nearestAnn.daysLeft}}</text>
+        <text class="nearest-unit">天</text>
+      </view>
     </view>
-    <view class="focus-content flex-column" wx:else style="display: flex; align-items: center; justify-content: center; height: 100%;">
-      <text class="focus-title" style="font-size: 32rpx; margin-top: 20rpx;">生活需要仪式感 💖</text>
-      <text class="focus-date" style="margin-top: 10rpx;">点击下方按钮，开始记录第一个纪念日吧</text>
+    <view class="nearest-empty" wx:else>
+      暂无纪念日，点击底部按钮开始记录。
     </view>
   </view>
 
-  <!-- 主体内容卡片 -->
   <view class="main-body card">
-    <!-- 2. 分类 Tab 切换 -->
     <view class="tab-container">
       <view class="tab-item {{activeTab === 'countdown' ? 'tab-active' : ''}}" bindtap="switchTab" data-tab="countdown">
-        倒数日子 (倒计时)
+        倒计时
       </view>
       <view class="tab-item {{activeTab === 'countup' ? 'tab-active' : ''}}" bindtap="switchTab" data-tab="countup">
-        累计日子 (已过去)
+        累计日
       </view>
     </view>
 
-    <!-- 3. 纪念日列表 -->
-    <scroll-view scroll-y class="list-scroll">
+    <view class="list-scroll">
       <!-- 倒计时列表 -->
       <view class="ann-list" wx:if="{{activeTab === 'countdown'}}">
         <view class="ann-item flex-row flex-between" wx:for="{{countdownList}}" wx:key="id">
@@ -88,17 +87,15 @@
           暂无已过去的历史累计日子...
         </view>
       </view>
-    </scroll-view>
+    </view>
   </view>
 
-  <!-- 4. 固定底部新增按钮 -->
   <view class="fixed-bottom-bar">
     <button class="btn btn-primary add-big-btn" hover-class="btn-primary-hover" bindtap="openAddModal">
       + 新增纪念日
     </button>
   </view>
 
-  <!-- 5. 新增半屏弹层 Modal -->
   <view class="modal-overlay" wx:if="{{showAddModal}}" bindtap="closeAddModal">
     <view class="modal-bottom-sheet card" catchtap="dummy">
       <view class="modal-header flex-row flex-between">

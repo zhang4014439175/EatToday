@@ -297,34 +297,48 @@ router.get('/today', authMiddleware, async (req, res, next) => {
       return `${hh}:${mm}`;
     };
 
-    const showSpaceTag = spaceIds.length > 1;
-
     if (kitchen && session) {
       // 比较时间，展示最近更新的那个
       if (new Date(kitchen.created_at) > new Date(session.created_at)) {
-        const timeStr = getBeijingTimeStr(kitchen.created_at);
-        const displayName = showSpaceTag ? `[${kitchen.space_name}] ${kitchen.dish_name}` : kitchen.dish_name;
         return res.status(200).json({
-          food: { name: `${displayName} (${timeStr})`, reason: '今天下厨烹饪' }
+          food: {
+            name: kitchen.dish_name,
+            time: getBeijingTimeStr(kitchen.created_at),
+            space_id: kitchen.space_id,
+            space_name: kitchen.space_name,
+            reason: '今天下厨烹饪'
+          }
         });
       } else {
-        const timeStr = getBeijingTimeStr(session.created_at);
-        const displayName = showSpaceTag ? `[${session.space_name}] ${session.food_name}` : session.food_name;
         return res.status(200).json({
-          food: { name: `${displayName} (${timeStr})`, reason: session.result_reason || '出去吃' }
+          food: {
+            name: session.food_name,
+            time: getBeijingTimeStr(session.created_at),
+            space_id: session.space_id,
+            space_name: session.space_name,
+            reason: session.result_reason || '出去吃'
+          }
         });
       }
     } else if (kitchen) {
-      const timeStr = getBeijingTimeStr(kitchen.created_at);
-      const displayName = showSpaceTag ? `[${kitchen.space_name}] ${kitchen.dish_name}` : kitchen.dish_name;
       return res.status(200).json({
-        food: { name: `${displayName} (${timeStr})`, reason: '今天下厨烹饪' }
+        food: {
+          name: kitchen.dish_name,
+          time: getBeijingTimeStr(kitchen.created_at),
+          space_id: kitchen.space_id,
+          space_name: kitchen.space_name,
+          reason: '今天下厨烹饪'
+        }
       });
     } else if (session) {
-      const timeStr = getBeijingTimeStr(session.created_at);
-      const displayName = showSpaceTag ? `[${session.space_name}] ${session.food_name}` : session.food_name;
       return res.status(200).json({
-        food: { name: `${displayName} (${timeStr})`, reason: session.result_reason || '出去吃' }
+        food: {
+          name: session.food_name,
+          time: getBeijingTimeStr(session.created_at),
+          space_id: session.space_id,
+          space_name: session.space_name,
+          reason: session.result_reason || '出去吃'
+        }
       });
     }
  

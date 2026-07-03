@@ -64,16 +64,14 @@ router.get('/today', authMiddleware, async (req, res, next) => {
     );
  
     if (plans.length > 0) {
-      const showSpaceTag = spaceIds.length > 1;
-      const combinedTitle = plans
-        .map(p => showSpaceTag ? `${p.space_name}: ${p.title}` : p.title)
-        .join(' | ');
-
+      const combinedTitle = plans.map(p => p.title).join(' | ');
       return res.status(200).json({
         plan: {
           id: plans[0].id,
           title: combinedTitle,
           meeting_time: plans[0].meeting_time,
+          space_id: plans[0].space_id,
+          space_name: plans[0].space_name,
           meeting_location: plans.map(p => p.meeting_location).filter(Boolean).join(' / '),
           notes: plans.map(p => p.notes).filter(Boolean).join('; ')
         }
@@ -94,10 +92,6 @@ router.post('/', authMiddleware, async (req, res, next) => {
   const { title, meetingTime, meetingLocation, notes } = req.body;
   const user = req.user;
 
-  if (!user.partner_id) {
-    return res.status(400).json({ error: 'ValidationError', message: '您必须先配对伴侣才能发起约会提案' });
-  }
-
   if (!user.current_space_id) {
     return res.status(400).json({ error: 'ValidationError', message: '您未关联活跃空间，无法发起约会' });
   }
@@ -109,6 +103,11 @@ router.post('/', authMiddleware, async (req, res, next) => {
   try {
     const db = getDB();
     const now = new Date().toISOString();
+    const members = await db.all(
+      'SELECT user_id FROM space_members WHERE space_id = ? AND user_id != ? ORDER BY joined_at ASC, id ASC',
+      [user.current_space_id, user.id]
+    );
+    const receiverId = members[0]?.user_id || user.partner_id || user.id;
 
     const result = await db.run(
       `INSERT INTO date_plans (title, meeting_time, meeting_location, notes, status, created_by, partner_id, space_id, created_at, updated_at)
@@ -119,7 +118,7 @@ router.post('/', authMiddleware, async (req, res, next) => {
         meetingLocation || '',
         notes || '',
         user.id,
-        user.partner_id,
+        receiverId,
         user.current_space_id,
         now,
         now
@@ -129,7 +128,9 @@ router.post('/', authMiddleware, async (req, res, next) => {
     const newPlan = await db.get('SELECT * FROM date_plans WHERE id = ?', [result.lastID]);
 
     // 异步尝试给伴侣发送订阅消息通知
-    const partner = await db.get('SELECT openid FROM users WHERE id = ?', [user.partner_id]);
+    const partner = receiverId !== user.id
+      ? await db.get('SELECT openid FROM users WHERE id = ?', [receiverId])
+      : null;
     if (partner) {
       sendSubscribeMessage(
         partner.openid,

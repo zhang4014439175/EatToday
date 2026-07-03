@@ -402,34 +402,50 @@
   color: #cf1322;
 }
 
-/* 纪念日管理 */
-.anniversary-card {
+/* 今日管理 */
+.today-manage-card {
   background-color: #FFFFFF;
-  border: 1rpx solid rgba(45, 41, 56, 0.06);
+  border: 1rpx solid rgba(45, 41, 56, 0.04);
+  padding: 36rpx;
 }
 
-.anniversary-card .card-title::before {
-  background: #7C69C9;
-}
-
-.add-anniversary-btn {
-  font-size: 24rpx;
-  color: #ffffff;
-  background-color: #7C69C9;
-  padding: 6rpx 20rpx;
-  border-radius: 999rpx;
-  font-weight: 700;
-}
-
-.add-anniversary-btn:active {
-  background-color: #6B57B8;
-}
-
-.anniversary-form {
-  margin-bottom: 32rpx;
-  padding-bottom: 32rpx;
+.manage-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28rpx 0;
   border-bottom: 1rpx solid rgba(45, 41, 56, 0.05);
-  animation: slideDown 0.3s ease-out;
+}
+
+.manage-entry:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.manage-entry-main {
+  min-width: 0;
+  flex: 1;
+  padding-right: 24rpx;
+}
+
+.manage-entry-name {
+  font-size: 28rpx;
+  font-weight: 850;
+  color: #2D2938;
+}
+
+.manage-entry-desc {
+  margin-top: 8rpx;
+  font-size: 23rpx;
+  font-weight: 700;
+  color: #868095;
+  line-height: 1.35;
+}
+
+.manage-entry-arrow {
+  font-size: 36rpx;
+  color: #868095;
+  font-weight: 800;
 }
 
 @keyframes slideDown {

@@ -67,14 +67,15 @@ router.get('/month', authMiddleware, async (req, res, next) => {
         const md = item.date.substring(5, 10); // "MM-DD"
         targetDate = `${year}-${md}`;
       }
-      const displayTitle = showSpaceTag ? `[${item.space_name}] ${item.title}` : item.title;
       addEvent(targetDate, {
         id: item.id,
         type: 'anniversary',
-        title: displayTitle,
+        title: item.title,
         time: null,
         is_yearly: item.is_yearly,
-        original_date: item.date
+        original_date: item.date,
+        space_id: item.space_id,
+        space_name: item.space_name
       });
     });
 
@@ -90,15 +91,16 @@ router.get('/month', authMiddleware, async (req, res, next) => {
 
     datePlans.forEach(plan => {
       const timePart = plan.meeting_time.substring(11, 16);
-      const displayTitle = showSpaceTag ? `[${plan.space_name}] ${plan.title}` : plan.title;
       addEvent(plan.meeting_time, {
         id: plan.id,
         type: 'date',
-        title: displayTitle,
+        title: plan.title,
         time: timePart || null,
         location: plan.meeting_location,
         status: plan.status,
-        notes: plan.notes
+        notes: plan.notes,
+        space_id: plan.space_id,
+        space_name: plan.space_name
       });
     });
 
@@ -123,11 +125,10 @@ router.get('/month', authMiddleware, async (req, res, next) => {
       const datePart = `${y}-${m}-${d}`;
       const timePart = `${hh}:${mm}`;
 
-      const displayTitle = showSpaceTag ? `[${session.space_name}] ${session.dish_name}` : session.dish_name;
       addEvent(datePart, {
         id: session.id,
         type: 'kitchen',
-        title: displayTitle,
+        title: session.dish_name,
         time: timePart,
         status: session.status,
         chef_id: session.chef_id,
@@ -135,7 +136,9 @@ router.get('/month', authMiddleware, async (req, res, next) => {
         chef_note: session.chef_note,
         diner_note: session.diner_note,
         praise: session.praise,
-        image_url: session.image_url
+        image_url: session.image_url,
+        space_id: session.space_id,
+        space_name: session.space_name
       });
     });
 
@@ -162,13 +165,14 @@ router.get('/month', authMiddleware, async (req, res, next) => {
       const datePart = `${y}-${m}-${d}`;
       const timePart = `${hh}:${mm}`;
 
-      const displayTitle = showSpaceTag ? `[${session.space_name}] ${session.food_name || '锁定菜品'}` : (session.food_name || '锁定菜品');
       addEvent(datePart, {
         id: session.id,
         type: 'food',
-        title: displayTitle,
+        title: session.food_name || '锁定菜品',
         time: timePart || null,
-        reason: session.result_reason
+        reason: session.result_reason,
+        space_id: session.space_id,
+        space_name: session.space_name
       });
     });
 
@@ -183,14 +187,15 @@ router.get('/month', authMiddleware, async (req, res, next) => {
     const customEvents = await db.all(customQuery, [...spaceIds, prefix]);
 
     customEvents.forEach(item => {
-      const displayTitle = showSpaceTag ? `[${item.space_name}] ${item.title}` : item.title;
       addEvent(item.event_date, {
         id: item.id,
         type: 'custom',
-        title: displayTitle,
+        title: item.title,
         time: item.event_time || null,
         creator_name: item.creator_name,
-        created_by: item.created_by
+        created_by: item.created_by,
+        space_name: item.space_name,
+        space_id: item.space_id
       });
     });
 
@@ -326,7 +331,7 @@ router.get('/custom-events/nearest', authMiddleware, async (req, res, next) => {
  * POST /api/calendar/custom-event
  */
 router.post('/custom-event', authMiddleware, async (req, res, next) => {
-  const { title, event_date, event_time } = req.body;
+  const { title, event_date, event_time, spaceId } = req.body;
   const user = req.user;
 
   if (!title || !title.trim()) {
@@ -337,22 +342,33 @@ router.post('/custom-event', authMiddleware, async (req, res, next) => {
     return res.status(400).json({ error: 'ValidationError', message: '事件日期格式不正确 (必须为 YYYY-MM-DD)。' });
   }
 
-  if (!user.current_space_id) {
+  const targetSpaceId = Number(spaceId || user.current_space_id);
+
+  if (!targetSpaceId) {
     return res.status(400).json({ error: 'ValidationError', message: '您当前未关联活跃空间。' });
   }
 
   try {
     const db = getDB();
     const now = new Date().toISOString();
+    const membership = await db.get(
+      'SELECT id FROM space_members WHERE space_id = ? AND user_id = ?',
+      [targetSpaceId, user.id]
+    );
+
+    if (!membership) {
+      return res.status(403).json({ error: 'ForbiddenError', message: '您无权在该空间新增备忘。' });
+    }
 
     const result = await db.run(
       `INSERT INTO calendar_custom_events (title, event_date, event_time, created_by, space_id, created_at)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [title.trim(), event_date, event_time || null, user.id, user.current_space_id, now]
+      [title.trim(), event_date, event_time || null, user.id, targetSpaceId, now]
     );
 
     const newEvent = await db.get(
-      `SELECT ce.*, u.nickname AS creator_name FROM calendar_custom_events ce
+      `SELECT ce.*, u.nickname AS creator_name, s.name AS space_name FROM calendar_custom_events ce
+       JOIN spaces s ON ce.space_id = s.id
        LEFT JOIN users u ON ce.created_by = u.id
        WHERE ce.id = ?`,
       [result.lastID]

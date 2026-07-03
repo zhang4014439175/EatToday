@@ -42,6 +42,19 @@ export async function authMiddleware(req, res, next) {
       });
     }
 
+    // 自动修复：如果用户的 current_space_id 为空，但已加入了空间，则自动回填为第一个空间
+    if (!user.current_space_id) {
+      const membership = await db.get(
+        'SELECT space_id FROM space_members WHERE user_id = ? ORDER BY joined_at ASC LIMIT 1',
+        [user.id]
+      );
+      if (membership) {
+        user.current_space_id = membership.space_id;
+        await db.run('UPDATE users SET current_space_id = ? WHERE id = ?', [membership.space_id, user.id]);
+        console.log(`[Auth Middleware] 自动修复用户 ${user.id} 的 current_space_id -> ${membership.space_id}`);
+      }
+    }
+
     // 将用户信息挂载到 req.user，后续路由可以直接使用
     req.user = user;
     next();
