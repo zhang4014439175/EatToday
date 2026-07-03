@@ -62,7 +62,11 @@ Page({
   async handleLogin() {
     try {
       // 随机分配一个可爱的微信昵称，用于演示
-      const names = ['小甜甜', '大魔王', '小憨包', '干饭第一名', '猫系女友', '犬系男友'];
+      const names = [
+        '小甜甜', '大魔王', '小憨包', '干饭第一名', '猫系女友', '犬系男友',
+        '芝士小面包', '快乐肥宅', '吃货本体', '元气少女', '小考拉', '小熊猫',
+        '奶茶守护者', '火锅终结者', '干饭之魂', '熬夜冠军', '咸鱼翻身', '摸鱼大师'
+      ];
       const randomName = names[Math.floor(Math.random() * names.length)];
       
       const user = await login(randomName, '');

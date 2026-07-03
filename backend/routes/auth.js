@@ -17,6 +17,16 @@ const TOKEN_SECRET = process.env.TOKEN_SECRET || 'eat_today_default_secret_key_c
 // 配对码频次限制缓存 (简单内存限频，针对 2核2G 最省资源的方式，不需要外部缓存服务)
 const pairRateLimitCache = new Map();
 
+// 默认丰富可爱的随机昵称池
+const DEFAULT_NICKNAMES = [
+  '小甜甜', '大魔王', '小憨包', '干饭第一名', '猫系女友', '犬系男友',
+  '芝士小面包', '快乐肥宅', '吃货本体', '元气少女', '小考拉', '小熊猫',
+  '奶茶守护者', '火锅终结者', '干饭之魂', '熬夜冠军', '咸鱼翻身', '摸鱼大师'
+];
+
+// 预先生成的多彩剪影默认头像颜色
+const DEFAULT_AVATAR_COLORS = ['blue', 'pink', 'purple', 'green', 'orange', 'yellow'];
+
 /**
  * 微信小程序登录 / 注册
  * POST /api/auth/login
@@ -52,10 +62,22 @@ router.post('/login', async (req, res, next) => {
       // 用户不存在，执行注册
       const pairCode = await generateUniquePairCode(db);
       
+      // 如果没有传入昵称或者为默认的，随机分配一个更丰富的可爱名称
+      const finalNickname = (nickname && nickname !== '神秘队友') ? nickname : DEFAULT_NICKNAMES[Math.floor(Math.random() * DEFAULT_NICKNAMES.length)];
+      
+      // 如果没有传入头像或者为空，随机分配一个不同颜色的默认剪影头像
+      let finalAvatarUrl = avatarUrl;
+      if (!finalAvatarUrl || finalAvatarUrl.trim() === '') {
+        const host = req.get('host');
+        const protocol = req.protocol;
+        const color = DEFAULT_AVATAR_COLORS[Math.floor(Math.random() * DEFAULT_AVATAR_COLORS.length)];
+        finalAvatarUrl = `${protocol}://${host}/uploads/default_avatars/avatar_${color}.png`;
+      }
+
       const result = await db.run(
         `INSERT INTO users (openid, pair_code, pair_code_created_at, nickname, avatar_url, created_at, updated_at) 
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [openid, pairCode, now, nickname || '神秘队友', avatarUrl || '', now, now]
+        [openid, pairCode, now, finalNickname, finalAvatarUrl, now, now]
       );
       
       user = await db.get('SELECT * FROM users WHERE id = ?', [result.lastID]);
