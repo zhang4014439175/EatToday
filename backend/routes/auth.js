@@ -24,8 +24,7 @@ const DEFAULT_NICKNAMES = [
   '奶茶守护者', '火锅终结者', '干饭之魂', '熬夜冠军', '咸鱼翻身', '摸鱼大师'
 ];
 
-// 预先生成的多彩剪影默认头像颜色
-const DEFAULT_AVATAR_COLORS = ['blue', 'pink', 'purple', 'green', 'orange', 'yellow'];
+
 
 /**
  * 微信小程序登录 / 注册
@@ -65,13 +64,12 @@ router.post('/login', async (req, res, next) => {
       // 如果没有传入昵称或者为默认的，随机分配一个更丰富的可爱名称
       const finalNickname = (nickname && nickname !== '神秘队友') ? nickname : DEFAULT_NICKNAMES[Math.floor(Math.random() * DEFAULT_NICKNAMES.length)];
       
-      // 如果没有传入头像或者为空，随机分配一个不同颜色的默认剪影头像
+      // 如果没有传入头像或者为空，统一分配默认的灰色剪影头像
       let finalAvatarUrl = avatarUrl;
       if (!finalAvatarUrl || finalAvatarUrl.trim() === '') {
         const host = req.get('host');
         const protocol = req.protocol;
-        const color = DEFAULT_AVATAR_COLORS[Math.floor(Math.random() * DEFAULT_AVATAR_COLORS.length)];
-        finalAvatarUrl = `${protocol}://${host}/uploads/default_avatars/avatar_${color}.png`;
+        finalAvatarUrl = `${protocol}://${host}/uploads/default_avatars/avatar_gray.png`;
       }
 
       const result = await db.run(
