@@ -38,16 +38,16 @@ router.post('/login', async (req, res, next) => {
     const now = new Date().toISOString();
 
     if (user) {
-      // 用户已存在，只有在原有昵称为空或系统默认昵称时，才覆盖更新为传入的昵称
+      // 用户已存在，防止空参数或模拟登录把用户已有昵称和头像抹除
       const isDefault = !user.nickname || user.nickname === '神秘队友' || user.nickname === '模拟测试用户' || user.nickname === '本地测试用户' || user.nickname === '微信用户';
       const targetNickname = isDefault ? (nickname || user.nickname) : user.nickname;
-      if (nickname || avatarUrl) {
-        await db.run(
-          'UPDATE users SET nickname = ?, avatar_url = COALESCE(?, avatar_url), updated_at = ? WHERE id = ?',
-          [targetNickname, avatarUrl, now, user.id]
-        );
-        user = await db.get('SELECT * FROM users WHERE id = ?', [user.id]);
-      }
+      const targetAvatarUrl = (avatarUrl && avatarUrl.trim() !== '') ? avatarUrl : user.avatar_url;
+
+      await db.run(
+        'UPDATE users SET nickname = ?, avatar_url = ?, updated_at = ? WHERE id = ?',
+        [targetNickname, targetAvatarUrl, now, user.id]
+      );
+      user = await db.get('SELECT * FROM users WHERE id = ?', [user.id]);
     } else {
       // 用户不存在，执行注册
       const pairCode = await generateUniquePairCode(db);
