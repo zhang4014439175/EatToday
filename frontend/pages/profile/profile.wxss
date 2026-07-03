@@ -15,6 +15,22 @@
   flex-shrink: 0;
 }
 
+.avatar-btn {
+  padding: 0 !important;
+  background: transparent !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  width: 120rpx !important;
+  height: 120rpx !important;
+  border-radius: 36rpx !important;
+  border: none !important;
+  flex-shrink: 0;
+}
+
+.avatar-btn::after {
+  border: none !important;
+}
+
 .user-meta {
   margin-left: 32rpx;
   flex: 1;

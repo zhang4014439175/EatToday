@@ -10,7 +10,12 @@ import dateRouter from './routes/date.js';
 import kitchenRouter from './routes/kitchen.js';
 import calendarRouter from './routes/calendar.js';
 import spaceRouter from './routes/space.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { initWebSocketServer } from './services/websocket.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // 加载环境变量
 dotenv.config();
@@ -22,6 +27,7 @@ const PORT = process.env.PORT || 3000;
 // 配置中间件
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // 挂载路由
 app.use('/api/auth', authRouter);

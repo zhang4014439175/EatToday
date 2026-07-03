@@ -293,6 +293,83 @@ Page({
   },
 
   /**
+   * 修改个人昵称
+   */
+  editNickname() {
+    const currentNickname = this.data.userInfo.nickname || '';
+    wx.showModal({
+      title: '修改个人昵称',
+      editable: true,
+      placeholderText: '请输入新昵称',
+      content: currentNickname,
+      success: async (res) => {
+        if (res.confirm && res.content.trim()) {
+          const newName = res.content.trim();
+          if (newName === currentNickname) return;
+          
+          try {
+            wx.showLoading({ title: '修改中...' });
+            const updateRes = await request({
+              url: '/auth/update-profile',
+              method: 'POST',
+              data: { nickname: newName }
+            });
+            wx.showToast({ title: '修改成功', icon: 'success' });
+            this.setData({ 'userInfo.nickname': newName });
+            
+            // 同步更新全局及缓存
+            const app = getApp();
+            if (app) app.globalData.userInfo = updateRes.user;
+            wx.setStorageSync('userInfo', JSON.stringify(updateRes.user));
+          } catch (err) {
+            wx.showToast({ title: err.message || '修改失败', icon: 'none' });
+          } finally {
+            wx.hideLoading();
+          }
+        }
+      }
+    });
+  },
+
+  /**
+   * 选择微信头像进行上传
+   */
+  onChooseAvatar(e) {
+    const avatarUrl = e.detail.avatarUrl;
+    if (!avatarUrl) return;
+
+    wx.getFileSystemManager().readFile({
+      filePath: avatarUrl,
+      encoding: 'base64',
+      success: async (res) => {
+        const base64 = res.data;
+        try {
+          wx.showLoading({ title: '上传头像中...' });
+          const updateRes = await request({
+            url: '/auth/upload-avatar',
+            method: 'POST',
+            data: { avatarBase64: base64 }
+          });
+          wx.showToast({ title: '更换头像成功', icon: 'success' });
+          this.setData({ 'userInfo.avatar_url': updateRes.avatarUrl });
+          
+          // 同步更新全局及缓存
+          const app = getApp();
+          if (app) app.globalData.userInfo = updateRes.user;
+          wx.setStorageSync('userInfo', JSON.stringify(updateRes.user));
+        } catch (err) {
+          wx.showToast({ title: err.message || '上传头像失败', icon: 'none' });
+        } finally {
+          wx.hideLoading();
+        }
+      },
+      fail: (err) => {
+        wx.showToast({ title: '读取头像文件失败', icon: 'none' });
+      }
+    });
+  },
+
+  /**
    * 退出登录
    */
   handleLogout() {

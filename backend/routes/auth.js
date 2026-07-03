@@ -1,9 +1,15 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { getDB, ensureUserHasSpace } from '../db.js';
 import { code2Session } from '../services/wechat.js';
 import { generateUniquePairCode, bindPartnerTransaction } from '../services/pairing.js';
 import { authMiddleware } from '../middleware/auth.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 const TOKEN_SECRET = process.env.TOKEN_SECRET || 'eat_today_default_secret_key_change_me_in_production';
@@ -16,7 +22,7 @@ const pairRateLimitCache = new Map();
  * POST /api/auth/login
  */
 router.post('/login', async (req, res, next) => {
-  const { code, nickname, avatarUrl } = req.body;
+  const { code, nickname, avatarUrl, platform } = req.body;
 
   if (!code) {
     return res.status(400).json({ error: 'ValidationError', message: '缺少登录 code' });
@@ -26,17 +32,19 @@ router.post('/login', async (req, res, next) => {
     const db = getDB();
     
     // 换取微信 openid
-    const { openid } = await code2Session(code);
+    const { openid } = await code2Session(code, platform || 'mp');
     
     let user = await db.get('SELECT * FROM users WHERE openid = ?', [openid]);
     const now = new Date().toISOString();
 
     if (user) {
-      // 用户已存在，如有传入新昵称/头像则更新
+      // 用户已存在，只有在原有昵称为空或系统默认昵称时，才覆盖更新为传入的昵称
+      const isDefault = !user.nickname || user.nickname === '神秘队友' || user.nickname === '模拟测试用户' || user.nickname === '本地测试用户' || user.nickname === '微信用户';
+      const targetNickname = isDefault ? (nickname || user.nickname) : user.nickname;
       if (nickname || avatarUrl) {
         await db.run(
-          'UPDATE users SET nickname = COALESCE(?, nickname), avatar_url = COALESCE(?, avatar_url), updated_at = ? WHERE id = ?',
-          [nickname, avatarUrl, now, user.id]
+          'UPDATE users SET nickname = ?, avatar_url = COALESCE(?, avatar_url), updated_at = ? WHERE id = ?',
+          [targetNickname, avatarUrl, now, user.id]
         );
         user = await db.get('SELECT * FROM users WHERE id = ?', [user.id]);
       }
@@ -71,6 +79,74 @@ router.post('/login', async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  }
+});
+
+/**
+ * 更新个人信息 (昵称 / 头像)
+ * POST /api/auth/update-profile
+ */
+router.post('/update-profile', authMiddleware, async (req, res, next) => {
+  const { nickname, avatarUrl } = req.body;
+  const db = getDB();
+  const now = new Date().toISOString();
+  try {
+    await db.run(
+      'UPDATE users SET nickname = COALESCE(?, nickname), avatar_url = COALESCE(?, avatar_url), updated_at = ? WHERE id = ?',
+      [nickname || null, avatarUrl || null, now, req.user.id]
+    );
+    const user = await db.get('SELECT * FROM users WHERE id = ?', [req.user.id]);
+    delete user.openid;
+    res.status(200).json({ success: true, user });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * 上传头像 (直接接收 Base64 格式，保存到服务器本地 /uploads/avatars 目录下)
+ * POST /api/auth/upload-avatar
+ */
+router.post('/upload-avatar', authMiddleware, async (req, res, next) => {
+  const { avatarBase64 } = req.body;
+  if (!avatarBase64) {
+    return res.status(400).json({ error: 'ValidationError', message: '缺少 avatarBase64 参数' });
+  }
+
+  const db = getDB();
+  const now = new Date().toISOString();
+
+  try {
+    const buffer = Buffer.from(avatarBase64, 'base64');
+    const fileName = `avatar_${req.user.id}_${Date.now()}.png`;
+    const dirPath = path.join(__dirname, '../uploads/avatars');
+
+    // 确保上传目录存在
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+    }
+
+    const filePath = path.join(dirPath, fileName);
+    fs.writeFileSync(filePath, buffer);
+
+    // 动态拼接服务器可访问的静态资源绝对 URL (支持真机访问本地或公网服务器)
+    const host = req.get('host');
+    const protocol = req.protocol;
+    const publicUrl = `${protocol}://${host}/uploads/avatars/${fileName}`;
+
+    // 更新用户头像 URL
+    await db.run(
+      'UPDATE users SET avatar_url = ?, updated_at = ? WHERE id = ?',
+      [publicUrl, now, req.user.id]
+    );
+
+    const user = await db.get('SELECT * FROM users WHERE id = ?', [req.user.id]);
+    delete user.openid;
+
+    res.status(200).json({ success: true, avatarUrl: publicUrl, user });
+  } catch (err) {
+    console.error('[Upload Avatar] Error:', err);
+    next(err);
   }
 });
 

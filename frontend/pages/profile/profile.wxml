@@ -1,9 +1,15 @@
 <view class="container">
   <!-- 1. 用户头像与基础登录块 -->
   <view class="card profile-header flex-row">
-    <image class="avatar" src="{{userInfo.avatar_url || '/images/default_avatar.png'}}" mode="aspectFill" />
+    <!-- 头像容器：如果登录了点击可更换头像 -->
+    <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar" wx:if="{{isLogin}}">
+      <image class="avatar" src="{{userInfo.avatar_url || '/images/default_avatar.png'}}" mode="aspectFill" style="margin: 0;" />
+    </button>
+    <image class="avatar" src="/images/default_avatar.png" mode="aspectFill" wx:else />
     <view class="user-meta" wx:if="{{isLogin}}">
-      <view class="nickname">{{userInfo.nickname}}</view>
+      <view class="nickname" bindtap="editNickname" style="display: flex; align-items: center; gap: 8rpx;">
+        {{userInfo.nickname}} <text style="font-size: 24rpx; opacity: 0.75;">✏️</text>
+      </view>
       <view class="user-id">配对码：{{userInfo.pair_code}} <text class="copy-link" bindtap="copyPairCode">复制</text></view>
     </view>
     <view class="user-meta" wx:else>

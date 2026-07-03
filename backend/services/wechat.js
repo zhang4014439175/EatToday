@@ -7,24 +7,45 @@ const SECRET = process.env.WECHAT_SECRET;
 
 /**
  * 微信 code 换取 openid 和 session_key
- * @param {string} code 微信小程序登录获取的临时凭证
- * @returns {Promise<{ openid: string, session_key: string }>}
+ * @param {string} code 微信小程序/App 登录获取的临时凭证
+ * @param {string} platform 平台标识，'mp' 为小程序，'app' 为 Android/iOS App
+ * @returns {Promise<{ openid: string, session_key: string|null, unionid: string|null }>}
  */
-export async function code2Session(code) {
+export async function code2Session(code, platform = 'mp') {
+  let appId = process.env.WECHAT_APPID;
+  let secret = process.env.WECHAT_SECRET;
+
+  if (platform === 'app') {
+    appId = process.env.ANDROID_APP_APPID || process.env.WECHAT_APPID;
+    secret = process.env.ANDROID_APP_SECRET || process.env.WECHAT_SECRET;
+  }
+
   // 如果未配置微信密钥，或 code 是 mock_ 开头，则进入本地 Mock 调试模式
-  const isMockEnv = !APPID || !SECRET || APPID.includes('mock') || SECRET.includes('mock') || APPID.includes('your_wechat');
+  const isMockEnv = !appId || !secret || appId.includes('mock') || secret.includes('mock') || appId.includes('your_wechat');
   const isMockCode = code && code.startsWith('mock_');
 
   if (isMockEnv || isMockCode) {
-    const mockOpenid = `mock_openid_${code ? code.replace('mock_', '') : 'default_user'}`;
-    console.log(`[WeChat Service] 启用 Mock 登录模式. Code: ${code} => OpenID: ${mockOpenid}`);
+    // 真机发送的真实 code (没有 mock_ 前缀) 映射为固定的测试账号以防止用户变动
+    const isRealPhoneCode = code && !code.startsWith('mock_');
+    const mockOpenid = isRealPhoneCode 
+      ? 'mock_openid_phone_test' 
+      : `mock_openid_${code ? code.replace('mock_', '') : 'default_user'}`;
+
+    console.log(`[WeChat Service] 启用 Mock 登录模式. Platform: ${platform}, Code: ${code} => OpenID: ${mockOpenid}`);
     return {
       openid: mockOpenid,
-      session_key: 'mock_session_key_for_local_debugging'
+      session_key: 'mock_session_key_for_local_debugging',
+      unionid: 'mock_unionid_for_debugging'
     };
   }
 
-  const url = `https://api.weixin.qq.com/sns/jscode2session?appid=${APPID}&secret=${SECRET}&js_code=${code}&grant_type=authorization_code`;
+  // 微信授权接口针对小程序与原生 App 分别使用不同的验证 URL
+  let url = '';
+  if (platform === 'app') {
+    url = `https://api.weixin.qq.com/sns/oauth2/access_token?appid=${appId}&secret=${secret}&code=${code}&grant_type=authorization_code`;
+  } else {
+    url = `https://api.weixin.qq.com/sns/jscode2session?appid=${appId}&secret=${secret}&js_code=${code}&grant_type=authorization_code`;
+  }
 
   try {
     const response = await fetch(url);
@@ -39,10 +60,11 @@ export async function code2Session(code) {
 
     return {
       openid: data.openid,
-      session_key: data.session_key
+      session_key: data.session_key || null,
+      unionid: data.unionid || null
     };
   } catch (error) {
-    console.error('[WeChat Service] code2Session 失败:', error);
+    console.error(`[WeChat Service] code2Session 失败 (${platform}):`, error);
     throw error;
   }
 }
