@@ -151,6 +151,51 @@ router.post('/upload-avatar', authMiddleware, async (req, res, next) => {
 });
 
 /**
+ * 注销账号 (删除用户自身、解绑伴侣关系、并销毁该用户的个人空间)
+ * POST /api/auth/delete-account
+ */
+router.post('/delete-account', authMiddleware, async (req, res, next) => {
+  const db = getDB();
+  const userId = req.user.id;
+  const partnerId = req.user.partner_id;
+
+  try {
+    await db.run('BEGIN IMMEDIATE TRANSACTION;');
+
+    // 1. 解除伴侣配对关系
+    if (partnerId) {
+      const now = new Date().toISOString();
+      await db.run('UPDATE users SET partner_id = NULL, updated_at = ? WHERE id = ?', [now, partnerId]);
+    }
+
+    // 2. 找到该用户拥有的个人空间 (Solo Spaces)
+    const soloSpaces = await db.all(
+      `SELECT s.id FROM spaces s
+       JOIN space_members sm ON s.id = sm.space_id
+       WHERE sm.user_id = ? AND s.type = 'solo'`,
+      [userId]
+    );
+
+    // 3. 删除个人空间 (由于级联约束 ON DELETE CASCADE，关联的成员、日常、吃什么等记录会自动同步清理)
+    for (const space of soloSpaces) {
+      await db.run('DELETE FROM spaces WHERE id = ?', [space.id]);
+    }
+
+    // 4. 从数据库彻底抹除用户主体 (级联清理 space_members)
+    await db.run('DELETE FROM users WHERE id = ?', [userId]);
+
+    await db.run('COMMIT;');
+    res.status(200).json({ success: true, message: '您的账号已彻底注销' });
+  } catch (err) {
+    try {
+      await db.run('ROLLBACK;');
+    } catch (rbErr) {}
+    console.error('[Delete Account] Error:', err);
+    next(err);
+  }
+});
+
+/**
  * 获取当前用户信息及伴侣信息
  * GET /api/auth/me
  */

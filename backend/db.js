@@ -422,7 +422,7 @@ async function migrateToMultiSpace(db) {
 
     // 如果是没有配对的单身用户，创建一个 Solo 空间
     const code = await generateUniqueSpaceCode(db);
-    const spaceName = `${freshUser.nickname || '用户'} 的个人空间`;
+    const spaceName = '我的个人空间';
     const spaceResult = await db.run(
       'INSERT INTO spaces (name, code, type, created_by, created_at) VALUES (?, ?, ?, ?, ?)',
       [spaceName, code, 'solo', freshUser.id, nowStr]
@@ -583,7 +583,7 @@ export async function ensureUserHasSpace(db, user, now = new Date().toISOString(
     }
 
     const code = await generateUniqueSpaceCode(db);
-    const spaceName = `${user.nickname || '用户'} 的个人空间`;
+    const spaceName = '我的个人空间';
     const spaceResult = await db.run(
       'INSERT INTO spaces (name, code, type, created_by, created_at) VALUES (?, ?, ?, ?, ?)',
       [spaceName, code, 'solo', user.id, now]

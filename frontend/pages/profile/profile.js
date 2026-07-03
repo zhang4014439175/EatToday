@@ -383,5 +383,45 @@ Page({
         }
       }
     });
+  },
+
+  /**
+   * 注销账号 (删除用户自身所有数据，重归新用户状态)
+   */
+  handleDeleteAccount() {
+    wx.showModal({
+      title: '⚠️ 警告：注销账号',
+      content: '注销后，您的所有点单记录、日常日程、个人空间都将被彻底删除且不可恢复！确定注销吗？',
+      confirmColor: '#FF4D4F',
+      success: (res) => {
+        if (res.confirm) {
+          wx.showModal({
+            title: '最后确认',
+            content: '注销操作是不可逆的。确认立即销毁账号并作为新用户重新开始？',
+            confirmColor: '#FF4D4F',
+            success: async (doubleCheck) => {
+              if (doubleCheck.confirm) {
+                try {
+                  wx.showLoading({ title: '注销中...' });
+                  await request({
+                    url: '/auth/delete-account',
+                    method: 'POST'
+                  });
+                  wx.showToast({ title: '账号已注销', icon: 'success' });
+                  
+                  // 本地清空状态并重新检查
+                  logout();
+                  this.checkLoginState();
+                } catch (err) {
+                  wx.showToast({ title: err.message || '注销失败', icon: 'none' });
+                } finally {
+                  wx.hideLoading();
+                }
+              }
+            }
+          });
+        }
+      }
+    });
   }
 });

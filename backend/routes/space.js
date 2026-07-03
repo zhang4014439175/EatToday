@@ -316,7 +316,7 @@ router.post('/leave', authMiddleware, async (req, res, next) => {
         // 万一没有，创建一个默认 solo 空间
         const now = new Date().toISOString();
         const code = await generateUniqueSpaceCode(db);
-        const name = `${req.user.nickname || '用户'} 的个人空间`;
+        const name = '我的个人空间';
         
         const soloResult = await db.run(
           'INSERT INTO spaces (name, code, type, created_by, created_at) VALUES (?, ?, ?, ?, ?)',

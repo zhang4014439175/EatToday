@@ -7,8 +7,8 @@
     </button>
     <image class="avatar" src="/images/default_avatar.png" mode="aspectFill" wx:else />
     <view class="user-meta" wx:if="{{isLogin}}">
-      <view class="nickname" bindtap="editNickname" style="display: flex; align-items: center; gap: 8rpx;">
-        {{userInfo.nickname}} <text style="font-size: 24rpx; opacity: 0.75;">✏️</text>
+      <view class="nickname" bindtap="editNickname">
+        {{userInfo.nickname}}
       </view>
       <view class="user-id">配对码：{{userInfo.pair_code}} <text class="copy-link" bindtap="copyPairCode">复制</text></view>
     </view>
@@ -122,6 +122,7 @@
     </view>
 
     <button class="btn btn-secondary logout-btn" hover-class="btn-secondary-hover" bindtap="handleLogout">退出登录</button>
+    <button class="btn btn-danger delete-account-btn" hover-class="btn-danger-hover" bindtap="handleDeleteAccount" style="margin-top: 24rpx; background-color: #FFF2F0; color: #FF4D4F; border: 1rpx solid #FFA39E; border-radius: 999rpx; font-weight: 800; font-size: 26rpx; height: 88rpx; line-height: 88rpx; width: 100%;">注销并销毁账号</button>
   </view>
 
   <!-- 5. 占位默认头像图生成说明（无需展示给用户） -->
